@@ -30,6 +30,18 @@ function openDialog(id){
 	window.location.replace("dialog?id=" + id);
 }
 
+function sendMessage(btn, user_id){
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+	let message = $("#message_dialog").val().trim();
+
+    var empty_pattern = /^\s+$/g;
+	if(message.match(empty_pattern)){
+		alert("Заполните поле");
+		btn.removeAttribute('disabled');
+		return;}
+
+}
+
 
 
 

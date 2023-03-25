@@ -7,11 +7,11 @@
       </header>
       <div class="w3-container w3-padding">
 
-		<textarea id="message_txt" class="w3-input w3-border" rows="5" maxlength="1000" type="text" required></textarea>
+		<textarea id="message_dialog" class="w3-input w3-border" rows="5" maxlength="1000" type="text" required></textarea>
 
       </div>
       <footer class="w3-container w3-teal">
-        <input type = "button" onclick="sendMessage(event, this, {{ user_info.id }})"
+        <input type = "button" onclick="sendMessage(this, {{ user_info.id }})"
                class="w3-button w3-indigo w3-hover-light-grey w3-margin-top w3-margin-bottom w3-center"
                style = "width:100%" value = "Написать">
       </footer>
