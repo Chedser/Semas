@@ -646,7 +646,7 @@ class Forum:
         res["id"] = id
         res["creator_id"] = creatorId
         res["name"] = forum_name
-        res["message"] = Message.truncate(message, 256)
+        res["message"] = Message.tolink(message)
         res["date"] = date
         res["nick"] = nick
         res["avatar"] = avatar
