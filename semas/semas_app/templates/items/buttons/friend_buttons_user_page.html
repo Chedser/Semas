@@ -1,0 +1,14 @@
+ {% if friend_status > 1 and not user_info.is_blocked %}
+
+			{% if friend_status == 2 %}
+				<input type = "button" onclick="sendFriendRequest(this,{{ user_info.id }})" class="w3-button w3-indigo w3-hover-teal w3-margin-bottom w3-center" style = "width:100%" value = "В друзья">
+			{% elif friend_status == 3 %}
+				<input type = "button" onclick="cancelFriendRequest(this,{{ user_info.id }})" class="w3-button w3-grey w3-hover-teal w3-margin-bottom w3-center" style = "width:100%" value = "Отменить заявку">
+			{% elif  friend_status == 4 %}
+				<input type = "button" id="accept_friend_request_btn{{ user_info.id }}" onclick="acceptFriendRequest(this,{{ user_info.id }})" class="w3-button w3-yellow w3-hover-teal w3-margin-bottom w3-center" style = "width:100%" value = "Принять">
+				<input type = "button" id="cancel_friend_request_btn{{ user_info.id }}" onclick="cancelFriendRequest(this,{{ user_info.id }},1)" class="w3-button w3-grey w3-hover-teal w3-margin-bottom w3-center" style = "width:100%" value = "Отклонить">
+			{% elif  friend_status == 5 %}
+				<input type = "button" id="delete_friend_btn{{ user_info.id }}" onclick="deleteFriend(this,{{ user_info.id }})" class="w3-button w3-grey w3-hover-teal w3-margin-bottom w3-center" style = "width:100%" value = "Убрать из друзей">
+			
+			{% endif %}
+{% endif %}

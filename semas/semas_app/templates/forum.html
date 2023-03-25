@@ -1,19 +1,19 @@
-{% load static %}
 <!DOCTYPE html>
+{% load static %}
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="{% static "images/favicon.ico" %}" type="image/x-icon">
-<link rel="stylesheet" type="text/css" href="{% static "css/main.css" %}">
-<link rel="stylesheet" type="text/css" href="{% static "css/w3.css" %}">
+<link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/w3.css' %}">
 
 <link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<script src="{% static "js/jQuery.min.js" %}"></script>
-	<script src="{% static "js/items_controller.js" %}"></script>
-	<script src="{% static "js/friends.js" %}"></script>
-	<script src="{% static "js/forum.js" %}"></script>
+	<script src="{% static 'js/jQuery.min.js' %}"></script>
+	<script src="{% static 'js/items_controller.js' %}"></script>
+	<script src="{% static 'js/friends.js' %}"></script>
+	<script src="{% static 'js/forum.js' %}"></script>
 	<style>
 html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
 textarea{resize:none;}
@@ -51,7 +51,8 @@ textarea{resize:none;}
 	<div class="w3-container">
 		{% for message in messages %}
 			<div class="w3-container w3-card w3-white w3-round w3-margin"><br>
-			<a href = "{{message.sender_id}}" target="_blank"><img src="{% static message.avatar %}" alt="Avatar" class="w3-left w3-circle w3-margin-right avatar" style="width:60px">
+			<a href = "{{message.sender_id}}" target="_blank">
+				<img src="{% static message.avatar %}" alt="Avatar" class="w3-left w3-circle w3-margin-right avatar" style="width:60px;height:60px;" />
 			<h4>{{ message.nick }}</h4>
 			</a><br>
 			<span class="w3-right w3-opacity small">{{ message.date }}</span>
