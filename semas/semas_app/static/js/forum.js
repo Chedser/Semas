@@ -5,8 +5,10 @@ function forum_create(){
 	let forum_msg = $("#forum_msg").val().trim();
 	
 	var empty_pattern = /^\s+$/g;
-	if(forum_topic.match(empty_pattern) ||
-		forum_topic.match(empty_pattern)){ 
+	if(forum_topic === "" || forum_forum_msg === "" ||
+	    forum_topic.match(empty_pattern) ||
+		forum_msg.match(empty_pattern) ||
+		){
 		alert("Заполните поля");
 		$("#forum_create_btn").removeAttr("disabled");
 		return;}

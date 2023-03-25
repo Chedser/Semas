@@ -121,3 +121,7 @@ def forum_create(request):
 def forum_send_message(request):
     if request.method == "POST":
         return Forum.send_message(request)
+
+def message_send(request):
+    if request.method == "POST":
+        pass
