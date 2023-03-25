@@ -648,7 +648,7 @@ class Forum:
             tmp["nick"] = nick
             tmp["avatar"] = avatar
             result.append(tmp)
-            return result
+        return result
 
     def __parse_forum_info(forum):
         id = forum[0]
