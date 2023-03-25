@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from settings import *
 import os
 
+
 class Message:
     def tolink(txt):
         import re
@@ -14,9 +15,9 @@ class Message:
         pattern1 = r'\b((?:https?://)(?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?(?:/[\w\.-]*)*/?)\b'
         pattern2 = r'\b((?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?(?:/[\w\.-]*)*/?)\b'
         result = html.escape(txt)
-        if re.findall(pattern1,result):
+        if re.findall(pattern1, result):
             result = re.sub(pattern1, r'<a href=\1 target=_blank>\1</a>', result)
-        elif re.findall(pattern2,result):
+        elif re.findall(pattern2, result):
             result = re.sub(pattern2, r'<a href=//\1 target=_blank>\1</a>', result)
         return result
 
@@ -39,7 +40,7 @@ class Auth:
         user_id = 0
 
         if "admin" in login.lower() or \
-            "админ" in login.lower():
+                "админ" in login.lower():
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         try:
@@ -64,6 +65,7 @@ class Auth:
         finally:
             con.close()
         return JsonResponse({'message': Response.SUCCESS.value, 'id': user_id})
+
 
 class Reg:
     def reg(request):
@@ -180,6 +182,7 @@ class MessageWall:
             result.append(tmp)
         return result
 
+
 class User:
     def get_info(user_id):
         try:
@@ -212,7 +215,7 @@ class User:
         result["is_blocked"] = is_blocked
         result["time_of_last_action"] = time_of_last_action
         result["is_online"] = User.__is_online(time_of_last_action)
-        result["avatar"] = User.get_avatar_link(avatar,user_id)
+        result["avatar"] = User.get_avatar_link(avatar, user_id)
         return result
 
     def get_avatar_link(avatar, user_id):
@@ -223,7 +226,7 @@ class User:
         return link
 
     def __is_online(time_of_last_action):
-        return ( ((int)(time.time()) - time_of_last_action) < 300 )
+        return (((int)(time.time()) - time_of_last_action) < 300)
 
     def update_time_of_last_action(cookie_user_id):
         if not cookie_user_id: return None
@@ -240,9 +243,7 @@ class User:
             con.close()
 
 
-
 class File:
-
     # расширения файлов, которые разрешено загружать
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -255,7 +256,7 @@ class File:
     def __rename_file(content_type):
         return f"{int(time.time())}.{File.__get_extension(content_type)}"
 
-    def __upload_file(file,url):
+    def __upload_file(file, url):
         with open(url, 'wb+') as destination:
             for chunk in file.chunks():
                 destination.write(chunk)
@@ -265,8 +266,8 @@ class File:
 
         avatar = request.FILES.get("avatar")
         if request.COOKIES.get("id") and \
-            request.POST.get("MAX_FILE_SIZE") and \
-            avatar:
+                request.POST.get("MAX_FILE_SIZE") and \
+                avatar:
             max_file_size_client = (int)(request.POST.get("MAX_FILE_SIZE"))
             cookie_user_id = int(request.COOKIES.get("id"))
         else:
@@ -281,7 +282,7 @@ class File:
 
         url = f'./semas_app/static/images/avatars/{cookie_user_id}/{new_file_name}'
 
-        File.__upload_file(avatar,url)
+        File.__upload_file(avatar, url)
 
         try:
             con = sqlite3.connect(DB_NAME)
@@ -298,6 +299,7 @@ class File:
             con.close()
 
         return JsonResponse({'message': Response.SUCCESS.value})
+
 
 class Friend:
     def get_friend_requests_count(cookie_user_id):
@@ -350,7 +352,7 @@ class Friend:
 
     def get_friend_request_status(cookie_user_id: int, user_id):
         if not cookie_user_id: return FriendStatus.UNAUTHED.value
-        if cookie_user_id == user_id: return FriendStatus.SAME_PAGE.value #Сидим на своей странице
+        if cookie_user_id == user_id: return FriendStatus.SAME_PAGE.value  # Сидим на своей странице
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -359,7 +361,8 @@ class Friend:
             result_request = cur.execute(
                 f"SELECT friend1, friend2 FROM friend_request WHERE (friend1={(int)(cookie_user_id)} \
                              AND friend2={user_id}) OR (friend1={(int)(user_id)} AND friend2={cookie_user_id})").fetchall()
-            if len(result_friends) == 0 and len(result_request) == 0: return FriendStatus.NOT_FRIEND.value  # В друзьях нет в заявках тоже
+            if len(result_friends) == 0 and len(
+                result_request) == 0: return FriendStatus.NOT_FRIEND.value  # В друзьях нет в заявках тоже
             if len(result_friends) == 0 and len(result_request) == 1:  # В друзьях нет в заявках есть
                 if result_request[0][0] == cookie_user_id:
                     return FriendStatus.CANCEL_REQUEST.value  # Заявку отправил куки юзер. Отменить заявку
@@ -384,7 +387,7 @@ class Friend:
         if not user_id: return JsonResponse({'message': Response.WRONG_INPUT.value})
         user_id = (int)(user_id)
 
-        if cookie_user_id == user_id: #Самому себе нельзя отправлять запрос
+        if cookie_user_id == user_id:  # Самому себе нельзя отправлять запрос
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         try:
             con = sqlite3.connect(DB_NAME)
@@ -418,7 +421,7 @@ class Friend:
         if not user_id: return JsonResponse({'message': Response.WRONG_INPUT.value})
         user_id = (int)(user_id)
 
-        if cookie_user_id == user_id: #Самому себе нельзя отправлять запрос
+        if cookie_user_id == user_id:  # Самому себе нельзя отправлять запрос
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         try:
             con = sqlite3.connect(DB_NAME)
@@ -444,7 +447,7 @@ class Friend:
         if not user_id: return JsonResponse({'message': Response.WRONG_INPUT.value})
         user_id = (int)(user_id)
 
-        if cookie_user_id == user_id: #Самому себе нельзя отправлять запрос
+        if cookie_user_id == user_id:  # Самому себе нельзя отправлять запрос
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         try:
             con = sqlite3.connect(DB_NAME)
@@ -512,7 +515,7 @@ class Friend:
                 tmp = dict()
                 tmp["id"] = current_user[0]
                 tmp["nick"] = result2[0][0]
-                avatar = User.get_avatar_link(result2[0][1],current_user[0])
+                avatar = User.get_avatar_link(result2[0][1], current_user[0])
                 tmp["avatar"] = avatar
                 total.append(tmp)
 
@@ -524,37 +527,37 @@ class Friend:
             con.close()
 
     def get_friends_user_page(cookie_user, limit):
-            if not cookie_user: return None
+        if not cookie_user: return None
 
-            try:
-                con = sqlite3.connect(DB_NAME)
-                cur = con.cursor()
-                result = cur.execute(f"SELECT friend1, friend2 FROM friend \
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            result = cur.execute(f"SELECT friend1, friend2 FROM friend \
                         WHERE friend1={(int)(cookie_user)} OR friend2={(int)(cookie_user)} LIMIT {limit}").fetchall()
-                if len(result) == 0: return {}
+            if len(result) == 0: return {}
 
-                total = list()
-                for user in result:
-                    current_user = list()
-                    if user[0] != cookie_user:
-                        current_user.append(user[0])
-                    elif user[1] != cookie_user:
-                        current_user.append(user[1])
-                    result2 = cur.execute(f"SELECT nick, avatar FROM user \
+            total = list()
+            for user in result:
+                current_user = list()
+                if user[0] != cookie_user:
+                    current_user.append(user[0])
+                elif user[1] != cookie_user:
+                    current_user.append(user[1])
+                result2 = cur.execute(f"SELECT nick, avatar FROM user \
                                         WHERE id={current_user[0]}").fetchall()
-                    tmp = dict()
-                    tmp["id"] = current_user[0]
-                    tmp["nick"] = result2[0][0]
-                    avatar = User.get_avatar_link(result2[0][1], current_user[0])
-                    tmp["avatar"] = avatar
-                    total.append(tmp)
+                tmp = dict()
+                tmp["id"] = current_user[0]
+                tmp["nick"] = result2[0][0]
+                avatar = User.get_avatar_link(result2[0][1], current_user[0])
+                tmp["avatar"] = avatar
+                total.append(tmp)
 
-                return total
-            except sqlite3.Error as error:
-                con.rollback()
-                print(f"DataBase error {error.__str__()}")
-            finally:
-                con.close()
+            return total
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+        finally:
+            con.close()
 
     def __parse_friend_requests(friend_requests):
         result = list()
@@ -570,18 +573,18 @@ class Friend:
             result.append(tmp)
         return result
 
+
 class Forum:
-    @staticmethod
     def create_forum(request):
         if request.COOKIES.get("id"):
             cookie_user_id = int(request.COOKIES.get("id"))
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
-        
+
         message = request.POST.get('message').strip()
         topic = request.POST.get('topic').strip()
 
-        if len(message)==0 or len(topic)==0:
+        if len(message) == 0 or len(topic) == 0:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         try:
@@ -708,7 +711,6 @@ class Forum:
         finally:
             con.close()
 
-    @staticmethod
     def send_message(request):
         if request.COOKIES.get("id"):
             cookie_user_id = int(request.COOKIES.get("id"))
@@ -737,7 +739,6 @@ class Forum:
         finally:
             con.close()
 
-    @staticmethod
     def get_forum_info(id):
         try:
             con = sqlite3.connect(DB_NAME)
@@ -755,4 +756,3 @@ class Forum:
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
-        
