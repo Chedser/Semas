@@ -1,0 +1,52 @@
+{% extends "./base.html" %}
+{% block content %}
+
+{% if not session_user['class1999'] %}
+	<script>
+		$(document).ready(function(){
+		  window.location.replace('/');
+		});
+	</script>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/superuser.js') }}"></script>
+
+<h1>Суперпользователь</h1>
+<main class = "w3-container w3-content w3-card-4 w3-white w3-border w3-round w3-border-light-blue" style = "max-width:650px">
+
+
+  <table class="w3-table-all w3-card-4">
+	{% if users %}
+	
+    <tr>
+      <th>Индекс</th>
+      <th>Имя</th>
+      <th>Фамилия</th>
+	  <th>Дата</th>
+	  <th>Заблокирован</th>
+	  <th></th>
+    </tr>
+
+		{% for user in users %}
+				
+			<tr>
+				<td>{{ user[0] }}</td>
+				<td> {{ user[1] }}</td>
+				<td>{{ user[2] }}</td>
+				<td>{{ user[4] }}</td>
+				<td id="status_tr_{{ user[0] }}">{{ user[3] }}</td>
+				{% if user[3] == 0 %}
+					<td><a class="underline" onclick="blockUser(this,{{user[0]}})">Заблокировать</a></td>
+				{% else %}
+					<td><a class="underline" onclick="blockUser(this,{{user[0]}})">Разблокировать</a></td>
+				{% endif %}
+			</tr>
+			
+			 
+	  
+		{% endfor %}
+
+	{%endif %}
+  </table>
+</main>
+{% endblock content %}

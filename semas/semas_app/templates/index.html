@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+
+    <!-- Обязательные мета-теги -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" href="{% static "images/favicon.ico" %}" type="image/x-icon">
+	<link rel="stylesheet" type="text/css" href="{% static "css/w3.css" %}">
+	<link rel="stylesheet" type="text/css" href="{% static "css/main.css" %}">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open Sans">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="{% static "js/jQuery.min.js" %}"></script>
+	<script src="{% static "js/items_controller.js" %}"></script>
+	<script src="{% static "js/reg.js" %}"></script>
+	<script src="{% static "js/auth.js" %}"></script>
+
+<style>
+	h1,h2,h3,h4,h5,h6 {font-family: "Oswald"}
+	body {font-family: "Open Sans"}
+	textarea{
+	resize:none;
+	}
+</style>
+        <title>Социальная сеть</title>
+
+</head>
+<body>
+<center><h1>Социальная сеть</h1></center>
+
+<div class = "w3-container w3-content w3-card-4 w3-white w3-border w3-round w3-border-light-blue" style = "max-width:450px">
+<link rel="stylesheet" type="text/css" href="{% static "js/items_controller.js" %}">
+<script>
+$(document).ready(function(){
+ auth();
+ reg();
+});
+
+</script>
+<div class="w3-bar">
+  <button class="w3-bar-item w3-button" onclick="openTab('auth_form', 'index-tab')">Авторизация</button>
+  <button class="w3-bar-item w3-button" onclick="openTab('reg_form', 'index-tab')">Регистрация</button>
+</div>
+	{% csrf_token %}
+	<form id = "auth_form" class="w3-left-align index-tab">  
+	  <h2>Авторизация</h2>
+		  <label>E-mail</label>
+		  <input class="w3-input w3-border w3-round" id="login" type="email" maxlength="20" required>
+
+		  <label>Пароль</label>
+		  <input class="w3-input w3-border w3-round" id="pass" type="password" maxlength="30" required>
+			  
+		<input type = "submit" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center" style = "width:100%" value = "OK">
+	</form>
+
+	<form id="reg_form" class="w3-left-align index-tab" style="display:none" enctype="application/x-www-form-urlencoded">
+	  
+	  <h2>Регистрация</h2>
+		<label>E-mail</label>
+		<input class="w3-input w3-border w3-round" id="login_reg" type="email" onkeyup="this.value = this.value.replace(/\s+/gi,'');" required />
+		  
+		<label>Ник</label>
+		<input class="w3-input w3-border w3-round" id="nick_reg" type="text" maxlength="15" onkeyup="this.value = this.value.replace(/\s+/gi,'');" required />
+		  
+		<label>Пол</label>
+		<input class="w3-radio" type="radio" name="gender" value="0"/>
+		<label>Муж.</label>
+		<input class="w3-radio" type="radio" name="gender" value="1" />
+		<label>Жен.</label>
+
+		<input class="w3-radio" type="radio" name="gender" value="2" checked />
+		<label>Неизвестен</label><br />
+		  
+		  <label>Пароль</label>
+		  <input class="w3-input w3-border w3-round" id="pass_reg" type="password" pattern=".{5,}" title="5 минимум" maxlength="30" onkeyup="this.value = this.value.replace(/\s+/gi,'');" required />
+		  
+		  <label>Пароль повтор</label>
+		  <input class="w3-input w3-border w3-round" id="pass_repeat_reg" type="password" maxlength="30" onkeyup="this.value = this.value.replace(/\s+/gi,'');" required />
+			  
+		<input type = "submit" id = "reg_btn" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center" style = "width:100%" value = "OK">
+	</form>
+
+
+</div>
+
+</body>
+</html>

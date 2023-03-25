@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{% static "images/favicon.ico" %}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{% static "css/main.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/w3.css" %}">
+
+<link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="{% static "js/jQuery.min.js" %}"></script>
+	<script src="{% static "js/items_controller.js" %}"></script>
+	<script src="{% static "js/friends.js" %}"></script>
+	<script src="{% static "js/forum.js" %}"></script>
+	<style>
+html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
+textarea{resize:none;}
+</style>
+</head>
+<body>
+	{% if cookie_user_id %}
+		{% csrf_token %}
+		{% include "./items/navbar.html" %}
+	{% endif %}
+<!-- Start Content -->
+<div class="w3-content" style="max-width:1000px;">
+
+	<div class="w3-container w3-padding">
+		<div class="w3-card w3-padding w3-clear">
+			<h3>{{ forum_info.name }}</h3>
+			<hr />
+			<p>{{ forum_info.message }}</p><br />
+				<a href="../user/{{ forum_info.creator_id }}"><img src="{% static forum_info.avatar %}" class="w3-left w3-circle w3-margin-right avatar" style="width:30px" />
+				<span>{{ forum_info.nick }}</span></a><br />
+				<span class="small">{{ forum_info.date }}</span>
+			
+		</div>
+		
+		{% if cookie_user_id %}
+		<div class="w3-card w3-padding w3-margin">
+			<textarea class="w3-input w3-border" id="forum_msg" rows="3" maxlength="1000"  placeholder="Сообщение" required></textarea>
+			<input type = "button" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center" style = "width:100%" id="forum_send_message_btn" onclick="forum_send_message({{ forum_info.id }})" value = "OK">
+			
+		</div>
+		{% endif %}
+		
+	</div>
+	<hr />
+	
+	<div class="w3-container">
+		{% for message in messages %}
+		
+		<div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+			<a href = "{{message.sender_id}}" target="_blank"><img src="{% static message.avatar %}" alt="Avatar" class="w3-left w3-circle w3-margin-right avatar" style="width:60px">
+			<h4>{{ message.nick }}</h4>
+			</a><br>
+			<span class="w3-right w3-opacity small">{{ message.date }}</span>
+			
+				<hr class="w3-clear">
+			<p>
+			{{ message.message|safe }}
+			</p>
+      </div>
+		
+		{% empty %}
+		<h6 class="w3-opacity w3-center">Сообщений пока что нет</h6>
+		{% endfor %}
+	</div>
+	
+<!-- End Content -->
+</div>
+
+
+</body>
+</html>

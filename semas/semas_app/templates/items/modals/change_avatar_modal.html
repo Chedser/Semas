@@ -1,0 +1,44 @@
+	   <!-- Окно смены авы -->
+  <div id="change_avatar_modal" class="w3-modal modal">
+    <div class="w3-modal-content w3-animate-bottom w3-card-4">
+      <header class="w3-container w3-pale-green"> 
+        <span onclick="document.getElementById('change_avatar_modal').style.display='none'" 
+        class="w3-button w3-display-topright">&times;</span>
+         <h4>Сменить аватар</h4>
+      </header>
+      <div class="w3-container">
+               <p>Форматы: jpeg, png | <= 3мБ</p>
+        
+              <form id = "change_ava_form" method="POST" enctype="multipart/form-data">
+                <input id = "MAX_FILE_SIZE" name = "MAX_FILE_SIZE" type="hidden" value="3000000" />
+                <input type = "file" style = "margin-bottom: 5px" name = "ava_file" id = "ava_file" accept = "image/jpeg,image/png" 
+                        onchange = "choose_file(this)" /><br />
+    
+        <div class="container" id = "progressbar_container" style = "display:none">
+                    
+                      <div class="w3-border" >
+                              <div class="w3-green progress" id = "progressbar" style="height:24px;width:0%"></div>
+                              <span id = "progressbar_value"></span>
+                    </div>
+        </div>
+    
+    <canvas id = "ava_preview" style = "display:none">
+    </canvas>
+    
+    <div id = "errors_ava_loading_div"></div>
+    
+         <button id = "change_ava_button" type="submit" class="w3-button w3-block w3-theme" style = "display:none">Поменять</button>
+         
+      </form><br />       
+
+      <div id = "success_ava_loading_container" style = "display:none">    
+                <span>Поменял</span><br>
+                <button type="button" class="w3-button" onclick = "window.location.reload()">ОК</button><br />
+        </div>
+      </div>
+      <footer class="w3-container w3-pale-green">
+        <p></p>
+      </footer>
+    </div>
+ 
+  </div>

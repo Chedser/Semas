@@ -1,0 +1,106 @@
+{% extends "./base.html" %}
+{% block content %}
+
+{% if cookie_user %}
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=" crossorigin="anonymous"></script>
+		<script src="{{ url_for('static', filename='js/dialog_inner.js') }}"></script>
+		<script>
+		$( document ).ready(function() {
+			scrollTop();
+		});
+		</script>
+
+{% endif %}
+
+<main class = "w3-container w3-content w3-white w3-border w3-round w3-border-light-blue" style = "max-width:650px; margin-top:-44px;">
+{% include "./items/navbar.html" %}
+{{ opponent_info["first_name"] }}
+<div class="w3-container" id="chatbox">
+	{% if messages %}
+
+		{% for message in messages %}
+		  
+	 <div class="w3-container w3-card w3-white w3-round w3-margin  w3-hover-opacity dialog_lnk" ><br />
+		<a href="user?id={{ message[1] }}" target="_blank"><h6> {{ message[5] }} {{ message[6] }} </h6></a>
+		{{ message[4] }}<br />
+      <span class="w3-opacity small">{{ message[3] }}</span>
+	  </div>
+	  
+		{% endfor %}
+
+	{%endif %}
+</div>
+
+<div class="w3-container" style="margin-top:-7px">
+	<textarea class="w3-input w3-border" id="dialog_inpt" rows="3" maxlength="1000" type="text" required></textarea>
+	<input type = "button" id="send_btn" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center" style = "width:100%" value = "OK">
+	<input type="hidden" id="user_id", value={{ cookie_user }}>
+</div>
+
+<script>
+
+var socket = io();
+
+$( document ).ready(function() {
+
+ 
+/* СОБЫТИЯ СОКЕТА */
+ socket.on('connect', function() {
+
+			});
+
+ socket.on('other_client_connect', function(msg) {
+			
+			});
+
+ socket.on('disconnect', function(msg) {
+		
+				  
+    });
+	
+	
+socket.on('other_client_disconnect', function(msg) { 
+
+	    });
+ 
+ socket.on('response', function(msg) {
+
+		if(msg.dialog_id == +{{ dialog_id }}){
+		let msg_box = "<div class='w3-container w3-card w3-white w3-round w3-margin  w3-hover-opacity dialog_lnk' ><br />" +
+		"<a href='user?id=" + msg.user_id + "' target='_blank'><h6>" + msg.first_name + " " + msg.last_name + "</h6></a>" +
+		msg.message + "<br />" +
+      "<span class='w3-opacity small'>" + msg.date + "</span>" +
+	  "</div>";
+			$("#chatbox").append(msg_box);
+			$("#dialog_inpt").val("");
+			$("#send_btn").removeAttr("disabled");
+			scrollTop();
+		}
+			 			  
+    });
+});
+ 
+$("#send_btn").on("click", function(){
+	
+	let message = $("#dialog_inpt").val().trim();
+	 
+	if($("#dialog_inpt").val().trim() == ""){return;}
+	var empty_pattern = /^\s+$/g;
+	if($("#dialog_inpt").val().trim().match(empty_pattern)){ return;}
+	$(this).prop('disabled', true)
+	
+	let data = {message:message,
+				user_id:{{ cookie_user }},
+				dialog_id: {{ dialog_id }},
+				first_name: "{{ first_name }}",
+				last_name: "{{ last_name }}"};
+	
+	socket.emit('request', data);
+	
+}); 
+ 
+</script>
+
+</main>
+{% endblock content %}

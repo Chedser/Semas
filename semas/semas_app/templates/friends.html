@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="{% static "css/main.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/w3.css" %}">
+
+<link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="{% static "js/jQuery.min.js" %}"></script>
+	<script src="{% static "js/wall.js" %}"></script>
+	<script src="{% static "js/items_controller.js" %}"></script>
+	<script src="{% static "js/friends.js" %}"></script>
+</head>
+<body>
+	{% csrf_token %}
+	{% include "./items/navbar.html" %}
+<!-- Start Content -->
+<div class="w3-content" style="max-width:1400px;">
+	
+<div class="w3-bar w3-gray">
+  <button class="w3-bar-item w3-button" onclick="openTab('friends', 'tab')">Друзья</button>
+  <button class="w3-bar-item w3-button" onclick="openTab('friend_requests', 'tab')">Заявки 
+  {% if friend_requests_count %}
+  <span class = "w3-badge w3-green">{{friend_requests_count}}</span>
+  {% endif %}
+  </button>
+</div>	
+
+<div id="friends" class="w3-container tab">
+<h1>Друзья 
+{% if friends_count %}
+<span>{{friends_count}}</span>
+{% endif %}
+</h1>
+{% for friend in friends %}
+		<div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+			<a href = "{{friend.id}}" target="_blank"><img src="{% static friend.avatar %}" alt="Аватар" class="w3-left w3-circle w3-margin-right" style="width:60px">
+			<h4>{{ friend.nick }}</h4>
+			</a>
+			<br>
+	
+			<hr class="w3-clear">
+		</div>
+{% endfor %}
+
+</div>
+
+<div id="friend_requests" class="w3-container tab" style="display:none">
+<h1>Заявки 
+  {% if friend_requests_count %}
+  <span>{{friend_requests_count}}</span>
+  {% endif %}
+</h1>
+<hr />
+{% for friend_request in friend_requests %}
+		<div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+			<a href = "{{friend_request.id}}" target="_blank"><img src="{% static friend_request.avatar %}" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px">
+			<h4>{{ friend_request.nick }}</h4>
+			</a>
+			<br>
+	
+			<hr class="w3-clear">
+				<input type = "button" id="accept_friend_request_btn{{friend_request.id}}" onclick="acceptFriendRequest(this,{{friend_request.id}})" class="w3-button w3-yellow w3-hover-teal w3-margin-bottom w3-center" style = "width:50%" value = "Принять">
+				<input type = "button" id="cancel_friend_request_btn{{friend_request.id}}" onclick="cancelFriendRequest(this,{{friend_request.id}},1)" class="w3-button w3-grey w3-hover-teal w3-margin-bottom w3-center" style = "width:50%" value = "Отклонить">
+      </div>
+{% endfor %}
+
+</div>
+
+<!-- End Content -->
+</div>
+
+
+</body>
+</html>

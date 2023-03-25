@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+<title>{{user_info.nick}}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{% static "images/favicon.ico" %}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{% static "css/main.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/w3.css" %}">
+
+<link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+{% if is_authed_user %}
+	<script src="{% static "js/jQuery.min.js" %}"></script>
+	<script src="{% static "js/wall.js" %}"></script>
+	<script src="{% static "js/items_controller.js" %}"></script>
+	<script src="{% static "js/friends.js" %}"></script>
+{% endif %}
+<style>
+html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
+textarea{resize:none;}
+</style>
+</head>
+<body class="w3-light-grey">
+
+<!-- Page Container -->
+<div class="w3-content w3-margin-top" style="max-width:1400px;">
+{% if is_authed_user %}
+	{% include "./items/navbar.html" %}
+	{% csrf_token %}
+{% endif %}
+
+  <!-- The Grid -->
+  <div class="w3-row-padding">
+  
+    <!-- Left Column -->
+    <div class="w3-third">
+    
+      <div class="w3-white w3-text-grey w3-card-4">
+        <div class="w3-display-container">
+          <img src="{% static user_info.avatar %}" {% if is_login_user_page %}
+	onclick=document.getElementById('change_avatar_modal').style.display='block'
+{% endif %} style="width:100%" alt="Avatar">
+        </div>
+        <div class="w3-container">
+		  <h5 class="w3-text-black w3-center">{{user_info.nick}}</h5>
+		  {% if user_info.is_online %}
+			<span>Online</span>
+		  {% endif %}
+		 
+		{% if is_authed_user %}
+			{% include "./items/friend_buttons_user_page.html" %}
+			{% include "./items/modals/change_avatar_modal.html" %}
+		{% endif %}
+          <hr>
+        </div>
+      </div>
+	      
+		  {% if friends %}
+	
+			  <div class="w3-container w3-card w3-white w3-padding w3-margin-bottom friends_container">
+				<h3>Друзья</h3>
+				<hr />
+				{% for friend in friends %}
+							<a href="{{friend.id}}" title="{{friend.nick}}">
+							<img style="width:60px" class="w3-circle w3-margin-right avatar" src="{% static friend.avatar %}" />
+						</a>
+				{% endfor %}
+			  
+			  </div>
+		  
+		  {% endif %}
+	  
+	  <br />
+
+    <!-- End Left Column -->
+    </div>
+
+    <!-- Right Column -->
+    <div class="w3-twothird">
+		{% if is_authed_user %}
+			{% include "./items/textareas/wall_textarea.html" %}
+		{% endif %}
+      <div class="w3-container w3-card w3-white w3-margin-bottom">
+		
+		{% for wall_message in wall_messages %}
+		
+		<div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+			<a href = "{{wall_message.sender_id}}" target="_blank"><img src="{% static wall_message.avatar %}" alt="Avatar" class="w3-left w3-circle w3-margin-right avatar" style="width:60px">
+			<h4>{{ wall_message.nick }}</h4>
+			</a><br>
+			<span class="w3-right w3-opacity small">{{wall_message.date}}</span>
+			
+				<hr class="w3-clear">
+			<p>
+			{{wall_message.message|safe}}
+			</p>
+      </div>
+		
+		{% empty %}
+		<h6 class="w3-opacity w3-center">Сообщений пока что нет</h6>
+		{% endfor %}
+
+    <!-- End Right Column -->
+    </div>
+    
+  <!-- End Grid -->
+  </div>
+  
+  <!-- End Page Container -->
+</div>
+	{% if is_login_user_page %}
+		<script src="{% static "js/change_avatar.js" %}"></script>
+	{% endif %}
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% extends "./base.html" %}
+{% block content %}
+
+{% if cookie_user %}
+		<script src="{{ url_for('static', filename='js/dialogs.js') }}"></script>
+{% endif %}
+
+<main class = "w3-container w3-content w3-card-4 w3-white w3-border w3-round w3-border-light-blue" style = "max-width:650px">
+<h1>Диалоги</h1>
+{% include "./items/navbar.html" %}
+
+<div class="w3-container">
+
+	{% if dialogs %}
+
+		{% for dialog in dialogs %}
+		  
+	 <div class="w3-container w3-card w3-white w3-round w3-margin  w3-hover-opacity dialog_lnk" onclick="openDialog({{dialog[0]}})"><br />
+        <h4>{{ dialog[6] }} {{ dialog[7] }}</h4>
+			{% if (dialog[2] == cookie_user and (dialog[4] == 0)) or 
+			((dialog[1] == cookie_user and (dialog[4] == 1 or  dialog[5] == 0))) %}
+				<span>+</span>
+			{% endif %}
+			<hr class="w3-clear">
+			{% if dialog[2] != cookie_user %}
+				<p class = "w3-left"><span class="w3-opacity">Вы:</span> {{ dialog[3] }}</p>
+			{% else %}
+				<p class = "w3-left">{{ dialog[3] }}</p>
+			{% endif %}
+      </div>
+	  
+		{% endfor %}
+
+	{%endif %}
+
+</div>
+</main>
+{% endblock content %}

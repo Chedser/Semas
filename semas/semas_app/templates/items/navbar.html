@@ -1,0 +1,11 @@
+<nav class="w3-border w3-round w3-light-grey">
+		<a href="../user/{{cookie_user_id}}" class="w3-border w3-button">Страница</a>
+		<a href="../friends" class="w3-border w3-button">Друзья 
+		{% if friend_requests_count %}
+		<span class="w3-badge w3-green">{{friend_requests_count}}</span>
+		{% endif %}
+		<span class="w3-badge w3-green"></span></a>
+		<a href="chat" class="w3-border w3-button">Чат</a>
+
+		<a href="dialogs" class="w3-border w3-button">Сообщения <span class="w3-badge w3-green"></span></a>
+</nav>
