@@ -25,7 +25,7 @@ textarea{resize:none;}
 		{% include "./items/navbar.html" %}
 	{% endif %}
 <!-- Start Content -->
-<div class="w3-content" style="max-width:1000px;">
+<div class="w3-content" style="max-width:800px;">
 	{% if cookie_user_id %}
 	<div class="w3-container">
 	<h1>Создать форум</h1>
@@ -39,6 +39,9 @@ textarea{resize:none;}
 	{% endif %}
 	
 	<div class="w3-container">
+		{% if forums_count %}
+			<h3 class="w3-center">{{ forums_count }}</h3>
+		{% endif %}
 	{% for forum in forums %}
 		<div class="w3-card w3-padding w3-clear">
 			<h3><a href="forum/{{ forum.id }}">{{forum.name}}</a></h3>

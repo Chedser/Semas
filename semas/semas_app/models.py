@@ -623,7 +623,6 @@ class Forum:
                 avatar = User.get_avatar_link(avatar, creatorId)
                 nick = forum[6]
                 tmp = dict()
-                print(id)
                 tmp["id"] = id
                 tmp["creator_id"] = creatorId
                 tmp["name"] = forum_name

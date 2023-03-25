@@ -7,8 +7,8 @@ from django.shortcuts import render
 
 def index(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
-    """cookie_user_id = request.COOKIES.get("id")
-        if cookie_user_id: redirect(f"user/{cookie_user_id}")"""
+    cookie_user_id = request.COOKIES.get("id")
+    if cookie_user_id: return redirect(f"user/{cookie_user_id}")
     return render(request, "index.html")
 
 
@@ -70,7 +70,7 @@ def forum_topics(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
     cookie_user_id = request.COOKIES.get("id")
     forums = Forum.get_forums()
-    data = {"cookie_user_id": cookie_user_id, "forums": forums}
+    data = {"cookie_user_id": cookie_user_id, "forums": forums, "forums_count": len(forums)}
     return render(request, "forum_topics.html", context=data)
 
 
