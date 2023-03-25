@@ -7,6 +7,26 @@ from django.http import JsonResponse
 from settings import *
 import os
 
+class Message:
+    def tolink(txt):
+        import re
+        import html
+        pattern1 = r'\b((?:https?://)(?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?(?:/[\w\.-]*)*/?)\b'
+        pattern2 = r'\b((?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?(?:/[\w\.-]*)*/?)\b'
+        result = html.escape(txt)
+        if re.findall(pattern1,result):
+            result = re.sub(pattern1, r'<a href=\1 target=_blank>\1</a>', result)
+        elif re.findall(pattern2,result):
+            result = re.sub(pattern2, r'<a href=//\1 target=_blank>\1</a>', result)
+        return result
+
+    def truncate(txt, count):
+        if len(txt) <= count:
+            return txt
+        else:
+            return txt[:count] + "..."
+
+
 class Auth:
     @staticmethod
     def auth(request):
@@ -46,7 +66,6 @@ class Auth:
         return JsonResponse({'message': Response.SUCCESS.value, 'id': user_id})
 
 class Reg:
-    @staticmethod
     def reg(request):
         login = request.POST.get('login').strip()
         nick = request.POST.get('nick').strip()
@@ -89,8 +108,8 @@ class Reg:
         return JsonResponse({'message': Response.WRONG_INPUT.value})
 
 
-class Message:
-    @staticmethod
+class MessageWall:
+
     def send_wall_message(request):
         message = request.POST.get('message').strip()
         receiver_id = request.POST.get('receiver_id')
@@ -125,7 +144,6 @@ class Message:
             con.close()
         return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-    @staticmethod
     def get_wall_messages(user_id):
         if not user_id: return None
         try:
@@ -133,7 +151,7 @@ class Message:
             cur = con.cursor()
             result = cur.execute(f"SELECT senderId, message, user.nick AS nick, user.avatar AS avatar, date FROM wall_message \
              INNER JOIN user ON wall_message.senderId=user.id WHERE receiverId={user_id} ORDER BY date DESC").fetchall()
-            return Message.__parse_wall_messages(result)
+            return MessageWall.__parse_wall_messages(result)
 
         except sqlite3.Error as error:
             con.rollback()
@@ -141,27 +159,6 @@ class Message:
             return None
         finally:
             con.close()
-
-    @staticmethod
-    def tolink(txt):
-        import re
-        import html
-        pattern1 = r'\b((?:https?://)(?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?(?:/[\w\.-]*)*/?)\b'
-        pattern2 = r'\b((?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?(?:/[\w\.-]*)*/?)\b'
-        result = html.escape(txt)
-        if re.findall(pattern1,result):
-            result = re.sub(pattern1, r'<a href=\1 target=_blank>\1</a>', result)
-        elif re.findall(pattern2,result):
-            result = re.sub(pattern2, r'<a href=//\1 target=_blank>\1</a>', result)
-        return result
-
-    @staticmethod
-    def truncate(txt, count):
-        if len(txt) <= count:
-            return txt
-        else:
-            return txt[:count] + "..."
-
 
     def __parse_wall_messages(wall_messages):
         result = list()
@@ -184,7 +181,6 @@ class Message:
         return result
 
 class User:
-    @staticmethod
     def get_info(user_id):
         try:
             con = sqlite3.connect(DB_NAME)
@@ -219,7 +215,6 @@ class User:
         result["avatar"] = User.get_avatar_link(avatar,user_id)
         return result
 
-    @staticmethod
     def get_avatar_link(avatar, user_id):
         if not avatar:
             link = f"images/default.png"
@@ -230,7 +225,6 @@ class User:
     def __is_online(time_of_last_action):
         return ( ((int)(time.time()) - time_of_last_action) < 300 )
 
-    @staticmethod
     def update_time_of_last_action(cookie_user_id):
         if not cookie_user_id: return None
 
@@ -266,7 +260,6 @@ class File:
             for chunk in file.chunks():
                 destination.write(chunk)
 
-    @staticmethod
     def change_avatar(request):
         MAX_FILE_SIZE = 3 * 10 ** 6
 
@@ -307,7 +300,6 @@ class File:
         return JsonResponse({'message': Response.SUCCESS.value})
 
 class Friend:
-    @staticmethod
     def get_friend_requests_count(cookie_user_id):
         if cookie_user_id is None: return 0
         try:
@@ -323,7 +315,6 @@ class Friend:
         finally:
             con.close()
 
-    @staticmethod
     def get_friends_count(cookie_user):
         if cookie_user is None: return 0
         try:
@@ -340,7 +331,6 @@ class Friend:
         finally:
             con.close()
 
-    @staticmethod
     def get_friend_requests(cookie_user):
         if cookie_user is None: return 0
 
@@ -358,7 +348,6 @@ class Friend:
         finally:
             con.close()
 
-    @staticmethod
     def get_friend_request_status(cookie_user_id: int, user_id):
         if not cookie_user_id: return FriendStatus.UNAUTHED.value
         if cookie_user_id == user_id: return FriendStatus.SAME_PAGE.value #Сидим на своей странице
@@ -386,7 +375,6 @@ class Friend:
             con.close()
         return FriendStatus.UNKNOWN_ERROR.value
 
-    @staticmethod
     def send_friend_request(request):
         if request.COOKIES.get("id"):
             cookie_user_id = (int)(request.COOKIES.get("id"))
@@ -421,7 +409,6 @@ class Friend:
             con.close()
         return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-    @staticmethod
     def cancel_friend_request(request):
         if request.COOKIES.get("id"):
             cookie_user_id = (int)(request.COOKIES.get("id"))
@@ -448,7 +435,6 @@ class Friend:
             con.close()
         return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-    @staticmethod
     def accept_friend_request(request):
         if request.COOKIES.get("id"):
             cookie_user_id = (int)(request.COOKIES.get("id"))
@@ -478,7 +464,6 @@ class Friend:
             con.close()
         return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-    @staticmethod
     def delete_friend(request):
         if request.COOKIES.get("id"):
             cookie_user_id = (int)(request.COOKIES.get("id"))
@@ -505,7 +490,6 @@ class Friend:
         finally:
             con.close()
 
-    @staticmethod
     def get_friends(cookie_user):
         if not cookie_user: return None
 
@@ -539,7 +523,6 @@ class Friend:
         finally:
             con.close()
 
-    @staticmethod
     def get_friends_user_page(cookie_user, limit):
             if not cookie_user: return None
 
@@ -588,7 +571,6 @@ class Friend:
         return result
 
 class Forum:
-    @staticmethod
     def create_forum(request):
         if request.COOKIES.get("id"):
             cookie_user_id = int(request.COOKIES.get("id"))
@@ -627,7 +609,6 @@ class Forum:
         finally:
             con.close()
 
-    @staticmethod
     def get_forums():
         try:
             con = sqlite3.connect(DB_NAME)
@@ -646,25 +627,25 @@ class Forum:
             con.close()
 
     def __parse_forums(forums):
-            result = list()
-            for forum in forums:
-                id = forum[0]
-                creatorId = forum[1]
-                forum_name = forum[2]
-                message = forum[3]
-                date = forum[4]
-                avatar = forum[5]
-                avatar = User.get_avatar_link(avatar, creatorId)
-                nick = forum[6]
-                tmp = dict()
-                tmp["id"] = id
-                tmp["creator_id"] = creatorId
-                tmp["name"] = forum_name
-                tmp["message"] = Message.truncate(message, 256)
-                tmp["date"] = date
-                tmp["nick"] = nick
-                tmp["avatar"] = avatar
-                result.append(tmp)
+        result = list()
+        for forum in forums:
+            id = forum[0]
+            creatorId = forum[1]
+            forum_name = forum[2]
+            message = forum[3]
+            date = forum[4]
+            avatar = forum[5]
+            avatar = User.get_avatar_link(avatar, creatorId)
+            nick = forum[6]
+            tmp = dict()
+            tmp["id"] = id
+            tmp["creator_id"] = creatorId
+            tmp["name"] = forum_name
+            tmp["message"] = Message.truncate(message, 256)
+            tmp["date"] = date
+            tmp["nick"] = nick
+            tmp["avatar"] = avatar
+            result.append(tmp)
             return result
 
     def __parse_forum_info(forum):
@@ -706,7 +687,6 @@ class Forum:
             result.append(tmp)
         return result
 
-    @staticmethod
     def get_messages(id):
         try:
             con = sqlite3.connect(DB_NAME)
@@ -726,7 +706,6 @@ class Forum:
         finally:
             con.close()
 
-    @staticmethod
     def send_message(request):
         if request.COOKIES.get("id"):
             cookie_user_id = int(request.COOKIES.get("id"))
@@ -755,7 +734,6 @@ class Forum:
         finally:
             con.close()
 
-    @staticmethod
     def get_forum_info(id):
         try:
             con = sqlite3.connect(DB_NAME)

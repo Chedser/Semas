@@ -35,7 +35,7 @@ def user(request, id):
     if user_info["is_blocked"]:
         friend_status = FriendStatus.UNAUTHED.value
 
-    wall_messages = Message.get_wall_messages(id)
+    wall_messages = MessageWall.get_wall_messages(id)
     friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
     friends = Friend.get_friends_user_page(id, 8)
     data = {"cookie_user_id": cookie_user_id, "user_id": id, "is_login_user_page": is_login_user_page, \
@@ -89,7 +89,7 @@ def auth(request):
 
 def wall_message(request):
     if request.method == "POST":
-        return Message.send_wall_message(request)
+        return MessageWall.send_wall_message(request)
 
 
 def friend_request(request):
