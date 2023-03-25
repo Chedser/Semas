@@ -1,23 +1,24 @@
-{% load static %}
 <!DOCTYPE html>
+{% load static %}
+
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="{% static "images/favicon.ico" %}" type="image/x-icon">
-<link rel="stylesheet" type="text/css" href="{% static "css/main.css" %}">
-<link rel="stylesheet" type="text/css" href="{% static "css/w3.css" %}">
+<link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/w3.css' %}">
 
 <link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<script src="{% static "js/jQuery.min.js" %}"></script>
-	<script src="{% static "js/items_controller.js" %}"></script>
-	<script src="{% static "js/friends.js" %}"></script>
-	<script src="{% static "js/forum.js" %}"></script>
-	<style>
-html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
-textarea{resize:none;}
-</style>
+	<script src="{% static 'js/jQuery.min.js' %}"></script>
+	<script src="{% static 'js/items_controller.js' %}"></script>
+	<script src="{% static 'js/friends.js' %}"></script>
+	<script src="{% static 'js/forum.js' %}"></script>
+		<style>
+			html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
+			textarea{resize:none;}
+		</style>
 </head>
 <body>
 	{% if cookie_user_id %}
