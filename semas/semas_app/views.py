@@ -15,7 +15,6 @@ def index(request):
 def user(request, id):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
     cookie_user_id = request.COOKIES.get("id")  # id зарегистрированного пользователя
-    cookie_csfr_token = request.COOKIES.get("csrftoken")
 
     is_authed_user = False
     is_login_user_page = False

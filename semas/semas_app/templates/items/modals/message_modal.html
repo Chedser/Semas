@@ -1,17 +1,19 @@
-<div id="message_window" class="w3-modal">
+<div id="message_modal" class="w3-modal">
     <form id="message_form" class="w3-modal-content w3-animate-top w3-card-4">
       <header class="w3-container w3-teal"> 
-        <span  onclick=$("#message_window").css({"display":"none"})
+        <span  onclick=$("#message_modal").css({"display":"none"})
         class="w3-button w3-display-topright">&times;</span>
-        <h2>Сообщение для {{user_info['first_name']}} {{user_info['last_name']}}</h2>
+        <h2>Сообщение для {{user_info.nick}}</h2>
       </header>
-      <div class="w3-container">
+      <div class="w3-container w3-padding">
 
 		<textarea id="message_txt" class="w3-input w3-border" rows="5" maxlength="1000" type="text" required></textarea>
 
       </div>
       <footer class="w3-container w3-teal">
-        <input type = "button" onclick="sendMessage(event, this, {{ user_info['id_user'] }})" class="w3-button w3-indigo w3-hover-light-grey w3-margin-top w3-margin-bottom w3-center" style = "width:100%" value = "Написать">
+        <input type = "button" onclick="sendMessage(event, this, {{ user_info.id }})"
+               class="w3-button w3-indigo w3-hover-light-grey w3-margin-top w3-margin-bottom w3-center"
+               style = "width:100%" value = "Написать">
       </footer>
     </form>
 </div>

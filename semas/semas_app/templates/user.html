@@ -52,15 +52,20 @@ textarea{resize:none;}
 		 
 		{% if is_authed_user %}
 			{% include "./items/buttons/friend_buttons_user_page.html" %}
+				{% if cookie_user_id != user_id %}
+				{% include "./items/modals/message_modal.html" %}
+				<input type = "button" onclick=$("#message_modal").css({"display":"block"})
+					   class="w3-button w3-indigo w3-hover-teal w3-margin-bottom w3-center"
+					   style = "width:100%" value = "Написать">
+				{% endif %}
 			{% include "./items/modals/change_avatar_modal.html" %}
 		{% endif %}
-          <hr>
+          <hr />
         </div>
       </div>
 	      
 		  {% if friends %}
-	
-			  <div class="w3-container w3-card w3-white w3-padding w3-margin-bottom friends_container">
+			<div class="w3-container w3-card w3-white w3-padding w3-margin-bottom friends_container">
 				<h3>Друзья {{ friends_count }}</h3>
 				<hr />
 				{% for friend in friends %}
