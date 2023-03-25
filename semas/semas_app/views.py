@@ -37,10 +37,11 @@ def user(request, id):
 
     wall_messages = Message.get_wall_messages(id)
     friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
-    friends = Friend.get_friends(id)
+    friends = Friend.get_friends_user_page(id, 8)
     data = {"cookie_user_id": cookie_user_id, "user_id": id, "is_login_user_page": is_login_user_page, \
             "is_authed_user": is_authed_user, "wall_messages": wall_messages, "user_info": user_info, \
-            "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends }
+            "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends,\
+            "friends_count": len(friends)}
 
     return render(request, "user.html", context=data)
 

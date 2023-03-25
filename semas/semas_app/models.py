@@ -539,6 +539,40 @@ class Friend:
         finally:
             con.close()
 
+    @staticmethod
+    def get_friends_user_page(cookie_user, limit):
+            if not cookie_user: return None
+
+            try:
+                con = sqlite3.connect(DB_NAME)
+                cur = con.cursor()
+                result = cur.execute(f"SELECT friend1, friend2 FROM friend \
+                        WHERE friend1={(int)(cookie_user)} OR friend2={(int)(cookie_user)} LIMIT {limit}").fetchall()
+                if len(result) == 0: return {}
+
+                total = list()
+                for user in result:
+                    current_user = list()
+                    if user[0] != cookie_user:
+                        current_user.append(user[0])
+                    elif user[1] != cookie_user:
+                        current_user.append(user[1])
+                    result2 = cur.execute(f"SELECT nick, avatar FROM user \
+                                        WHERE id={current_user[0]}").fetchall()
+                    tmp = dict()
+                    tmp["id"] = current_user[0]
+                    tmp["nick"] = result2[0][0]
+                    avatar = User.get_avatar_link(result2[0][1], current_user[0])
+                    tmp["avatar"] = avatar
+                    total.append(tmp)
+
+                return total
+            except sqlite3.Error as error:
+                con.rollback()
+                print(f"DataBase error {error.__str__()}")
+            finally:
+                con.close()
+
     def __parse_friend_requests(friend_requests):
         result = list()
         for friend_request in friend_requests:
