@@ -679,8 +679,8 @@ class Forum:
 
             cur = con.cursor()
 
-            result = cur.execute("SELECT forum_message.id AS id, senderId, message, date, user.avatar AS avatar, user.nick AS nick \
-                 FROM forum_message INNER JOIN user ON forum_message.senderId=user.id").fetchall()
+            result = cur.execute(f"SELECT forum_message.id AS id, senderId, message, date, user.avatar AS avatar, user.nick AS nick \
+                 FROM forum_message INNER JOIN user ON forum_message.senderId=user.id WHERE forumId={id}").fetchall()
 
             if not len(result): return None
 
