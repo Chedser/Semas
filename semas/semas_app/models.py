@@ -571,6 +571,7 @@ class Friend:
         return result
 
 class Forum:
+    @staticmethod
     def create_forum(request):
         if request.COOKIES.get("id"):
             cookie_user_id = int(request.COOKIES.get("id"))
@@ -609,6 +610,7 @@ class Forum:
         finally:
             con.close()
 
+    @staticmethod
     def get_forums():
         try:
             con = sqlite3.connect(DB_NAME)
@@ -706,6 +708,7 @@ class Forum:
         finally:
             con.close()
 
+    @staticmethod
     def send_message(request):
         if request.COOKIES.get("id"):
             cookie_user_id = int(request.COOKIES.get("id"))
@@ -734,6 +737,7 @@ class Forum:
         finally:
             con.close()
 
+    @staticmethod
     def get_forum_info(id):
         try:
             con = sqlite3.connect(DB_NAME)
