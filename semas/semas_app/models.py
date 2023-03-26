@@ -985,16 +985,14 @@ class Dialog:
         sender_id = dialog_info["sender_id"]
         receiver_id = dialog_info["receiver_id"]
 
-        is_readen = False
 
         if receiver_id == cookie_user_id:
-            is_readen = True
             sender_id, receiver_id = receiver_id, sender_id
 
 
-        print(f"sender_id: {sender_id}, receiver_id: {receiver_id}")
+        print(f"sender_id: {sender_id}, receiver_id: {receiver_id}, is_readen: ")
 
-        result = Dialog.__send_inner_in_existing_dialog(dialog_id, sender_id, receiver_id, message, is_readen)
+        result = Dialog.__send_inner_in_existing_dialog(dialog_id, sender_id, receiver_id, message, 0)
 
         if result:
             return JsonResponse({'message': Response.SUCCESS.value})
@@ -1010,8 +1008,6 @@ class Dialog:
 
         receiver_id = request.POST.get('receiver_id')
         message = request.POST.get('message').strip()
-
-        print(f"sender_id: {cookie_user_id}, receiver_id: {receiver_id}")
 
         if not receiver_id or \
                 not message or \
@@ -1040,6 +1036,10 @@ class Dialog:
                 # Написать сообщение в существующий диалог
                 dialog_id = dialog_id[0][0]
                 Dialog.__send_outer_in_existing_dialog(dialog_id, cookie_user_id, receiver_id, message)
+                dialog_info = Dialog.get_dialog_info(dialog_id)
+                is_readen = dialog_info["is_readen"]
+
+                print(f"sender_id: {cookie_user_id}, receiver_id: {receiver_id}, is_readen: {is_readen}")
                 return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
 
 
