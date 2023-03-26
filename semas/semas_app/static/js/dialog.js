@@ -27,7 +27,7 @@ function showDialog(btn, user_id_){
 }
 
 function openDialog(id){
-	window.location.replace("dialog?id=" + id);
+	window.location.replace("dialog/" + id);
 }
 
 function sendMessage(btn, user_id){
@@ -35,20 +35,19 @@ function sendMessage(btn, user_id){
 	let message_dialog = $("#message_dialog").val().trim();
     var empty_pattern = /^\s+$/g;
 
-	if(message === "" || message.match(empty_pattern)){
+	if(message_dialog === "" || message_dialog.match(empty_pattern)){
 		alert("Заполните поле");
 		btn.removeAttribute('disabled');
 		return;}
-	btn.setAttribute('disabled');
+	btn.setAttribute('disabled','disabled');
 
     let dataToSend = {
-					receiver_id: id,
+					receiver_id: user_id,
 					message: message_dialog
 					};
 
-
 	$.ajax({
-		url: 'api/message_send_user_page',
+		url: 'api/dialog_send_outer',
 		type: 'POST',
 		headers: {'X-CSRFToken': csrftoken},
 		data: dataToSend,
@@ -56,17 +55,19 @@ function sendMessage(btn, user_id){
 			if(data.message == 0){
 				window.location.reload();
 			}else{
-				alert("Неизвестная ошибка");
+				alert("Сообщение отправлено");
 				btn.removeAttribute('disabled');
+				window.location.reload();
 			}
-
 		},
 		fail: function (data, textStatus) {
 						alert("Неизвестная ошибка");
 						$("#forum_create_btn").removeAttr("disabled");
 						btn.removeAttribute('disabled');
 
-	});
+	    }
+
+});
 
 }
 

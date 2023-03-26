@@ -37,10 +37,11 @@ def user(request, id):
     wall_messages = MessageWall.get_wall_messages(id)
     friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
     friends = Friend.get_friends_user_page(id, 8)
+    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
     data = {"cookie_user_id": cookie_user_id, "user_id": id, "is_login_user_page": is_login_user_page, \
             "is_authed_user": is_authed_user, "wall_messages": wall_messages, "user_info": user_info, \
             "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends,\
-            "friends_count": len(friends)}
+            "friends_count": len(friends), "active_dialogs_count": active_dialogs_count}
 
     return render(request, "user.html", context=data)
 
@@ -72,6 +73,41 @@ def forum_topics(request):
     forums = Forum.get_forums()
     data = {"cookie_user_id": cookie_user_id, "forums": forums, "forums_count": len(forums)}
     return render(request, "forum_topics.html", context=data)
+
+def dialog(request, id):
+    cookie_user_id = request.COOKIES.get("id")
+
+    if not id or not cookie_user_id or \
+            request.method != "GET":
+        return HttpResponse("<h1>Страница не найдена: 404</h1>")
+
+    dialog_info = Dialog.get_dialog_info(id)
+
+    if not dialog_info:return HttpResponse("<h1>Страница не найдена: 404</h1>")
+
+    cookie_user_id = int(cookie_user_id)
+
+    if not(dialog_info["sender_id"] == cookie_user_id or dialog_info["receiver_id"] == cookie_user_id):
+        return HttpResponse("<h1>Страница не найдена: 404</h1>")
+
+    Dialog.update_status(cookie_user_id, id)
+
+    return render(request, "dialog.html")
+
+def dialogs(request):
+    cookie_user_id = request.COOKIES.get("id")
+    if request.method != "GET" or \
+            not cookie_user_id:
+        return HttpResponse("<h1>Страница не найдена: 404</h1>")
+    else:
+        cookie_user_id = int (cookie_user_id)
+
+
+    dialogs = Dialog.get_dialogs(cookie_user_id)
+    data = {"dialogs":dialogs}
+
+    return render(request, "dialogs.html", context=data)
+
 
 
 
@@ -122,6 +158,6 @@ def forum_send_message(request):
     if request.method == "POST":
         return Forum.send_message(request)
 
-def message_send(request):
+def dialog_send_outer(request):
     if request.method == "POST":
-        pass
+        return Dialog.send_outer(request)

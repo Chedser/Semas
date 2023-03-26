@@ -55,6 +55,10 @@ nav a:hover {
 .friends_container .avatar{
 	display:inline-block;
 }
+
+.dialog_container:hover{
+    cursor:pointer;
+}
 	
 
 

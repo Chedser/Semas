@@ -7,5 +7,9 @@
 		<span class="w3-badge w3-green"></span></a>
 		<a href="/forum" class="w3-border w3-button">Форум</a>
 
-		<a href="dialogs" class="w3-border w3-button">Сообщения <span class="w3-badge w3-green"></span></a>
+		<a href="/dialogs" class="w3-border w3-button">Сообщения
+			{% if active_dialogs_count %}
+				<span class="w3-badge w3-green">{{ active_dialogs_count }}</span>
+			{% endif %}
+		</a>
 </nav>
