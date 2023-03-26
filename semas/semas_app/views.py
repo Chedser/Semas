@@ -93,7 +93,7 @@ def dialog(request, id):
     Dialog.update_status(cookie_user_id, id) #Обновление статуса о прочтении сообщения
 
     messages = Dialog.get_dialog_messages(id)
-    data = {"messages":messages}
+    data = {"messages":messages, "dialog_id": id, "cookie_user_id": cookie_user_id}
 
     return render(request, "dialog.html", context=data)
 
@@ -163,3 +163,7 @@ def forum_send_message(request):
 def dialog_send_outer(request):
     if request.method == "POST":
         return Dialog.send_outer(request)
+
+def dialog_send_inner(request):
+    if request.method == "POST":
+        return Dialog.send_inner(request)

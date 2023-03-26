@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/auth', views.auth),
     path('api/forum_create', views.forum_create),
     path('api/forum_send_message', views.forum_send_message),
+    path('api/dialog_send_inner', views.dialog_send_inner),
 
     path('user/<int:id>', views.user),
     path('user/api/wall_message', views.wall_message),

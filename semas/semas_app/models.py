@@ -937,9 +937,69 @@ class Dialog:
             tmp["nick"] = nick
             tmp["avatar"] = avatar
             tmp["is_cookie_user"] = is_cookie_user
-            #tmp["date"] = date
             result.append(tmp)
         return result
+
+    @staticmethod
+    def __send_inner_in_existing_dialog(dialog_id, sender_id, receiver_id, message, is_readen):
+        result = True
+        try:
+            con = sqlite3.connect(DB_NAME)
+
+            cur = con.cursor()
+            cur.execute(
+                f"UPDATE dialog SET senderId=?, receiverId=?, last_message=?, is_readen=?, is_answered=0, timestamp=? WHERE id=?",
+                (sender_id, receiver_id, message, is_readen, (int)(time.time()), dialog_id))
+            con.commit()
+            cur.execute("INSERT INTO dialog_message (userId, dialogId, message, timestamp)\
+                                                            VALUES (?,?,?,?)",
+                        (sender_id, dialog_id, message, (int)(time.time())))
+            con.commit()
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            result = False
+        finally:
+            con.close()
+        return result
+
+    @staticmethod
+    def send_inner(request):
+        if request.COOKIES.get("id"):
+            cookie_user_id = int(request.COOKIES.get("id"))
+        else:
+            return JsonResponse({'message': Response.WRONG_INPUT.value})
+
+        dialog_id = request.POST.get('dialog_id')
+        message = request.POST.get('message').strip()
+
+        if not dialog_id or \
+                not message:
+            return JsonResponse({'message': Response.WRONG_INPUT.value})
+
+        dialog_id = int(dialog_id)
+
+        dialog_info = Dialog.get_dialog_info(dialog_id)
+
+        sender_id = dialog_info["sender_id"]
+        receiver_id = dialog_info["receiver_id"]
+
+        is_readen = False
+
+        if receiver_id == cookie_user_id:
+            is_readen = True
+            sender_id, receiver_id = receiver_id, sender_id
+
+
+        print(f"sender_id: {sender_id}, receiver_id: {receiver_id}")
+
+        result = Dialog.__send_inner_in_existing_dialog(dialog_id, sender_id, receiver_id, message, is_readen)
+
+        if result:
+            return JsonResponse({'message': Response.SUCCESS.value})
+        else:
+            return JsonResponse({'message': Response.WRONG_INPUT.value})
 
     @staticmethod
     def send_outer(request):
@@ -950,6 +1010,8 @@ class Dialog:
 
         receiver_id = request.POST.get('receiver_id')
         message = request.POST.get('message').strip()
+
+        print(f"sender_id: {cookie_user_id}, receiver_id: {receiver_id}")
 
         if not receiver_id or \
                 not message or \
