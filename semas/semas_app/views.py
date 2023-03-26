@@ -106,7 +106,7 @@ def dialogs(request):
         cookie_user_id = int (cookie_user_id)
 
     dialogs = Dialog.get_dialogs(cookie_user_id)
-    data = {"dialogs":dialogs}
+    data = {"dialogs":dialogs, "cookie_user_id":cookie_user_id}
 
     return render(request, "dialogs.html", context=data)
 

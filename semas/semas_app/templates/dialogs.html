@@ -29,8 +29,13 @@
 <div class="w3-content" style="max-width:800px;">
 
 	{% for dialog in dialogs %}
-	<div class="w3-container w3-card w3-white w3-round w3-margin w3-padding dialog_container"
-	onclick="openDialog({{ dialog.id }})">
+		{% if not dialog.is_readen %}
+	<div class="w3-container w3-card w3-cyan w3-round w3-margin w3-padding dialog_container"
+		 onclick="openDialog({{ dialog.id }})">
+		{% else %}
+			<div class="w3-container w3-card w3-white w3-round w3-margin w3-padding dialog_container"
+		 onclick="openDialog({{ dialog.id }})">
+		{% endif %}
 
 		<div class="w3-clear">
 				<img src="{% static dialog.avatar %}" alt="Avatar"

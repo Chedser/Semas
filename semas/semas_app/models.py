@@ -892,10 +892,24 @@ class Dialog:
             cur = con.cursor()
 
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, is_answered " \
-                  f"date FROM dialog WHERE senderId={cookie_user_id} OR receiverId={cookie_user_id} " \
-                "ORDER by dialog.date DESC, is_readen ASC"
+                  f"date FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=0 " \
+                "ORDER by date DESC"
 
-            dialogs = cur.execute(sql).fetchall()
+            dialogs_not_readen = cur.execute(sql).fetchall()
+
+            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, is_answered " \
+                  f"date FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=1 " \
+                  "ORDER by date DESC"
+
+            dialogs_readen = cur.execute(sql).fetchall()
+
+            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, is_answered " \
+                  f"date FROM dialog WHERE senderId={cookie_user_id} " \
+                  "ORDER by date DESC"
+
+            dialogs_sender = cur.execute(sql).fetchall()
+
+            dialogs = dialogs_not_readen + dialogs_readen + dialogs_sender
 
             if not len(dialogs):
                 return None
@@ -931,7 +945,11 @@ class Dialog:
             tmp["id"] = id
             tmp["sender_id"] = sender_id
             tmp["receiver_id"] = receiver_id
-            tmp["is_readen"] = is_readen
+            tmp["is_readen"] = 1
+
+            if receiver_id == cookie_user_id and is_readen == 0:
+                tmp["is_readen"] = 0
+
             tmp["is_answered"] = is_answered
             tmp["last_message"] = last_message
             tmp["nick"] = nick
