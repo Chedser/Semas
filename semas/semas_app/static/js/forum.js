@@ -7,8 +7,7 @@ function forum_create(){
 	var empty_pattern = /^\s+$/g;
 	if(forum_topic === "" || forum_forum_msg === "" ||
 	    forum_topic.match(empty_pattern) ||
-		forum_msg.match(empty_pattern) ||
-		){
+		forum_msg.match(empty_pattern)){
 		alert("Заполните поля");
 		$("#forum_create_btn").removeAttr("disabled");
 		return;}

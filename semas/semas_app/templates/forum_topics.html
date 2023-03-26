@@ -44,10 +44,11 @@
 			<h3 class="w3-center">{{ forums_count }}</h3>
 		{% endif %}
 	{% for forum in forums %}
-		<div class="w3-card w3-padding w3-clear">
+		<div class="w3-card w3-padding">
 			<h3><a href="forum/{{ forum.id }}">{{forum.name}}</a></h3>
 			<p>{{ forum.message }}</p><br />
-				<a href="user/{{ forum.creator_id }}"><img src="{% static forum.avatar %}" class="w3-left w3-circle w3-margin-right avatar" style="width:30px" />
+				<a href="user/{{ forum.creator_id }}">
+					<img src="{% static forum.avatar %}" class="w3-left w3-circle w3-margin-right avatar" style="width:30px;height:30px" />
 				<span>{{ forum.nick }}</span></a><br />
 				<span class="small">{{ forum.date }}</span>
 			
