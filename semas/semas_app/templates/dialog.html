@@ -20,18 +20,41 @@
 			textarea{resize:none;}
 		</style>
 </head>
+<script>
+$(document).ready(function() {
+    scrollTop();
+});
+</script>
 <body>
 	{% if cookie_user_id %}
 		{% csrf_token %}
 		{% include "./items/navbar.html" %}
 	{% endif %}
 <!-- Start Content -->
-<div class="w3-content" style="max-width:800px;">
+<div class="w3-container" style="max-width:800px;">
+		<div class="w3-border" style="height:400px;overflow:scroll" id="dialog_messages">
+		{% for message in messages %}
+			<div class="w3-white w3-round w3-margin"><br>
+			<a href = "/user/{{message.user_id}}" target="_blank">
+				<img src="{% static message.avatar %}" alt="Avatar"
+					 class="w3-left w3-circle w3-margin-right avatar" style="width:40px;height:40px">
+			<h4>{{ message.nick }}</h4>
+			</a><br>
+			<span class="w3-right w3-opacity small">{{ message.date}}</span>
+			<p>
+			{{ message.message|safe }}
+			</p>
+				<hr />
+		</div>
+			{% endfor %}
+		</div>
 
-	<div class="w3-container">
-
-	</div>
-
+		<div class = "w3-panel  w3-padding">
+		<form  id="wall_form">
+			<textarea class="w3-input w3-border" id="wall_msg_inpt" rows="1" oninput="expand(this, 3)" maxlength="1000"  placeholder="Напишите что-нибудь" type="text" required></textarea>
+			<input type = "button" onclick="wall_message(this, {{user_id}})" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center" style = "width:100%" value = "OK">
+		</form>
+		</div>
 <!-- End Content -->
 </div>
 

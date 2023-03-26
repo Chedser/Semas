@@ -976,7 +976,6 @@ class Dialog:
                     return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
             else:
                 # Написать сообщение в существующий диалог
-
                 dialog_id = dialog_id[0][0]
                 Dialog.__send_outer_in_existing_dialog(dialog_id, cookie_user_id, receiver_id, message)
                 return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
@@ -988,3 +987,54 @@ class Dialog:
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
+
+    @staticmethod
+    def get_dialog_messages(dialog_id):
+        result = None
+        try:
+            con = sqlite3.connect(DB_NAME)
+
+            cur = con.cursor()
+
+            sql = f"SELECT dialog_message.id AS id, userId, message, date, user.nick AS nick, user.avatar AS avatar " \
+                  f"FROM dialog_message " \
+                  f"INNER JOIN user ON user.id=userId " \
+                  f"WHERE dialogId={dialog_id} " \
+                f"ORDER by date"
+
+            messages = cur.execute(sql).fetchall()
+
+            if not len(messages):
+                return None
+
+            return Dialog.__parse_dialog_messages(messages)
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            result = None
+        finally:
+            con.close()
+        return result
+
+    def __parse_dialog_messages(messages):
+            result = list()
+            for message in messages:
+                id = message[0]
+                user_id = message[1]
+                msg = message[2]
+                date = message[3]
+                nick = message[4]
+                avatar = message[5]
+                avatar = User.get_avatar_link(avatar, user_id)
+
+                tmp = dict()
+                tmp["id"] = id
+                tmp["user_id"] = user_id
+                tmp["message"] = Message.tolink(msg)
+                tmp["date"] = date
+                tmp["nick"] = nick
+                tmp["avatar"] = avatar
+                result.append(tmp)
+            return result
+

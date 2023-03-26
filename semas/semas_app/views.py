@@ -83,16 +83,19 @@ def dialog(request, id):
 
     dialog_info = Dialog.get_dialog_info(id)
 
-    if not dialog_info:return HttpResponse("<h1>Страница не найдена: 404</h1>")
+    if not dialog_info: return HttpResponse("<h1>Страница не найдена: 404</h1>")
 
     cookie_user_id = int(cookie_user_id)
 
     if not(dialog_info["sender_id"] == cookie_user_id or dialog_info["receiver_id"] == cookie_user_id):
         return HttpResponse("<h1>Страница не найдена: 404</h1>")
 
-    Dialog.update_status(cookie_user_id, id)
+    Dialog.update_status(cookie_user_id, id) #Обновление статуса о прочтении сообщения
 
-    return render(request, "dialog.html")
+    messages = Dialog.get_dialog_messages(id)
+    data = {"messages":messages}
+
+    return render(request, "dialog.html", context=data)
 
 def dialogs(request):
     cookie_user_id = request.COOKIES.get("id")
@@ -101,7 +104,6 @@ def dialogs(request):
         return HttpResponse("<h1>Страница не найдена: 404</h1>")
     else:
         cookie_user_id = int (cookie_user_id)
-
 
     dialogs = Dialog.get_dialogs(cookie_user_id)
     data = {"dialogs":dialogs}
