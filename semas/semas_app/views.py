@@ -93,7 +93,8 @@ def dialog(request, id):
     Dialog.update_status(cookie_user_id, id) #Обновление статуса о прочтении сообщения
 
     messages = Dialog.get_dialog_messages(id)
-    data = {"messages":messages, "dialog_id": id, "cookie_user_id": cookie_user_id}
+    opponent = Dialog.get_dialog_opponent_info(cookie_user_id, id)
+    data = {"messages":messages, "dialog_id": id, "cookie_user_id": cookie_user_id, "opponent":opponent}
 
     return render(request, "dialog.html", context=data)
 

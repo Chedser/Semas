@@ -879,6 +879,39 @@ class Dialog:
         return result
 
     @staticmethod
+    def get_dialog_opponent_info(cookie_user_id,dialog_id):
+        try:
+            con = sqlite3.connect(DB_NAME)
+
+            cur = con.cursor()
+
+            dialog = cur.execute(
+                f"SELECT senderId, receiverId FROM dialog WHERE id={dialog_id}").fetchall()[
+                0]
+
+            if not len(dialog):
+                return None
+            else:
+                sender_id = dialog[0]
+                receiver_id = dialog[1]
+                opponent_id = receiver_id
+
+                if sender_id != cookie_user_id:
+                    opponent_id = sender_id
+
+                user_info = User.get_info(opponent_id)
+
+                return user_info
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            result = None
+        finally:
+            con.close()
+        return result
+
+    @staticmethod
     def update_status(cookie_user_id, dialog_id):
         dialog_info = Dialog.get_dialog_info(dialog_id)
         receiver_id = dialog_info["receiver_id"]
@@ -1026,12 +1059,8 @@ class Dialog:
         sender_id = dialog_info["sender_id"]
         receiver_id = dialog_info["receiver_id"]
 
-
         if receiver_id == cookie_user_id:
             sender_id, receiver_id = receiver_id, sender_id
-
-
-        print(f"sender_id: {sender_id}, receiver_id: {receiver_id}, is_readen: ")
 
         result = Dialog.__send_inner_in_existing_dialog(dialog_id, sender_id, receiver_id, message, 0)
 

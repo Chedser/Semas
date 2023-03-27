@@ -30,11 +30,19 @@ $(document).ready(function() {
 		{% csrf_token %}
 		{% include "./items/navbar.html" %}
 	{% endif %}
-<!-- Start Content -->
-<div class="w3-container" style="max-width:800px;">
-		<div class="w3-border w3-margin" style="height:400px;overflow:scroll" id="dialog_messages">
+
+	<!-- Start Content -->
+<div class="w3-container w3-margin" style="max-width:800px;">
+	<div class="w3-content">
+			<span><a href = "/user/{{opponent.id}}" target="_blank">
+				{{ opponent.nick }}
+				</a> <img src="{% static opponent.avatar %}" alt="Avatar"
+					 class="w3-left w3-circle w3-margin-right avatar" style="width:30px;height:30px">
+			</span>
+	</div>
+	<div class="w3-border" style="height:400px;overflow:scroll" id="dialog_messages">
 		{% for message in messages %}
-			<div class="w3-white w3-round w3-margin"><br>
+			<div class="w3-white w3-round w3-margin">
 			<a href = "/user/{{message.user_id}}" target="_blank">
 				<img src="{% static message.avatar %}" alt="Avatar"
 					 class="w3-left w3-circle w3-margin-right avatar" style="width:40px;height:40px">
@@ -57,7 +65,6 @@ $(document).ready(function() {
 		</div>
 <!-- End Content -->
 </div>
-
 
 </body>
 </html>
