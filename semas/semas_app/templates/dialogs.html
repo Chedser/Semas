@@ -29,7 +29,14 @@
 <div class="w3-content" style="max-width:800px;">
 
 	{% if dialogs_count %}
-		<h3 class = "w3-center">Диалоги {{ dialogs_count  }}</h3>
+		{% if not active_dialogs_count %}
+			<h3 class = "w3-center">Диалоги {{ dialogs_count  }}</h3>
+		{% else %}
+	<h3 class = "w3-center">Диалоги {{ dialogs_count  }}|<span class="w3-text-cyan">{{ active_dialogs_count }}</span></h3>
+		{% endif %}
+
+	{% else %}
+		<h3 class = "w3-center">Диалоги отстутствуют</h3>
 	{% endif %}
 
 	{% for dialog in dialogs %}

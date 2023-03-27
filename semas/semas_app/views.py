@@ -64,14 +64,21 @@ def forum(request, id):
     if not forum_info: return HttpResponse("<h1>Страница не найдена: 404</h1>")
     messages = Forum.get_messages(id)
     cookie_user_id = request.COOKIES.get("id")
-    data = {"cookie_user_id": cookie_user_id, "forum_info": forum_info, "messages": messages}
+    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+    friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+    data = {"cookie_user_id": cookie_user_id, "forum_info": forum_info, "messages": messages,
+            "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count}
+
     return render(request, "forum.html", context=data)
 
 def forum_topics(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
     cookie_user_id = request.COOKIES.get("id")
     forums = Forum.get_forums()
-    data = {"cookie_user_id": cookie_user_id, "forums": forums, "forums_count": len(forums)}
+    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+    friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+    data = {"cookie_user_id": cookie_user_id, "forums": forums, "forums_count": len(forums),
+            "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count}
     return render(request, "forum_topics.html", context=data)
 
 def dialog(request, id):
@@ -94,7 +101,10 @@ def dialog(request, id):
 
     messages = Dialog.get_dialog_messages(id)
     opponent = Dialog.get_dialog_opponent_info(cookie_user_id, id)
-    data = {"messages":messages, "dialog_id": id, "cookie_user_id": cookie_user_id, "opponent":opponent}
+    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+    friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+    data = {"messages":messages, "dialog_id": id, "cookie_user_id": cookie_user_id, "opponent":opponent,
+            "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count}
 
     return render(request, "dialog.html", context=data)
 
@@ -108,7 +118,10 @@ def dialogs(request):
 
     dialogs = Dialog.get_dialogs(cookie_user_id)
     dialogs_count = Dialog.get_dialogs_count(cookie_user_id)
-    data = {"dialogs":dialogs, "cookie_user_id":cookie_user_id, "dialogs_count": dialogs_count}
+    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+    friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+    data = {"dialogs":dialogs, "cookie_user_id":cookie_user_id, "dialogs_count": dialogs_count,
+            "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count}
 
 
     return render(request, "dialogs.html", context=data)
