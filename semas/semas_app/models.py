@@ -806,6 +806,24 @@ class Dialog:
         return None
 
     @staticmethod
+    def get_dialogs_count(cookie_user_id):
+        try:
+            con = sqlite3.connect(DB_NAME)
+
+            cur = con.cursor()
+
+            dialogs_count = cur.execute(f"SELECT COUNT(*)  FROM dialog"
+                                        f" WHERE senderId={cookie_user_id} OR  receiverId={cookie_user_id}").fetchall()[0][0]
+            return dialogs_count
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+        finally:
+            con.close()
+        return None
+
+    @staticmethod
     def __send_outer_in_existing_dialog(dialog_id, sender_id, receiver_id, message):
         result = True
         try:
@@ -891,25 +909,27 @@ class Dialog:
 
             cur = con.cursor()
 
-            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, is_answered " \
+            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, is_answered, " \
                   f"date FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=0 " \
                 "ORDER by date DESC"
 
             dialogs_not_readen = cur.execute(sql).fetchall()
 
-            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, is_answered " \
+            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, is_answered, " \
                   f"date FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=1 " \
                   "ORDER by date DESC"
 
             dialogs_readen = cur.execute(sql).fetchall()
 
-            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, is_answered " \
+            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, is_answered, " \
                   f"date FROM dialog WHERE senderId={cookie_user_id} " \
                   "ORDER by date DESC"
 
             dialogs_sender = cur.execute(sql).fetchall()
 
             dialogs = dialogs_not_readen + dialogs_readen + dialogs_sender
+
+            print(dialogs)
 
             if not len(dialogs):
                 return None
@@ -930,6 +950,7 @@ class Dialog:
             id = dialog[0]
             sender_id = dialog[1]
             receiver_id = dialog[2]
+
             is_cookie_user = False
             if sender_id == cookie_user_id:
                 sender_id = receiver_id
@@ -937,6 +958,7 @@ class Dialog:
             last_message = Message.truncate(dialog[3], 100)
             is_readen = dialog[4]
             is_answered = dialog[5]
+            date = dialog[6]
             user_info = User.get_info(sender_id)
             avatar = user_info["avatar"]
             nick = user_info["nick"]
@@ -955,6 +977,7 @@ class Dialog:
             tmp["nick"] = nick
             tmp["avatar"] = avatar
             tmp["is_cookie_user"] = is_cookie_user
+            tmp["date"] = dialog[6]
             result.append(tmp)
         return result
 

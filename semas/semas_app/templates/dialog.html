@@ -32,7 +32,7 @@ $(document).ready(function() {
 	{% endif %}
 <!-- Start Content -->
 <div class="w3-container" style="max-width:800px;">
-		<div class="w3-border" style="height:400px;overflow:scroll" id="dialog_messages">
+		<div class="w3-border w3-margin" style="height:400px;overflow:scroll" id="dialog_messages">
 		{% for message in messages %}
 			<div class="w3-white w3-round w3-margin"><br>
 			<a href = "/user/{{message.user_id}}" target="_blank">

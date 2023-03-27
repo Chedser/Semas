@@ -28,6 +28,10 @@
 <!-- Start Content -->
 <div class="w3-content" style="max-width:800px;">
 
+	{% if dialogs_count %}
+		<h3 class = "w3-center">Диалоги {{ dialogs_count  }}</h3>
+	{% endif %}
+
 	{% for dialog in dialogs %}
 		{% if not dialog.is_readen %}
 	<div class="w3-container w3-card w3-cyan w3-round w3-margin w3-padding dialog_container"
@@ -51,6 +55,7 @@
 				{% endif %}
 				{{ dialog.last_message }}
 			</p>
+				<span class="small">{{ dialog.date }}</span>
 	</div>
 	{% endfor %}
 
