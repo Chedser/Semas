@@ -10,14 +10,16 @@
 
 <link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<script src="{% static 'js/jQuery.min.js' %}"></script>
-	<script src="{% static 'js/items_controller.js' %}"></script>
-	<script src="{% static 'js/friends.js' %}"></script>
-	<script src="{% static 'js/forum.js' %}"></script>
+	{% if cookie_user_id %}
+		<script src="{% static 'js/jQuery.min.js' %}"></script>
+		<script src="{% static 'js/items_controller.js' %}"></script>
+		<script src="{% static 'js/friends.js' %}"></script>
+		<script src="{% static 'js/forum.js' %}"></script>
+	{% endif %}
 	<style>
-html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
-textarea{resize:none;}
-</style>
+		html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
+		textarea{resize:none;}
+	</style>
 </head>
 <body>
 	{% if cookie_user_id %}
@@ -42,7 +44,6 @@ textarea{resize:none;}
 		<div class="w3-card w3-padding w3-margin-top">
 			<textarea class="w3-input w3-border" id="forum_msg" rows="3" maxlength="1000"  placeholder="Сообщение" required></textarea>
 			<input type = "button" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center" style = "width:100%" id="forum_send_message_btn" onclick="forum_send_message({{ forum_info.id }})" value = "OK">
-			
 		</div>
 		{% endif %}
 		

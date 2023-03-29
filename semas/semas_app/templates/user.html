@@ -17,6 +17,7 @@
 	<script src="{% static 'js/friends.js' %}"></script>
 	<script src="{% static 'js/dialog.js' %}"></script>
 	<script src="{% static 'js/likes.js' %}"></script>
+	<script src="{% static 'js/cookie.js' %}"></script>
 {% endif %}
 
 <style>
@@ -97,6 +98,9 @@ textarea{resize:none;}
     <!-- Right Column -->
     <div class="w3-twothird">
 		{% if is_authed_user %}
+		<div class="w3-content w3-right">
+			<span class="exit_span" onclick="Exit()">Выход</span>
+		</div>
 			{% include "./items/textareas/wall_textarea.html" %}
 		{% endif %}
 		<!-- Messages Container -->
@@ -108,7 +112,7 @@ textarea{resize:none;}
 			   	onmouseover="ShowDeleteMsgSpan({{ wall_message.id }})"
 		  		onmouseleave="HideDeleteMsgSpan({{ wall_message.id }})" id="#wall_message_container{{ wall_message.id }}">
 			  {% else %}
-			  				  <div class="w3-container w3-card w3-white w3-round w3-margin wall_message_container">
+			  <div class="w3-container w3-card w3-white w3-round w3-margin wall_message_container">
 			  {% endif %}
 			  <br>
 			<a href = "{{wall_message.sender_id}}" target="_blank">

@@ -4,10 +4,12 @@ from semas_app import views
 
 urlpatterns = [
     path("", views.index),
+    path("/", views.index),
     re_path(r"^index", views.index),
     path('admin/', admin.site.urls),
     path('api/reg', views.reg),
     path('api/auth', views.auth),
+    path('api/exit', views.exit),
     path('api/forum_create', views.forum_create),
     path('api/forum_send_message', views.forum_send_message),
     path('api/forum_delete_message', views.forum_delete_message),

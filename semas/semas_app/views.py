@@ -1,6 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
-from .cryptography import *
+
 from .models import *
 from django.shortcuts import render
 
@@ -8,7 +8,9 @@ from django.shortcuts import render
 def index(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
     cookie_user_id = request.COOKIES.get("id")
-    if cookie_user_id: return redirect(f"user/{cookie_user_id}")
+    if cookie_user_id:
+        cookie_user_id = int(cookie_user_id)
+        return redirect(f"user/{cookie_user_id}")
     return render(request, "index.html")
 
 
@@ -39,6 +41,7 @@ def user(request, id):
     friends = Friend.get_friends_user_page(id, 8)
     active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
     page_likes_count = UserPageLike.get_page_likes_count(id)
+
     data = {"cookie_user_id": cookie_user_id, "user_id": id, "is_login_user_page": is_login_user_page, \
             "is_authed_user": is_authed_user, "wall_messages": wall_messages, "user_info": user_info, \
             "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends,\
@@ -139,6 +142,11 @@ def auth(request):
     if request.method == "POST":
         return Auth.auth(request)
 
+def exit(request):
+    if request.method == "POST" and request.COOKIES.get("id"):
+        response = render(request, 'index.html')
+        response.delete_cookie("id")
+        return response
 
 def send_wall_message(request):
     if request.method == "POST":
