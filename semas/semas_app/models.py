@@ -81,33 +81,33 @@ class Reg:
                 ("админ" in login.lower()):
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
+        response = Response.SUCCESS.value
+
         try:
             con = sqlite3.connect(DB_NAME)
 
             cur = con.cursor()
             result = cur.execute(f"SELECT id FROM user WHERE login='{login}' OR nick='{nick}'").fetchall()
             if len(result) != 0:
-                con.close()
-                return JsonResponse({'message': Response.USER_EXISTS.value})
+                response = Response.USER_EXISTS.value
+            else:
+                hash = get_hash(password)
 
-            hash = get_hash(password)
+                cur.execute("INSERT INTO user (login,password,nick,sex,time_of_change_info," \
+                            " time_of_last_action) \
+                 VALUES (?,?,?,?,?,?)", (login, hash, nick, sex, (int)(time.time()), (int)(time.time())))
+                con.commit()
+                last_id = cur.execute(f"SELECT MAX(id) FROM user WHERE login='{login}'").fetchall()
 
-            cur.execute("INSERT INTO user (login,password,nick,sex,time_of_change_info," \
-                        " time_of_last_action) \
-             VALUES (?,?,?,?,?,?)", (login, hash, nick, sex, (int)(time.time()), (int)(time.time())))
-            con.commit()
-            last_id = cur.execute(f"SELECT MAX(id) FROM user WHERE login='{login}'").fetchall()
-
-            os.mkdir(f"semas_app/static/images/avatars/{last_id[0][0]}")
-            return JsonResponse({'message': Response.SUCCESS.value})
+                os.mkdir(f"semas_app/static/images/avatars/{last_id[0][0]}")
 
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
-            return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+            response = Response.UNKNOWN_ERROR.value
         finally:
             con.close()
-        return JsonResponse({'message': Response.WRONG_INPUT.value})
+        return JsonResponse({'message': response})
 
 
 class MessageWall:

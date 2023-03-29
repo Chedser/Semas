@@ -43,7 +43,8 @@ function reg(){
 								window.location.reload();break;
 						case 1: alert("Пользователь существует"); break;
 						case 2: alert("Неверный ввод"); break;
-						case 3: alert("Неизвестная ошибка"); break;
+						case 3: alert("Пользователь существует"); break;
+						case 4: alert("Неизвестная ошибка"); break;
 						
 					}
 				$("#reg_btn").first().removeAttr("disabled");
