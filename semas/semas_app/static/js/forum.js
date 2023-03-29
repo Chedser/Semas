@@ -79,3 +79,43 @@ function forum_send_message(_id){
 		
 	});
 }
+
+function ShowDeleteMsgSpan(message_id){
+    if($('#delete_msg_span'+message_id) == null) {return;}
+    $('#delete_msg_span'+message_id).css('display','inline-block');
+}
+
+function HideDeleteMsgSpan(message_id){
+    if($('#delete_msg_span'+message_id) == null) {return;}
+    $('#delete_msg_span'+message_id).css('display','none');
+}
+
+function DeleteForumMessage(span,message_id_, sender_id_){
+		if($(span).attr("disabled")) {return;}
+		const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+		$(span).attr("disabled", "disabled");
+
+		let dataToSend = {
+					message_id:message_id_,
+					sender_id: sender_id_
+					};
+
+		$.ajax({
+				url: 'api/forum_delete_message',  // указываем URL и
+				data: dataToSend,                // Данные для отправки
+				type: "POST",
+				headers: {'X-CSRFToken': csrftoken},
+				success: function (data, textStatus) {
+				console.log(data.message);
+				if (data.message == 0){
+								$("#forum_message"+message_id_).css("color","grey");
+								$("#forum_message"+message_id_).html("Сообщение удалено");
+								$(span).html("");
+					}
+				},
+				fail: function (data, textStatus) {
+						$(span).removeAttr("disabled");
+					}
+			});
+
+}

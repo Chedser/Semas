@@ -1,6 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
-from datetime import datetime
+from .cryptography import *
 from .models import *
 from django.shortcuts import render
 
@@ -66,6 +66,8 @@ def forum(request, id):
     if not forum_info: return HttpResponse("<h1>Страница не найдена: 404</h1>")
     messages = Forum.get_messages(id)
     cookie_user_id = request.COOKIES.get("id")
+    if cookie_user_id:
+        cookie_user_id = int(cookie_user_id)
     active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
     friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
     data = {"cookie_user_id": cookie_user_id, "forum_info": forum_info, "messages": messages,
@@ -177,6 +179,10 @@ def forum_create(request):
 def forum_send_message(request):
     if request.method == "POST":
         return Forum.send_message(request)
+
+def forum_delete_message(request):
+    if request.method == "POST":
+        return Forum.delete_message(request)
 
 def dialog_send_outer(request):
     if request.method == "POST":

@@ -61,14 +61,10 @@ function DeleteWallMessage(span,message_id_, user_id_, sender_id_){
 				headers: {'X-CSRFToken': csrftoken},
 				type: "POST",
 				success: function (data, textStatus) {
-				switch (data.message){
-						case 0:
+				if(data.message == 0){
 								$("#wall_message"+message_id_).css("color","grey");
 								$("#wall_message"+message_id_).html("Сообщение удалено");
 								$(span).html("");
-								break;
-						case 1: alert("Неизвестная ошибка"); break;
-
 					}
 				},
 				fail: function (data, textStatus) {

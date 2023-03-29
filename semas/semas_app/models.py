@@ -157,8 +157,8 @@ class MessageWall:
         sender_id = request.POST.get("sender_id")
 
         if not user_id or \
-            not message_id or \
-            not sender_id:
+                not message_id or \
+                not sender_id:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         user_id = (int)(user_id)
@@ -182,9 +182,8 @@ class MessageWall:
                 return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
             finally:
                 con.close()
-        else: return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
-
-
+        else:
+            return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
 
     def get_wall_messages(user_id):
         if not user_id: return None
@@ -724,6 +723,7 @@ class Forum:
             nick = message[5]
             avatar = User.get_avatar_link(avatar, senderId)
             tmp = dict()
+
             tmp["id"] = id
             tmp["sender_id"] = senderId
             tmp["message"] = Message.tolink(txt)
@@ -798,6 +798,45 @@ class Forum:
         finally:
             con.close()
 
+    @staticmethod
+    def delete_message(request):
+        print(request.COOKIES.get("id"))
+        if request.COOKIES.get("id"):
+            cookie_user_id = (int)(request.COOKIES.get("id"))
+        else:
+            return JsonResponse({'message': Response.WRONG_INPUT.value})
+
+        message_id = request.POST.get("message_id")
+        sender_id = request.POST.get("sender_id")
+
+        if not message_id or \
+        not sender_id:
+            return JsonResponse({'message': Response.WRONG_INPUT.value})
+
+        print(message_id)
+
+        sender_id = (int)(sender_id)
+        message_id = (int)(message_id)
+
+        if sender_id != cookie_user_id: return JsonResponse({'message': Response.WRONG_INPUT.value})
+
+        User.update_time_of_last_action(cookie_user_id)
+
+        try:
+            con = sqlite3.connect(DB_NAME)
+
+            cur = con.cursor()
+
+            cur.execute(f"DELETE FROM forum_message WHERE id=?", (message_id,))
+            con.commit()
+            return JsonResponse({'message': Response.SUCCESS.value})
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+        finally:
+            con.close()
+
 
 class Dialog:
     @staticmethod
@@ -830,6 +869,7 @@ class Dialog:
 
     @staticmethod
     def get_active_dialogs_count(cookie_user_id):
+        if not cookie_user_id: return None
         try:
             con = sqlite3.connect(DB_NAME)
 
@@ -854,7 +894,8 @@ class Dialog:
             cur = con.cursor()
 
             dialogs_count = cur.execute(f"SELECT COUNT(*)  FROM dialog"
-                                        f" WHERE senderId={cookie_user_id} OR  receiverId={cookie_user_id}").fetchall()[0][0]
+                                        f" WHERE senderId={cookie_user_id} OR  receiverId={cookie_user_id}").fetchall()[
+                0][0]
             return dialogs_count
 
         except sqlite3.Error as error:
@@ -919,7 +960,7 @@ class Dialog:
         return result
 
     @staticmethod
-    def get_dialog_opponent_info(cookie_user_id,dialog_id):
+    def get_dialog_opponent_info(cookie_user_id, dialog_id):
         try:
             con = sqlite3.connect(DB_NAME)
 
@@ -984,7 +1025,7 @@ class Dialog:
 
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
                   f"date FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=0 " \
-                "ORDER by date DESC"
+                  "ORDER by date DESC"
 
             dialogs_not_readen = cur.execute(sql).fetchall()
 
@@ -1170,7 +1211,7 @@ class Dialog:
                   f"FROM dialog_message " \
                   f"INNER JOIN user ON user.id=userId " \
                   f"WHERE dialogId={dialog_id} " \
-                f"ORDER by date"
+                  f"ORDER by date"
 
             messages = cur.execute(sql).fetchall()
 
@@ -1188,36 +1229,38 @@ class Dialog:
         return result
 
     def __parse_dialog_messages(messages):
-            result = list()
-            for message in messages:
-                id = message[0]
-                user_id = message[1]
-                msg = message[2]
-                date = message[3]
-                nick = message[4]
-                avatar = message[5]
-                avatar = User.get_avatar_link(avatar, user_id)
+        result = list()
+        for message in messages:
+            id = message[0]
+            user_id = message[1]
+            msg = message[2]
+            date = message[3]
+            nick = message[4]
+            avatar = message[5]
+            avatar = User.get_avatar_link(avatar, user_id)
 
-                tmp = dict()
-                tmp["id"] = id
-                tmp["user_id"] = user_id
-                tmp["message"] = Message.tolink(msg)
-                tmp["date"] = date
-                tmp["nick"] = nick
-                tmp["avatar"] = avatar
-                result.append(tmp)
-            return result
+            tmp = dict()
+            tmp["id"] = id
+            tmp["user_id"] = user_id
+            tmp["message"] = Message.tolink(msg)
+            tmp["date"] = date
+            tmp["nick"] = nick
+            tmp["avatar"] = avatar
+            result.append(tmp)
+        return result
+
 
 class UserPageLike:
     @staticmethod
     def get_page_likes_count(user_id):
-        if not user_id:return None
+        if not user_id: return None
         try:
             con = sqlite3.connect(DB_NAME)
 
             cur = con.cursor()
 
-            likes_count = cur.execute(f"SELECT COUNT(*) FROM user_page_like WHERE userId=?", (user_id,)).fetchall()[0][0]
+            likes_count = cur.execute(f"SELECT COUNT(*) FROM user_page_like WHERE userId=?", (user_id,)).fetchall()[0][
+                0]
 
             result = likes_count
 
@@ -1248,7 +1291,7 @@ class UserPageLike:
             cur = con.cursor()
 
             likes_count_from_user = cur.execute(f"SELECT COUNT(*) FROM user_page_like WHERE userId=? AND likerId=?",
-                                                (user_id,cookie_user_id)).fetchall()[0][0]
+                                                (user_id, cookie_user_id)).fetchall()[0][0]
             likes_count_total = UserPageLike.get_page_likes_count(user_id)
             insert = True
             if likes_count_from_user:
@@ -1259,7 +1302,8 @@ class UserPageLike:
 
             if UserPageLike.__update_page_like(user_id, cookie_user_id, insert):
                 return JsonResponse({'message': likes_count_total})
-            else: return JsonResponse({'message': -1})
+            else:
+                return JsonResponse({'message': -1})
 
         except sqlite3.Error as error:
             con.rollback()
@@ -1278,7 +1322,7 @@ class UserPageLike:
 
             if insert:
                 cur.execute(f"INSERT INTO user_page_like(userId,likerId,timestamp) VALUES (?,?,?)",
-                                      (user_id, cookie_user_id, (int)(time.time())))
+                            (user_id, cookie_user_id, (int)(time.time())))
             else:
                 cur.execute(f"DELETE FROM  user_page_like WHERE userId=? AND likerId=?",
                             (user_id, cookie_user_id))
@@ -1291,5 +1335,3 @@ class UserPageLike:
         finally:
             con.close()
         return result
-
-

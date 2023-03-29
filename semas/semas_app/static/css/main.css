@@ -61,7 +61,8 @@ nav a:hover {
     background-color:gray;
 }
 
-.wall_message_container{
+.wall_message_container,
+forum_message_container{
     cursor:pointer;
 }
 

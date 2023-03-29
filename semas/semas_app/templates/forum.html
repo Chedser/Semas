@@ -50,17 +50,28 @@ textarea{resize:none;}
 
 	<div class="w3-container">
 		{% for message in messages %}
-			<div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+		{% if cookie_user_id == message.sender_id %}
+		<div class="w3-container w3-card w3-white w3-round w3-margin forum_message_container"
+			 	onmouseover="ShowDeleteMsgSpan({{ message.id }})"
+		  		onmouseleave="HideDeleteMsgSpan({{ message.id }})"
+			 	id="#forum_message_container{{ message.id }}">
+			{% else %}
+				<div class="w3-container w3-card w3-white w3-round w3-margin forum_message_container">
+			{% endif %}
 			<a href = "{{message.sender_id}}" target="_blank">
 				<img src="{% static message.avatar %}" alt="Avatar" class="w3-left w3-circle w3-margin-right avatar" style="width:60px;height:60px;" />
 			<h4>{{ message.nick }}</h4>
 			</a><br>
 			<span class="w3-right w3-opacity small">{{ message.date }}</span>
-			
 				<hr class="w3-clear">
-			<p>
+			<p id="forum_message{{ message.id }}">
 			{{ message.message|safe }}
 			</p>
+					{% if cookie_user_id == message.sender_id %}
+				<span id="delete_msg_span{{ message.id }}"
+					  onclick="DeleteForumMessage(this,{{ message.id }},{{ message.sender_id }})"
+					  class="w3-right w3-text-grey delete_msg_span">x</span>
+			{% endif %}
       </div>
 		
 		{% empty %}
