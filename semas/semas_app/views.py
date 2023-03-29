@@ -181,6 +181,7 @@ def forum_send_message(request):
         return Forum.send_message(request)
 
 def forum_delete_message(request):
+    print(f"Вход в {forum_delete_message}")
     if request.method == "POST":
         return Forum.delete_message(request)
 

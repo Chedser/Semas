@@ -798,9 +798,7 @@ class Forum:
         finally:
             con.close()
 
-    @staticmethod
     def delete_message(request):
-        print(request.COOKIES.get("id"))
         if request.COOKIES.get("id"):
             cookie_user_id = (int)(request.COOKIES.get("id"))
         else:
@@ -809,11 +807,8 @@ class Forum:
         message_id = request.POST.get("message_id")
         sender_id = request.POST.get("sender_id")
 
-        if not message_id or \
-        not sender_id:
+        if not message_id or not sender_id:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
-
-        print(message_id)
 
         sender_id = (int)(sender_id)
         message_id = (int)(message_id)

@@ -101,12 +101,11 @@ function DeleteForumMessage(span,message_id_, sender_id_){
 					};
 
 		$.ajax({
-				url: 'api/forum_delete_message',  // указываем URL и
-				data: dataToSend,                // Данные для отправки
+				url: '../api/forum_delete_message',
+				data: dataToSend,
 				type: "POST",
 				headers: {'X-CSRFToken': csrftoken},
 				success: function (data, textStatus) {
-				console.log(data.message);
 				if (data.message == 0){
 								$("#forum_message"+message_id_).css("color","grey");
 								$("#forum_message"+message_id_).html("Сообщение удалено");
