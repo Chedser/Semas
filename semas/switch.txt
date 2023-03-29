@@ -1,0 +1,2 @@
+C:\Users\DNS\Documents\DjangoDiplom\.venv\Scripts\activate
+python manage.py runserver
