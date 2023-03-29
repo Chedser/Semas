@@ -61,6 +61,30 @@ nav a:hover {
     background-color:gray;
 }
 
+.wall_message_container{
+    cursor:pointer;
+}
+
+.delete_msg_span{
+    display:none;
+    padding:3px;
+    border-radius:100%;
+}
+
+.like{
+    padding:3px;
+    width:30px;
+    height:30px;
+    border-radius:100%;
+
+}
+
+.delete_msg_span:hover,
+.like:hover{
+    cursor:pointer;
+    background-color:yellow;
+}
+
 /* Коммент в диалоге */
 .container {
     max-width: 1200px;
@@ -122,6 +146,7 @@ nav a:hover {
     line-height: 20px;
     align-self: flex-end;
 }
+
 
 @media screen and (max-width: 768px) {
     .comment-item {

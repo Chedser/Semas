@@ -10,15 +10,15 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/w3.css' %}">
 
 <link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-{% if is_authed_user %}
+{% if cookie_user_id %}
 	<script src="{% static 'js/jQuery.min.js' %}"></script>
 	<script src="{% static 'js/wall.js' %}"></script>
 	<script src="{% static 'js/items_controller.js' %}"></script>
 	<script src="{% static 'js/friends.js' %}"></script>
 	<script src="{% static 'js/dialog.js' %}"></script>
+	<script src="{% static 'js/likes.js' %}"></script>
 {% endif %}
+
 <style>
 html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
 textarea{resize:none;}
@@ -49,9 +49,20 @@ textarea{resize:none;}
         <div class="w3-container">
 		  <h5 class="w3-text-black w3-center">{{user_info.nick}}</h5>
 		  {% if user_info.is_online %}
-			<span>Online</span>
+			<span>Online</span><br/>
 		  {% endif %}
-		 
+			<div class="w3-content w3-center">
+				{% if is_authed_user and cookie_user_id != user_info.id %}
+					<img  class="w3-center like" src="{% static 'images/like.png' %}" onclick="SetPageLike(this,{{ user_info.id }})" />
+				{% else %}
+					<img  class="w3-center like" src="{% static 'images/like.png' %}" />
+				{% endif %}
+				{% if page_likes_count %}
+					<span id="page_likes_count_span">{{ page_likes_count }}</span>
+				{% else %}
+					<span id="page_likes_count_span"></span>
+				{% endif %}
+			</div>
 		{% if is_authed_user %}
 			{% include "./items/buttons/friend_buttons_user_page.html" %}
 				{% if cookie_user_id != user_id %}
@@ -92,7 +103,14 @@ textarea{resize:none;}
       <div class="w3-container w3-card w3-white w3-margin-bottom">
 		
 		{% for wall_message in wall_messages %}
-		<div class="w3-container w3-card w3-white w3-round w3-margin"><br>
+			{% if cookie_user_id == user_info.id or cookie_user_id == wall_message.sender_id %}
+		  <div class="w3-container w3-card w3-white w3-round w3-margin wall_message_container"
+			   	onmouseover="ShowDeleteMsgSpan({{ wall_message.id }})"
+		  		onmouseleave="HideDeleteMsgSpan({{ wall_message.id }})" id="#wall_message_container{{ wall_message.id }}">
+			  {% else %}
+			  				  <div class="w3-container w3-card w3-white w3-round w3-margin wall_message_container">
+			  {% endif %}
+			  <br>
 			<a href = "{{wall_message.sender_id}}" target="_blank">
 				<img src="{% static wall_message.avatar %}" alt="Avatar"
 					 class="w3-left w3-circle w3-margin-right avatar" style="width:60px;height:60px">
@@ -100,9 +118,14 @@ textarea{resize:none;}
 			</a><br>
 			<span class="w3-right w3-opacity small">{{wall_message.date}}</span>
 					<hr class="w3-clear">
-			<p>
+			<p id="wall_message{{ wall_message.id }}">
 			{{wall_message.message|safe}}
 			</p>
+			{% if cookie_user_id == user_info.id or cookie_user_id == wall_message.sender_id %}
+				<span id="delete_msg_span{{ wall_message.id }}"
+					  onclick="DeleteWallMessage(this,{{ wall_message.id }},{{ user_info.id }}, {{ wall_message.sender_id }})"
+					  class="w3-right w3-text-grey delete_msg_span">x</span>
+			{% endif %}
 		</div>
 		
 		{% empty %}

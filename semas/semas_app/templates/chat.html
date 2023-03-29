@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/w3.css' %}">
+
+<link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="{% static 'js/jQuery.min.js' %}"></script>
+	<script src="{% static 'js/items_controller.js' %}"></script>
+	<script src="{% static 'js/friends.js' %}"></script>
+	<script src="{% static 'js/chat.js' %}"></script>
+	<script src="https://cdn.socket.io/4.5.0/socket.io.min.js" integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k" crossorigin="anonymous"></script>
+	<style>
+			html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
+			textarea{resize:none;}
+		</style>
+</head>
+<script>
+
+$(document).ready(function(){
+  var floor_dest = 6; // Начальная точка для лифта
+  var floor_to = 6;
+
+  var socket = io();
+
+/* СОБЫТИЯ СОКЕТА */
+ socket.on('connect', function() {
+
+				$('#infoBlock').append("<span>Успешное подключение к сокету</span><br />");
+
+
+			});
+
+ socket.on('other_client_connect', function(msg) {
+
+			$('#current_floor').text(msg.floor_current);
+			$('#infoBlock').append("<span>" + msg.client + " подключился</span><br />");
+			$('#lift_state').text(getState(msg.state));
+
+			});
+
+ socket.on('disconnect', function(msg) {
+
+		$('#infoBlock').append("<span>Разрыв соединения</span><br />");
+
+    });
+
+
+socket.on('other_client_disconnect', function(msg) {
+
+			$('#current_floor').text(msg.floor_current);
+			$('#infoBlock').append("<span>" + msg.client + " отключился</span><br />");
+	    });
+
+ socket.on('response', function(msg) {
+
+			switch (msg.errno){
+
+				case 0: $('#infoBlock').append("<span>" + msg.client.login + " подключен. " + "Этаж клиента: " + (msg.client.floor_dest + 1) + " Этаж назначения: " + (msg.client.floor_to + 1) + "</span><br />"); break;
+				case 1: $('#errorTxt').text("Ожидайте");
+						$('#send_btn').prop('disabled', false); break;
+
+				case 3: $('#errorTxt').text("Ожидайте");
+						$('#send_btn').prop('disabled', false);break;
+
+			}
+
+    });
+
+socket.on('lift_response', function(msg) { // Получаем данные от сокета
+
+		$('#current_floor').text(msg.floor_current);
+
+		$('#lift_state').text(getState(msg.state));
+
+		switch (msg.code){
+
+			case 0: $('#infoBlock').append("<span>Лифт ожидает</span><br />");break;
+			case 1: $('#infoBlock').append("<span>Лифт остановлен</span><br />");
+					$('#send_btn').prop('disabled', false);break;
+			case 2:
+			if(msg.reached_dest_floor == -1){
+				$('#infoBlock').append("<span>Лифт на этаже № " + msg.floor_current + "</span><br />"); break;
+			}else{
+			$('#infoBlock').append("<span>Клиент достиг этаж № " + msg.reached_dest_floor + "</span><br />"); break;
+			}
+
+		}
+
+    });
+
+/* СОБЫТИЯ НАЖАТИЙ ПОЛЬЗОВАТЕЛЯ */
+$("#select_floor_dest").on("change", function() {
+
+	floor_dest = this.querySelectorAll('option')[this.selectedIndex].getAttribute('value');
+
+});
+
+$("#select_floor_to").on("change", function() {
+
+	floor_to = this.querySelectorAll('option')[this.selectedIndex].getAttribute('value');
+
+});
+
+$("#send_btn").on("click", function() { // Посылаем данные в сокет
+
+$(this).prop('disabled', true)
+$('#errorTxt').text("");
+	floor_dest = parseInt(floor_dest);
+	floor_to = parseInt(floor_to);
+
+	if(floor_dest == floor_to){
+
+		$('#errorTxt').text("Номера этажей совпадают");
+		$('#send_btn').prop('disabled', false);
+		return;
+
+	}
+
+	 let data = {login:"{{login}}",
+				floor_to:floor_to,
+				floor_dest:floor_dest
+				};
+
+	socket.emit('request', data);
+
+});
+
+$("#unloginA").on("click", function() { // Разлогинимся
+
+	document.cookie = "user={{login}}" + ";expires=Thu, 01 Jan 1970 00:00:01 GMT";
+	window.location.replace("/auth");
+
+})
+
+$("#clear_btn").on("click", function() { // Посылаем данные в сокет
+
+	$('#errorTxt').text("");
+
+	$('#infoBlock').empty();
+
+})
+
+function getState(state){
+
+	let msgTXT = ""
+
+		switch (state){
+
+			case 0: msgTXT = "NEUTRAL";   break;
+			case 1: msgTXT = "GOING_DOWN"; break;
+			case 2: msgTXT = "GOING_UP";  break;
+
+		}
+
+	return msgTXT;
+
+}
+
+}) // $(document).ready
+</script>
+<body>
+	{% if cookie_user_id %}
+		{% csrf_token %}
+		{% include "./items/navbar.html" %}
+	{% endif %}
+
+	<!-- Start Content -->
+<div class="w3-container" style="max-width:800px;">
+	<h5 class="w3-center">Чат</h5>
+	<div class="w3-border" style="height:400px;overflow:scroll" id="dialog_messages">
+		{% for message in messages %}
+			<div class="w3-white w3-round w3-margin">
+			<a href = "/user/{{message.user_id}}" target="_blank">
+				<img src="{% static message.avatar %}" alt="Avatar"
+					 class="w3-left w3-circle w3-margin-right avatar" style="width:40px;height:40px">
+			<h4>{{ message.nick }}</h4>
+			</a><br>
+			<span class="w3-right w3-opacity small">{{ message.date}}</span>
+			<p>
+			{{ message.message|safe }}
+			</p>
+				<hr />
+		</div>
+
+			{% endfor %}
+		</div>
+
+	{% if cookie_user_id %}
+	<div class = "w3-panel  w3-padding">
+		<form>
+			<textarea class="w3-input w3-border" id="message_dialog" rows="3" maxlength="1000"  placeholder="Напишите что-нибудь" type="text" required></textarea>
+			<input type = "button" onclick="sendMessageInner(this, {{dialog_id}})" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center" style = "width:100%" value = "OK">
+		</form>
+	</div>
+	{% endif %}
+<!-- End Content -->
+</div>
+
+</body>
+</html>

@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'semas_app'
+    'semas_app',
 ]
 
 MIDDLEWARE = [

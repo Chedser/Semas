@@ -1,5 +1,5 @@
 
-function wall_message(btn,reсeiverId_){
+function SendWallMessage(btn,reсeiverId_){
 		let wall_msg = $("#wall_msg_inpt").val().trim();
 		const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 		if(wall_msg == ""){return;}
@@ -13,12 +13,11 @@ function wall_message(btn,reсeiverId_){
 					};
 		
 		$.ajax({
-				url: 'api/wall_message',             // указываем URL и
+				url: 'api/send_wall_message',             // указываем URL и
 				data: dataToSend,                // Данные для отправки
 				type: "POST",
 				headers: {'X-CSRFToken': csrftoken},
-				type: "POST",
-				success: function (data, textStatus) { 
+				success: function (data, textStatus) {
 				switch (data.message){
 						case 0:
 								window.location.reload();break;
@@ -26,10 +25,56 @@ function wall_message(btn,reсeiverId_){
 						
 					}
 				},
-				fail: function (data, textStatus) { // вешаем свой обработчик на функцию success
+				fail: function (data, textStatus) {
 						alert("Неизвестная ошибка");
 						$(btn).removeAttr("disabled");
 					}
 			});
 		
+}
+
+function ShowDeleteMsgSpan(message_id){
+    if($('#delete_msg_span'+message_id) == null) {return;}
+    $('#delete_msg_span'+message_id).css('display','inline-block');
+}
+
+function HideDeleteMsgSpan(message_id){
+    if($('#delete_msg_span'+message_id) == null) {return;}
+    $('#delete_msg_span'+message_id).css('display','none');
+}
+
+function DeleteWallMessage(span,message_id_, user_id_, sender_id_){
+		if($(span).attr("disabled")) {return;}
+		const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+		$(span).attr("disabled", "disabled");
+
+		let dataToSend = {
+					message_id:message_id_,
+					user_id: user_id_,
+					sender_id: sender_id_
+					};
+
+		$.ajax({
+				url: 'api/delete_wall_message',  // указываем URL и
+				data: dataToSend,                // Данные для отправки
+				type: "POST",
+				headers: {'X-CSRFToken': csrftoken},
+				type: "POST",
+				success: function (data, textStatus) {
+				switch (data.message){
+						case 0:
+								$("#wall_message"+message_id_).css("color","grey");
+								$("#wall_message"+message_id_).html("Сообщение удалено");
+								$(span).html("");
+								break;
+						case 1: alert("Неизвестная ошибка"); break;
+
+					}
+				},
+				fail: function (data, textStatus) {
+						alert("Неизвестная ошибка");
+						$(span).removeAttr("disabled");
+					}
+			});
+
 }

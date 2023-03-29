@@ -14,13 +14,15 @@ urlpatterns = [
     path('api/accept_friend_request', views.accept_friend_request),
 
     path('user/<int:id>', views.user),
-    path('user/api/wall_message', views.wall_message),
+    path('user/api/send_wall_message', views.send_wall_message),
+    path('user/api/delete_wall_message', views.delete_wall_message),
     path('user/api/friend_request', views.friend_request),
     path('user/api/cancel_friend_request', views.cancel_friend_request),
     path('user/api/accept_friend_request', views.accept_friend_request),
     path('user/api/delete_friend', views.delete_friend),
     path('user/api/change_avatar', views.change_avatar),
     path('user/api/dialog_send_outer', views.dialog_send_outer),
+    path('user/api/set_page_like', views.set_page_like),
     path('friends', views.friends),
 
     path('dialogs', views.dialogs),
@@ -28,7 +30,5 @@ urlpatterns = [
     path('forum/<int:id>', views.forum),
     re_path(r'forum/?', views.forum_topics),
 
-
-
-
 ]
+

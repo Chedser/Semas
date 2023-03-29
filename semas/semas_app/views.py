@@ -38,10 +38,12 @@ def user(request, id):
     friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
     friends = Friend.get_friends_user_page(id, 8)
     active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+    page_likes_count = UserPageLike.get_page_likes_count(id)
     data = {"cookie_user_id": cookie_user_id, "user_id": id, "is_login_user_page": is_login_user_page, \
             "is_authed_user": is_authed_user, "wall_messages": wall_messages, "user_info": user_info, \
             "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends,\
-            "friends_count": len(friends), "active_dialogs_count": active_dialogs_count}
+            "friends_count": len(friends), "active_dialogs_count": active_dialogs_count,
+            "page_likes_count": page_likes_count}
 
     return render(request, "user.html", context=data)
 
@@ -123,11 +125,7 @@ def dialogs(request):
     data = {"dialogs":dialogs, "cookie_user_id":cookie_user_id, "dialogs_count": dialogs_count,
             "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count}
 
-
     return render(request, "dialogs.html", context=data)
-
-
-
 
 # API
 def reg(request):
@@ -140,9 +138,13 @@ def auth(request):
         return Auth.auth(request)
 
 
-def wall_message(request):
+def send_wall_message(request):
     if request.method == "POST":
         return MessageWall.send_wall_message(request)
+
+def delete_wall_message(request):
+    if request.method == "POST":
+        return MessageWall.delete_wall_message(request)
 
 
 def friend_request(request):
@@ -183,3 +185,8 @@ def dialog_send_outer(request):
 def dialog_send_inner(request):
     if request.method == "POST":
         return Dialog.send_inner(request)
+
+def set_page_like(request):
+    if request.method == "POST":
+        return UserPageLike.set_page_like(request)
+

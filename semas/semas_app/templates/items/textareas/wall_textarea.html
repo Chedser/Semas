@@ -1,4 +1,4 @@
 	<form class = "w3-panel  w3-padding" id="wall_form">
 		<textarea class="w3-input w3-border" id="wall_msg_inpt" rows="1" oninput="expand(this, 3)" maxlength="1000"  placeholder="Напишите что-нибудь" type="text" required></textarea>
-		<input type = "button" onclick="wall_message(this, {{user_id}})" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center" style = "width:100%" value = "OK">
+		<input type = "button" onclick="SendWallMessage(this, {{user_id}})" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center" style = "width:100%" value = "OK">
 	</form>

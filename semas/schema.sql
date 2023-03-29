@@ -73,7 +73,6 @@ CREATE TABLE IF NOT EXISTS forum_message (
 	last_message TEXT(1000) NOT NULL,	
 	timestamp INTEGER NOT NULL,
 	is_readen INTEGER DEFAULT 0,
-	is_answered INTEGER DEFAULT 0,
 	FOREIGN KEY (senderId) REFERENCES users(id),
 	FOREIGN KEY (receiverId) REFERENCES users(id)
 );
@@ -87,6 +86,16 @@ CREATE TABLE IF NOT EXISTS dialog_message (
 	timestamp INTEGER NOT NULL,
 	FOREIGN KEY (userId) REFERENCES user(id),
 	FOREIGN KEY (dialogId) REFERENCES dialog(id)
+);
+
+CREATE TABLE IF NOT EXISTS user_page_like (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	userId INTEGER NOT NULL,
+	likerId INTEGER NOT NULL,
+	date DATETIME DEFAULT CURRENT_TIMESTAMP,	
+	timestamp INTEGER NOT NULL,
+	FOREIGN KEY (userId) REFERENCES user(id),
+	FOREIGN KEY (likerId) REFERENCES user(id)
 );
 
  
