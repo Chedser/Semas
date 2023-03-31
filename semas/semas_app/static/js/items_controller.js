@@ -24,3 +24,13 @@ function getRadioValue(radios){
 	return val;
 	
 }
+
+function ShowDeleteMsgSpan(message_id){
+    if($('#delete_msg_span'+message_id) == null) {return;}
+    $('#delete_msg_span'+message_id).css('display','inline-block');
+}
+
+function HideDeleteMsgSpan(message_id){
+    if($('#delete_msg_span'+message_id) == null) {return;}
+    $('#delete_msg_span'+message_id).css('display','none');
+}

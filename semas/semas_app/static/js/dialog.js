@@ -48,19 +48,19 @@ function sendMessage(btn, user_id){
 
 }
 
-function sendMessageInner(btn, _dialog_id){
+function SendMessageInner(btn){
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 	let message_dialog = $("#message_dialog").val().trim();
+	let message_dialog_hidden_val = +$("#message_dialog_hidden").val();
     var empty_pattern = /^\s+$/g;
 
 	if(message_dialog === "" || message_dialog.match(empty_pattern)){
-		alert("Заполните поле");
-		btn.removeAttribute('disabled');
+		$(btn).removeAttr("disabled");
 		return;}
-	btn.setAttribute('disabled','disabled');
+	$(btn).attr("disabled", "disabled");
 
     let dataToSend = {
-					dialog_id: _dialog_id,
+					dialog_id: message_dialog_hidden_val,
 					message: message_dialog
 					};
 
@@ -73,21 +73,33 @@ function sendMessageInner(btn, _dialog_id){
 			if(data.message == 0){
 				window.location.reload();
 			}else{
-				alert("Сообщение отправлено");
-				btn.removeAttribute('disabled');
-				window.location.reload();
+				$(btn).removeAttr("disabled");
 			}
 		},
 		fail: function (data, textStatus) {
 						alert("Неизвестная ошибка");
 						$("#forum_create_btn").removeAttr("disabled");
-						btn.removeAttribute('disabled');
+						$(btn).removeAttr("disabled");
 
 	    }
 
 });
 
 }
+
+$( document ).ready(function() {
+
+  $("#dialog_inner_btn").on('click', function(){
+        SendMessageInner(this);
+  });
+
+  $('#message_dialog').on('keydown', function(e) {
+  if (e.which === 13) {
+    SendMessageInner($("#dialog_inner_btn"));
+  }
+    });
+
+});
 
 
 

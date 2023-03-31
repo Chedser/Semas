@@ -31,10 +31,11 @@
 	<a href="/forum"><<< Форумы</a>
 	<div class="w3-container w3-padding">
 		<div class="w3-card w3-padding w3-clear">
-			<h3>{{ forum_info.name }}</h3>
+			<h3 class="wrapable">{{ forum_info.name }}</h3>
 			<hr />
-			<p>{{ forum_info.message|safe }}</p><br />
-				<a href="../user/{{ forum_info.creator_id }}"><img src="{% static forum_info.avatar %}" class="w3-left w3-circle w3-margin-right avatar" style="width:30px;height:30px" />
+			<p class="wrapable">{{ forum_info.message|safe }}</p><br />
+				<a href="../user/{{ forum_info.creator_id }}"><img src="{% static forum_info.avatar %}"
+																   class="w3-left w3-circle w3-margin-right avatar" style="width:30px;height:30px" />
 				<span>{{ forum_info.nick }}</span></a><br />
 				<span class="small">{{ forum_info.date }}</span>
 			
@@ -42,8 +43,10 @@
 		
 		{% if cookie_user_id %}
 		<div class="w3-card w3-padding w3-margin-top">
-			<textarea class="w3-input w3-border" id="forum_msg" rows="3" maxlength="1000"  placeholder="Сообщение" required></textarea>
-			<input type = "button" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center" style = "width:100%" id="forum_send_message_btn" onclick="forum_send_message({{ forum_info.id }})" value = "OK">
+			<textarea class="w3-input w3-border" id="forum_msg_inner" rows="3" maxlength="1000"  placeholder="Сообщение" required></textarea>
+			<input type = "button" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center"
+				   style = "width:100%" id="forum_send_message_btn" value = "OK">
+			<input type="hidden" id="forum_send_message_hidden" value="{{ forum_info.id }}" />
 		</div>
 		{% endif %}
 		
@@ -65,7 +68,7 @@
 			</a><br>
 			<span class="w3-right w3-opacity small">{{ message.date }}</span>
 				<hr class="w3-clear">
-			<p id="forum_message{{ message.id }}">
+			<p class="wrapable" id="forum_message{{ message.id }}">
 			{{ message.message|safe }}
 			</p>
 					{% if cookie_user_id == message.sender_id %}

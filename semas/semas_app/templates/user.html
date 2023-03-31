@@ -122,7 +122,7 @@ textarea{resize:none;}
 			</a><br>
 			<span class="w3-right w3-opacity small">{{wall_message.date}}</span>
 					<hr class="w3-clear">
-			<p id="wall_message{{ wall_message.id }}">
+			<p class="wrapable" id="wall_message{{ wall_message.id }}">
 			{{wall_message.message|safe}}
 			</p>
 			{% if cookie_user_id == user_info.id or cookie_user_id == wall_message.sender_id %}

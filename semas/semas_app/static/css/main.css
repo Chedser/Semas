@@ -95,6 +95,10 @@ nav a:hover {
     cursor:pointer;
 }
 
+.wrapable{
+    word-wrap: break-word;
+}
+
 /* Коммент в диалоге */
 .container {
     max-width: 1200px;

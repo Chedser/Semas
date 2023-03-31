@@ -1,20 +1,22 @@
 
-function SendWallMessage(btn,reсeiverId_){
-		let wall_msg = $("#wall_msg_inpt").val().trim();
-		const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+function SendWallMessage(btn){
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let wall_msg = $("#wall_msg_inpt").val().trim();
+		let wall_msg_hidden_val = +$("#wall_msg_hidden").val()
+
 		if(wall_msg == ""){return;}
 		var empty_pattern = /^\s+$/g;
 		if(wall_msg.match(empty_pattern)){ return;}
 		$(btn).attr("disabled", "disabled");
-		
+
 		let dataToSend = {
 					message:wall_msg,
-					receiver_id: reсeiverId_
+					receiver_id: wall_msg_hidden_val
 					};
-		
+
 		$.ajax({
-				url: 'api/send_wall_message',             // указываем URL и
-				data: dataToSend,                // Данные для отправки
+				url: 'api/send_wall_message',
+				data: dataToSend,
 				type: "POST",
 				headers: {'X-CSRFToken': csrftoken},
 				success: function (data, textStatus) {
@@ -22,7 +24,7 @@ function SendWallMessage(btn,reсeiverId_){
 						case 0:
 								window.location.reload();break;
 						case 1: alert("Неизвестная ошибка"); break;
-						
+
 					}
 				},
 				fail: function (data, textStatus) {
@@ -30,7 +32,6 @@ function SendWallMessage(btn,reсeiverId_){
 						$(btn).removeAttr("disabled");
 					}
 			});
-		
 }
 
 function ShowDeleteMsgSpan(message_id){
@@ -55,8 +56,8 @@ function DeleteWallMessage(span,message_id_, user_id_, sender_id_){
 					};
 
 		$.ajax({
-				url: 'api/delete_wall_message',  // указываем URL и
-				data: dataToSend,                // Данные для отправки
+				url: 'api/delete_wall_message',
+				data: dataToSend,
 				type: "POST",
 				headers: {'X-CSRFToken': csrftoken},
 				type: "POST",
@@ -74,3 +75,16 @@ function DeleteWallMessage(span,message_id_, user_id_, sender_id_){
 			});
 
 }
+
+$( document ).ready(function() {
+
+  $("#wall_msg_btn").on('click', function(){
+        SendWallMessage(this);
+  });
+
+  $('#wall_msg_inpt').on('keydown', function(e) {
+  if (e.which === 13) {
+    SendWallMessage($("wall_msg_btn"));
+  }
+})
+});
