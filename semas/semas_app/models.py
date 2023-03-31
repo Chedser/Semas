@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from settings import *
 import os
 
+from django.shortcuts import redirect
 
 class Message:
     def tolink(txt):
@@ -51,6 +52,10 @@ class Auth:
             if len(result) == 0:
                 con.close()
                 return JsonResponse({'message': Response.WRONG_USER_OR_PASSWORD.value})
+
+            is_blocked = User.get_info((int)(result[0][0]))["is_blocked"]
+
+            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
 
             bd_pass = result[0][2]
 
@@ -124,6 +129,8 @@ class MessageWall:
 
         if request.COOKIES.get("id"):
             cookie_user_id = int(request.COOKIES.get("id"))
+            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
@@ -149,6 +156,8 @@ class MessageWall:
     def delete_wall_message(request):
         if request.COOKIES.get("id"):
             cookie_user_id = (int)(request.COOKIES.get("id"))
+            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
@@ -310,6 +319,8 @@ class File:
                 avatar:
             max_file_size_client = (int)(request.POST.get("MAX_FILE_SIZE"))
             cookie_user_id = int(request.COOKIES.get("id"))
+            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
@@ -421,6 +432,8 @@ class Friend:
     def send_friend_request(request):
         if request.COOKIES.get("id"):
             cookie_user_id = (int)(request.COOKIES.get("id"))
+            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         user_id = request.POST.get('user_id')
@@ -455,6 +468,8 @@ class Friend:
     def cancel_friend_request(request):
         if request.COOKIES.get("id"):
             cookie_user_id = (int)(request.COOKIES.get("id"))
+            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         user_id = request.POST.get('user_id')
@@ -481,6 +496,8 @@ class Friend:
     def accept_friend_request(request):
         if request.COOKIES.get("id"):
             cookie_user_id = (int)(request.COOKIES.get("id"))
+            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         user_id = request.POST.get('user_id')
@@ -510,6 +527,8 @@ class Friend:
     def delete_friend(request):
         if request.COOKIES.get("id"):
             cookie_user_id = (int)(request.COOKIES.get("id"))
+            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         user_id = request.POST.get('user_id')
@@ -618,6 +637,8 @@ class Forum:
     def create_forum(request):
         if request.COOKIES.get("id"):
             cookie_user_id = int(request.COOKIES.get("id"))
+            is_blocked = User.get_info(cookie_user_id)["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.WRONG_INPUT.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
@@ -755,6 +776,8 @@ class Forum:
     def send_message(request):
         if request.COOKIES.get("id"):
             cookie_user_id = int(request.COOKIES.get("id"))
+            is_blocked = User.get_info(cookie_user_id)["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.WRONG_INPUT.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
@@ -801,6 +824,8 @@ class Forum:
     def delete_message(request):
         if request.COOKIES.get("id"):
             cookie_user_id = (int)(request.COOKIES.get("id"))
+            is_blocked = User.get_info(cookie_user_id)["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.WRONG_INPUT.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
@@ -836,6 +861,9 @@ class Forum:
 class Dialog:
     @staticmethod
     def __create_dialog(sender_id, receiver_id, message):
+        is_blocked_sender_id = User.get_info(sender_id)["is_blocked"]
+        is_blocked_receiver_id = User.get_info(receiver_id)["is_blocked"]
+        if is_blocked_sender_id or is_blocked_receiver_id : return False
         result = True
         try:
             con = sqlite3.connect(DB_NAME)
@@ -933,17 +961,15 @@ class Dialog:
             cur = con.cursor()
 
             dialog = cur.execute(
-                f"SELECT id, senderId, receiverId, is_readen, date FROM dialog WHERE id={dialog_id}").fetchall()[
-                0]
-
-            if not len(dialog):
+                f"SELECT id, senderId, receiverId, is_readen, date FROM dialog WHERE id={dialog_id}").fetchall()
+            if not dialog:
                 return None
             else:
-                result["id"] = dialog[0]
-                result["sender_id"] = dialog[1]
-                result["receiver_id"] = dialog[2]
-                result["is_readen"] = dialog[3]
-                result["date"] = dialog[4]
+                result["id"] = dialog[0][0]
+                result["sender_id"] = dialog[0][1]
+                result["receiver_id"] = dialog[0][2]
+                result["is_readen"] = dialog[0][3]
+                result["date"] = dialog[0][4]
                 return result
 
         except sqlite3.Error as error:
@@ -1038,8 +1064,6 @@ class Dialog:
 
             dialogs = dialogs_not_readen + dialogs_readen + dialogs_sender
 
-            print(dialogs)
-
             if not len(dialogs):
                 return None
 
@@ -1116,6 +1140,8 @@ class Dialog:
     def send_inner(request):
         if request.COOKIES.get("id"):
             cookie_user_id = int(request.COOKIES.get("id"))
+            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
@@ -1147,6 +1173,8 @@ class Dialog:
     def send_outer(request):
         if request.COOKIES.get("id"):
             cookie_user_id = int(request.COOKIES.get("id"))
+            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 

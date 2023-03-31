@@ -56,6 +56,8 @@ def friends(request):
     if not cookie_user_id: return HttpResponse("<h1>Страница не найдена: 404</h1>", status=404)
 
     cookie_user_id = (int)(cookie_user_id)
+    is_blocked = User.get_info(cookie_user_id)["is_blocked"]
+    if is_blocked: return redirect(f"/user/{cookie_user_id}")
     friend_requests = Friend.get_friend_requests(cookie_user_id)
     friends = Friend.get_friends(cookie_user_id)
     data = {"friends": friends, "friends_count": len(friends), "friend_requests": friend_requests, \
@@ -71,10 +73,12 @@ def forum(request, id):
     cookie_user_id = request.COOKIES.get("id")
     if cookie_user_id:
         cookie_user_id = int(cookie_user_id)
-    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
-    friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+        is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+        active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+        friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
     data = {"cookie_user_id": cookie_user_id, "forum_info": forum_info, "messages": messages,
-            "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count}
+            "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count,
+            "is_blocked":is_blocked}
 
     return render(request, "forum.html", context=data)
 
@@ -82,10 +86,17 @@ def forum_topics(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
     cookie_user_id = request.COOKIES.get("id")
     forums = Forum.get_forums()
-    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
-    friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+
+    if cookie_user_id:
+        is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+        active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+        friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+
+
     data = {"cookie_user_id": cookie_user_id, "forums": forums, "forums_count": len(forums),
-            "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count}
+            "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count,
+            "is_blocked":is_blocked}
+
     return render(request, "forum_topics.html", context=data)
 
 def dialog(request, id):
@@ -93,13 +104,16 @@ def dialog(request, id):
 
     if not id or not cookie_user_id or \
             request.method != "GET":
-        return HttpResponse("<h1>Страница не найдена: 404</h1>")
+        return redirect("/index")
 
     dialog_info = Dialog.get_dialog_info(id)
 
     if not dialog_info: return HttpResponse("<h1>Страница не найдена: 404</h1>")
 
     cookie_user_id = int(cookie_user_id)
+
+    is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+    if is_blocked: return redirect(f"/user/{cookie_user_id}")
 
     if not(dialog_info["sender_id"] == cookie_user_id or dialog_info["receiver_id"] == cookie_user_id):
         return HttpResponse("<h1>Страница не найдена: 404</h1>")
@@ -119,14 +133,18 @@ def dialogs(request):
     cookie_user_id = request.COOKIES.get("id")
     if request.method != "GET" or \
             not cookie_user_id:
-        return HttpResponse("<h1>Страница не найдена: 404</h1>")
-    else:
-        cookie_user_id = int (cookie_user_id)
+        return redirect("/index")
 
-    dialogs = Dialog.get_dialogs(cookie_user_id)
-    dialogs_count = Dialog.get_dialogs_count(cookie_user_id)
-    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
-    friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+    cookie_user_id = int (cookie_user_id)
+    is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+    if is_blocked:
+        return redirect(f"/user/{cookie_user_id}")
+    else:
+        dialogs = Dialog.get_dialogs(cookie_user_id)
+        dialogs_count = Dialog.get_dialogs_count(cookie_user_id)
+        active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+        friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+
     data = {"dialogs":dialogs, "cookie_user_id":cookie_user_id, "dialogs_count": dialogs_count,
             "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count}
 

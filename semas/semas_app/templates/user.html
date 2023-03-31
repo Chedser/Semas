@@ -10,7 +10,7 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/w3.css' %}">
 
 <link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
-{% if cookie_user_id %}
+{% if cookie_user_id and not user_info.is_blocked %}
 	<script src="{% static 'js/jQuery.min.js' %}"></script>
 	<script src="{% static 'js/wall.js' %}"></script>
 	<script src="{% static 'js/items_controller.js' %}"></script>
@@ -29,7 +29,7 @@ textarea{resize:none;}
 
 <!-- Page Container -->
 <div class="w3-content w3-margin-top" style="max-width:1400px;">
-{% if is_authed_user %}
+{% if is_authed_user and not user_info.is_blocked %}
 	{% include "./items/navbar.html" %}
 	{% csrf_token %}
 {% endif %}
@@ -43,28 +43,33 @@ textarea{resize:none;}
       <div class="w3-white w3-text-grey w3-card-4">
         <div class="w3-display-container">
           <img src="{% static user_info.avatar %}"
-			   {% if is_login_user_page %}
+			   {% if is_login_user_page and not user_info.is_blocked %}
 					onclick=document.getElementById('change_avatar_modal').style.display='block'
 			   {% endif %} style="width:100%; height:300px" alt="Avatar" />
         </div>
         <div class="w3-container">
 		  <h5 class="w3-text-black w3-center">{{user_info.nick}}</h5>
-		  {% if user_info.is_online %}
+		  {% if not user_info.is_blocked and user_info.is_online %}
 			<span>Online</span><br/>
 		  {% endif %}
+
+				{% if not user_info.is_blocked %}
 			<div class="w3-content w3-center">
-				{% if is_authed_user and cookie_user_id != user_info.id %}
-					<img  class="w3-center like" src="{% static 'images/like.png' %}" onclick="SetPageLike(this,{{ user_info.id }})" />
+					{% if is_authed_user and cookie_user_id != user_info.id %}
+						<img  class="w3-center like" src="{% static 'images/like.png' %}" onclick="SetPageLike(this,{{ user_info.id }})" />
+					{% else %}
+						<img  class="w3-center like" src="{% static 'images/like.png' %}" />
+					{% endif %}
+					{% if page_likes_count %}
+						<span id="page_likes_count_span">{{ page_likes_count }}</span>
+					{% else %}
+						<span id="page_likes_count_span"></span>
+					{% endif %}
 				{% else %}
-					<img  class="w3-center like" src="{% static 'images/like.png' %}" />
-				{% endif %}
-				{% if page_likes_count %}
-					<span id="page_likes_count_span">{{ page_likes_count }}</span>
-				{% else %}
-					<span id="page_likes_count_span"></span>
+			<span class="w3-text-grey">Страница заблокирована</span>
 				{% endif %}
 			</div>
-		{% if is_authed_user %}
+		{% if is_authed_user and not user_info.is_blocked %}
 			{% include "./items/buttons/friend_buttons_user_page.html" %}
 				{% if cookie_user_id != user_id %}
 					{% include "./items/modals/message_modal.html" %}
@@ -76,7 +81,7 @@ textarea{resize:none;}
         </div>
       </div>
 	      
-		  {% if friends %}
+		  {% if friends and not user_info.is_blocked %}
 			<div class="w3-container w3-card w3-white w3-padding w3-margin-bottom friends_container">
 				<h3>Друзья {{ friends_count }}</h3>
 				<hr />
@@ -97,7 +102,7 @@ textarea{resize:none;}
 
     <!-- Right Column -->
     <div class="w3-twothird">
-		{% if is_authed_user %}
+		{% if is_authed_user and not user_info.is_blocked %}
 		<div class="w3-content w3-right">
 			<span class="exit_span" onclick="Exit()">Выход</span>
 		</div>
@@ -105,8 +110,8 @@ textarea{resize:none;}
 		{% endif %}
 		<!-- Messages Container -->
       <div class="w3-container w3-card w3-white w3-margin-bottom">
-		
-		{% for wall_message in wall_messages %}
+		  {% if not user_info.is_blocked %}
+		  {% for wall_message in wall_messages %}
 			{% if cookie_user_id == user_info.id or cookie_user_id == wall_message.sender_id %}
 		  <div class="w3-container w3-card w3-white w3-round w3-margin wall_message_container"
 			   	onmouseover="ShowDeleteMsgSpan({{ wall_message.id }})"
@@ -135,6 +140,8 @@ textarea{resize:none;}
 		{% empty %}
 		<h6 class="w3-opacity w3-center">Сообщений пока что нет</h6>
 		{% endfor %}
+
+			  {% endif %} {# if not user_info.is_blocked #}
 	  <!-- End Messages Container -->
 	  </div>
 		<!-- End Right Column -->
@@ -143,8 +150,9 @@ textarea{resize:none;}
   </div>
 <!-- End Page Container -->
 </div>
-	{% if is_login_user_page %}
+	{% if not user_info.is_blocked and is_login_user_page %}
 		<script src="{% static 'js/change_avatar.js' %}"></script>
 	{% endif %}
+</div>
 </body>
 </html>

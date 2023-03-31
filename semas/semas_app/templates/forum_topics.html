@@ -21,13 +21,13 @@
 		</style>
 </head>
 <body>
-	{% if cookie_user_id %}
+	{% if cookie_user_id and not is_blocked %}
 		{% csrf_token %}
 		{% include "./items/navbar.html" %}
 	{% endif %}
 <!-- Start Content -->
 <div class="w3-content" style="max-width:800px;">
-	{% if cookie_user_id %}
+	{% if cookie_user_id and not is_blocked %}
 	<div class="w3-container">
 	<h1>Создать форум</h1>
 	<form class = "w3-panel  w3-padding" id="forum_create_form">
@@ -43,7 +43,7 @@
 	
 	<div class="w3-container">
 		{% if forums_count %}
-			<h3 class="w3-center">{{ forums_count }}</h3>
+			<h3 class="w3-center">Темы {{ forums_count }}</h3>
 		{% endif %}
 	{% for forum in forums %}
 		<div class="w3-card w3-padding">

@@ -34,6 +34,7 @@ function auth(){
 								window.location.replace("/user/" + data.id); break;
 						case 1: alert("Неверный ввод"); break;
 						case 2: alert("Неверный пользователь или пароль"); break;
+						case 5: alert("Пользователь заблокирован"); break;
 						
 					}
 				$("input[type='submit']").first().removeAttr("disabled");

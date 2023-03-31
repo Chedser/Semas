@@ -7,6 +7,7 @@ class Response(Enum):
     WRONG_USER_OR_PASSWORD = 2
     USER_EXISTS = 3
     UNKNOWN_ERROR = 4
+    USER_IS_BLOCKED = 5
 
 class Sex(Enum):
     MALE = 0

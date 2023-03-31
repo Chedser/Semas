@@ -1,4 +1,4 @@
-function blockUser(obj, user_id_){
+function BlockUser(obj, user_id_){
 	let dataToSend = {
 					user_id: user_id_
 					};
