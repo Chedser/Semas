@@ -55,7 +55,7 @@ textarea{resize:none;}
 
 				{% if not user_info.is_blocked %}
 			<div class="w3-content w3-center">
-					{% if is_authed_user and cookie_user_id != user_info.id %}
+				{% if is_authed_user and cookie_user_id != user_info.id and  user_is_in_black_list == 0 %}
 						<img  class="w3-center like" src="{% static 'images/like.png' %}" onclick="SetPageLike(this,{{ user_info.id }})" />
 					{% else %}
 						<img  class="w3-center like" src="{% static 'images/like.png' %}" />
@@ -71,7 +71,7 @@ textarea{resize:none;}
 			</div>
 		{% if is_authed_user and not user_info.is_blocked %}
 			{% include "./items/buttons/friend_buttons_user_page.html" %}
-				{% if cookie_user_id != user_id %}
+				{% if cookie_user_id != user_id and user_is_in_black_list == 0 %}
 					{% include "./items/modals/message_modal.html" %}
 					{% include "./items/buttons/message_button.html" %}
 				{% endif %}
@@ -104,13 +104,25 @@ textarea{resize:none;}
     <div class="w3-twothird">
 		{% if is_authed_user and not user_info.is_blocked %}
 		<div class="w3-content w3-right">
-			<span class="exit_span" onclick="Exit()">Выход</span>
+			<div class="container dropbtn" onclick="ToggleDropdown(this)">
+  				<div class="bar1"></div>
+  				<div class="bar2"></div>
+  				<div class="bar3"></div>
+			</div>
+			<div class="dropdown-content" id="dropdown_menu">
+    			<a href="/black_list" onclick="">Черный список</a>
+				<span class="exit_span" onclick="Exit()">Выход</span>
+			</div>
+
+
 		</div>
-			{% include "./items/textareas/wall_textarea.html" %}
+			{% if cookie_user_id != user_id and user_is_in_black_list == 0 or cookie_user_id == user_id	%}
+				{% include "./items/textareas/wall_textarea.html" %}
+			{% endif %}
 		{% endif %}
 		<!-- Messages Container -->
       <div class="w3-container w3-card w3-white w3-margin-bottom">
-		  {% if not user_info.is_blocked %}
+		  {% if not user_info.is_blocked  %}
 		  {% for wall_message in wall_messages %}
 			{% if cookie_user_id == user_info.id or cookie_user_id == wall_message.sender_id %}
 		  <div class="w3-container w3-card w3-white w3-round w3-margin wall_message_container"

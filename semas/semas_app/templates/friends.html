@@ -63,8 +63,10 @@
 			<br>
 	
 			<hr class="w3-clear">
+			{% if friend_request.is_in_black_list == 0 %}
 				<input type = "button" id="accept_friend_request_btn{{friend_request.id}}" onclick="acceptFriendRequest(this,{{friend_request.id}})" class="w3-button w3-yellow w3-hover-teal w3-margin-bottom w3-center" style = "width:50%" value = "Принять">
-				<input type = "button" id="cancel_friend_request_btn{{friend_request.id}}" onclick="cancelFriendRequest(this,{{friend_request.id}},1)" class="w3-button w3-grey w3-hover-teal w3-margin-bottom w3-center" style = "width:50%" value = "Отклонить">
+			{% endif %}
+			<input type = "button" id="cancel_friend_request_btn{{friend_request.id}}" onclick="cancelFriendRequest(this,{{friend_request.id}},1)" class="w3-button w3-grey w3-hover-teal w3-margin-bottom w3-center" style = "width:50%" value = "Отклонить">
       </div>
 {% endfor %}
 

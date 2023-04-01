@@ -42,11 +42,17 @@ def user(request, id):
     active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
     page_likes_count = UserPageLike.get_page_likes_count(id)
 
+    if id != cookie_user_id:
+        user_is_in_black_list = User.user_is_in_black_list(id, cookie_user_id)
+    else:
+        user_is_in_black_list = -1
+
+
     data = {"cookie_user_id": cookie_user_id, "user_id": id, "is_login_user_page": is_login_user_page, \
             "is_authed_user": is_authed_user, "wall_messages": wall_messages, "user_info": user_info, \
             "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends,\
             "friends_count": len(friends), "active_dialogs_count": active_dialogs_count,
-            "page_likes_count": page_likes_count}
+            "page_likes_count": page_likes_count, "user_is_in_black_list": user_is_in_black_list}
 
     return render(request, "user.html", context=data)
 
@@ -59,6 +65,21 @@ def admin(request):
     users = Superuser.get_users()
     data = {"users":users}
     return render(request, "admin.html", context=data)
+
+def black_list(request):
+    if not request.COOKIES.get("id") or request.method != "GET": return redirect("/")
+    cookie_user_id = int(request.COOKIES.get("id"))
+    friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+    blocked_users = User.get_blocked_users(cookie_user_id)
+    user_info = User.get_info(cookie_user_id)
+
+    if user_info["is_blocked"]: return redirect("/")
+
+    data = {"cookie_user_id": cookie_user_id, "friend_requests_count": friend_requests_count,
+            "active_dialogs_count": active_dialogs_count, "blocked_users": blocked_users,
+            "user_info": user_info}
+    return render(request, "black_list.html", context = data)
 
 def friends(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
@@ -134,8 +155,10 @@ def dialog(request, id):
     opponent = Dialog.get_dialog_opponent_info(cookie_user_id, id)
     active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
     friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+    user_is_in_black_list = User.user_is_in_black_list(opponent["id"], cookie_user_id)
     data = {"messages":messages, "dialog_id": id, "cookie_user_id": cookie_user_id, "opponent":opponent,
-            "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count}
+            "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count,
+            "user_is_in_black_list": user_is_in_black_list}
 
     return render(request, "dialog.html", context=data)
 
@@ -180,10 +203,20 @@ def find_user_by_link_su(request):
         result = Superuser.find_user(request)
         return result
 
+def find_user_by_link_for_block(request):
+    if request.method == "POST":
+        result = User.find_user_for_block(request)
+        return result
+
+
+def block_user_su(request):
+    if request.method == "POST":
+        result = Superuser.block_user(request)
+        return result
 
 def block_user(request):
     if request.method == "POST":
-        result = Superuser.block_user(request)
+        result = User.block_user(request)
         return result
 
 def exit(request):

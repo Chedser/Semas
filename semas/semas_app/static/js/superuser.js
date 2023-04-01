@@ -34,7 +34,7 @@ function FindUserByLink(){
 				data: { user_id: user_id_ },                // Данные для отправки
 				type: "POST",
 				success: function (data, textStatus) {
-				if(data.message == -1) {alert("Пользователь не найден")}
+				if(data.message == -1) {alert("Пользователь не найден"); return;}
 				let parsed = jQuery.parseJSON(data.message)[0];
 				let content = "<tr>" +
 				"<td>" + parsed.id + "</td>" +
@@ -70,7 +70,7 @@ function FindUserByLink(){
 			});
 	}
 
-	function Exit(){
+function Exit(){
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
 	$.ajax({

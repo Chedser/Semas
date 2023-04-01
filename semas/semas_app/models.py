@@ -275,6 +275,147 @@ class User:
     def __is_online(time_of_last_action):
         return (((int)(time.time()) - time_of_last_action) < 300)
 
+    @staticmethod
+    def get_blocked_users(cookie_user_id):
+        if not cookie_user_id: return None
+        cookie_user_id = int(cookie_user_id)
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            result = cur.execute(f"SELECT user.id AS id, user.nick AS nick, avatar FROM black_list "
+                                 f"INNER JOIN user ON user.id = black_list.user2 "
+                                 f"WHERE user1={cookie_user_id}").fetchall()
+
+            return User.__parse_blocked_users(result)
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+        finally:
+            con.close()
+
+    @staticmethod
+    def user_is_in_black_list(user_id, cookie_user_id):
+        if not user_id or not cookie_user_id: return
+        if user_id == cookie_user_id: return -1
+
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            result = cur.execute(f"SELECT COUNT(*) FROM black_list WHERE (user1={user_id} AND "
+                                 f"user2={cookie_user_id}) OR "
+                                 f"(user1={cookie_user_id} AND user2={user_id})").fetchall()[0][0]
+
+            print(result)
+            return result
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+        finally:
+            con.close()
+
+    @staticmethod
+    def __parse_blocked_users(users):
+        result = list()
+        for user in users:
+            id = user[0]
+            nick = user[1]
+            avatar = user[2]
+            avatar = User.get_avatar_link(avatar, id)
+
+            tmp = dict()
+            tmp["id"] = id
+            tmp["nick"] = nick
+            tmp["avatar"] = avatar
+            tmp["is_blocked"] = 1
+            result.append(tmp)
+        return result
+
+    @staticmethod
+    def find_user_for_block(request):
+        user_id = request.POST.get("user_id")
+        cookie_user_id = request.COOKIES.get("id")
+        if not user_id or not cookie_user_id: return JsonResponse({"message": 1})
+        user_id = int(user_id)
+        cookie_user_id = int(cookie_user_id)
+
+        if cookie_user_id == user_id:
+            return JsonResponse({"message": 2})
+
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            result = cur.execute(f"SELECT id, nick, is_blocked, avatar FROM user WHERE id={user_id}").fetchall()
+
+            if len(result) == 0: return JsonResponse({"message": 1})
+
+            result = result[0]
+
+            lst = list()
+            id = result[0]
+            nick = result[1]
+            is_blocked = result[2]
+            avatar = result[3]
+            avatar = User.get_avatar_link(avatar, id)
+
+            tmp = dict()
+            tmp["id"] = id
+            tmp["nick"] = nick
+            tmp["avatar"] = avatar
+            tmp["is_blocked"] = is_blocked
+            lst.append(tmp)
+
+            return JsonResponse({"message": json.dumps(lst)})
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            return JsonResponse({"message": 1})
+        finally:
+            con.close()
+
+    @staticmethod
+    def block_user(request):
+        user_id = request.POST.get("user_id")
+        cookie_user_id = request.COOKIES.get("id")
+        if not user_id or not cookie_user_id: return JsonResponse({"message": 1})
+        user_id = int(user_id)
+        cookie_user_id = int(cookie_user_id)
+
+        if cookie_user_id == user_id:
+            return JsonResponse({"message": 2})
+
+        try:
+
+            con = sqlite3.connect(DB_NAME)
+
+            cur = con.cursor()
+
+            result = cur.execute(f"SELECT COUNT(*) FROM black_list WHERE user1={cookie_user_id} "
+                                 f"AND user2={user_id}").fetchall()[0][0]
+
+            is_blocked = 0
+
+            if not result:
+                cur.execute(f"INSERT INTO black_list(user1, user2, timestamp) VALUES "
+                            f"(?,?,?)", \
+                            (cookie_user_id, user_id, int(time.time())))
+                is_blocked = 1
+            else:
+                cur.execute(f"DELETE FROM black_list WHERE user1=? AND user2=?", \
+                            (cookie_user_id, user_id))
+
+            con.commit()
+            return JsonResponse({'message': is_blocked})
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+        finally:
+            con.close()
+        return JsonResponse({'message': 2})
+
     def update_time_of_last_action(cookie_user_id):
         if not cookie_user_id: return None
 
@@ -392,7 +533,7 @@ class Friend:
                                      FROM friend_request INNER JOIN user ON user.id=friend1 \
                                       WHERE friend2={(int)(cookie_user)}").fetchall()
             if len(result) == 0: return result
-            return Friend.__parse_friend_requests(result)
+            return Friend.__parse_friend_requests(result, cookie_user)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
@@ -616,17 +757,20 @@ class Friend:
         finally:
             con.close()
 
-    def __parse_friend_requests(friend_requests):
+    def __parse_friend_requests(friend_requests, cookie_user_id):
         result = list()
         for friend_request in friend_requests:
             friend1 = friend_request[0]
             nick = friend_request[1]
             avatar = friend_request[2]
             avatar = User.get_avatar_link(avatar, friend1)
+            is_in_black_list = User.user_is_in_black_list(friend1, cookie_user_id)
+
             tmp = dict()
             tmp["id"] = friend1
             tmp["nick"] = nick
             tmp["avatar"] = avatar
+            tmp["is_in_black_list"] = is_in_black_list
             result.append(tmp)
         return result
 
@@ -862,6 +1006,8 @@ class Dialog:
         is_blocked_sender_id = User.get_info(sender_id)["is_blocked"]
         is_blocked_receiver_id = User.get_info(receiver_id)["is_blocked"]
         if is_blocked_sender_id or is_blocked_receiver_id : return False
+        user_is_in_black_list = User.user_is_in_black_list(is_blocked_sender_id, is_blocked_receiver_id)
+        if user_is_in_black_list: return False
         result = True
         try:
             con = sqlite3.connect(DB_NAME)
@@ -1156,6 +1302,10 @@ class Dialog:
 
         sender_id = dialog_info["sender_id"]
         receiver_id = dialog_info["receiver_id"]
+        user_is_in_black_list = User.user_is_in_black_list(sender_id, receiver_id)
+
+        if user_is_in_black_list != 0: return JsonResponse({'message': Response.WRONG_INPUT.value})
+
 
         if receiver_id == cookie_user_id:
             sender_id, receiver_id = receiver_id, sender_id
@@ -1185,6 +1335,10 @@ class Dialog:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         receiver_id = int(receiver_id)
+
+        user_is_in_black_list = User.user_is_in_black_list(cookie_user_id, receiver_id)
+
+        if user_is_in_black_list != 0: return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         try:
             con = sqlite3.connect(DB_NAME)
