@@ -1,52 +1,53 @@
-{% extends "./base.html" %}
-{% block content %}
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+<title>Суперпользователь</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/w3.css' %}">
 
-{% if not session_user['class1999'] %}
-	<script>
-		$(document).ready(function(){
-		  window.location.replace('/');
-		});
-	</script>
-{% endif %}
-
-<script src="{{ url_for('static', filename='js/superuser.js') }}"></script>
-
-<h1>Суперпользователь</h1>
-<main class = "w3-container w3-content w3-card-4 w3-white w3-border w3-round w3-border-light-blue" style = "max-width:650px">
-
+<link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
+	<script src="{% static 'js/jQuery.min.js' %}"></script>
+	<script src="{% static 'js/superuser.js' %}"></script>
+<style>
+	html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
+	textarea{resize:none;}
+</style>
+</head>
+<body>
+{% csrf_token %}
+<h1 class="w3-center">Суперпользователь</h1>
+<div class = "w3-content w3-white w3-round w3-border-light-blue w3-center" style = "max-width:650px">
 
   <table class="w3-table-all w3-card-4">
-	{% if users %}
-	
+
     <tr>
-      <th>Индекс</th>
-      <th>Имя</th>
-      <th>Фамилия</th>
-	  <th>Дата</th>
+      <th>ID</th>
+      <th>Ник</th>
 	  <th>Заблокирован</th>
 	  <th></th>
     </tr>
-
 		{% for user in users %}
-				
 			<tr>
-				<td>{{ user[0] }}</td>
-				<td> {{ user[1] }}</td>
-				<td>{{ user[2] }}</td>
-				<td>{{ user[4] }}</td>
-				<td id="status_tr_{{ user[0] }}">{{ user[3] }}</td>
-				{% if user[3] == 0 %}
-					<td><a class="underline" onclick="blockUser(this,{{user[0]}})">Заблокировать</a></td>
-				{% else %}
-					<td><a class="underline" onclick="blockUser(this,{{user[0]}})">Разблокировать</a></td>
+				<td>{{ user.id }}</td>
+				<td>
+					<a href="/user/{{ user.id }}" target="_blank">
+						<img class="w3-circle" src="{% static user.avatar %}" style="height:30px;width:30px" /> {{ user.nick }}
+					</a>
+				</td>
+				<td id="status_tr_{{ user.id }}">{{ user.is_blocked }}</td>
+				<td></td>
+				{% if not user.is_blocked %}
+				<td><a class="underline" onclick="BlockUser(this, {{ user.id }})">Заблокировать</a></td>
+					{% else %}
+				<td><a class="underline" onclick="BlockUser(this, {{ user.id }})">Разблокировать</a></td>
 				{% endif %}
 			</tr>
-			
-			 
-	  
 		{% endfor %}
-
-	{%endif %}
   </table>
-</main>
-{% endblock content %}
+</div>
+</body>
+</html>

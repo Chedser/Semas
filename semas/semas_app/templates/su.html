@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+<title>{{user_info.nick}}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/w3.css' %}">
+
+<link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
+	<script src="{% static 'js/jQuery.min.js' %}"></script>
+	<script src="{% static 'js/cookie.js' %}"></script>
+    <script src="{% static 'js/suauth.js' %}"></script>
+<style>
+	html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
+	textarea{resize:none;}
+</style>
+</head>
+
+<body>
+{% csrf_token %}
+<div class = "w3-container w3-card-4 w3-white w3-border-light-blue w3-margin" style = "max-width:450px">
+	<div class="w3-center">
+	<form id = "auth_form" class="w3-left-align">
+	  <h2>Авторизация</h2>
+	  <label>Логин</label>
+	  <input class="w3-input w3-border w3-round" id="login" type="text" maxlength="20" onkeyup="this.value = this.value.replace(/\s+/gi,'');" required>
+
+	  <label>Пароль</label>
+	  <input class="w3-input w3-border w3-round" id="pass" type="password" maxlength="30" onkeyup="this.value = this.value.replace(/\s+/gi,'');" required>
+		  
+	<input type = "submit" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center" style = "width:100%" value = "OK">
+	</form>
+		</div>
+</div>
+</body>
+</html>
+
+

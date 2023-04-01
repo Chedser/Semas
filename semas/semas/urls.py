@@ -3,10 +3,11 @@ from django.contrib import admin
 from semas_app import views
 
 urlpatterns = [
+    path("su", views.su),
     path("", views.index),
     path("/", views.index),
     re_path(r"^index", views.index),
-    path('admin/', admin.site.urls),
+    path('admin', views.admin),
     path('api/reg', views.reg),
     path('api/auth', views.auth),
     path('api/exit', views.exit),
@@ -15,6 +16,8 @@ urlpatterns = [
     path('api/forum_delete_message', views.forum_delete_message),
     path('api/dialog_send_inner', views.dialog_send_inner),
     path('api/accept_friend_request', views.accept_friend_request),
+    path('api/suauth', views.suauth),
+    path('api/su/block_user', views.block_user),
 
     path('user/<int:id>', views.user),
     path('user/api/send_wall_message', views.send_wall_message),

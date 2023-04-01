@@ -50,6 +50,16 @@ def user(request, id):
 
     return render(request, "user.html", context=data)
 
+def su(request):
+        if request.method != "GET": return redirect("/")
+        return render(request, "su.html")
+
+def admin(request):
+    if not request.COOKIES.get("su") or request.method != "GET": return redirect("/su")
+    users = Superuser.get_users()
+    data = {"users":users}
+    return render(request, "admin.html", context=data)
+
 def friends(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
     cookie_user_id = request.COOKIES.get("id")
@@ -159,6 +169,16 @@ def reg(request):
 def auth(request):
     if request.method == "POST":
         return Auth.auth(request)
+
+def suauth(request):
+    if request.method == "POST":
+        result = Superuser.auth(request)
+        return JsonResponse({"message": result})
+
+def block_user(request):
+    if request.method == "POST":
+        result = Superuser.block_user(request)
+        return result
 
 def exit(request):
     if request.method == "POST" and request.COOKIES.get("id"):

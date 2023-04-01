@@ -7,7 +7,8 @@ from django.http import JsonResponse
 from settings import *
 import os
 
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
+
 
 class Message:
     def tolink(txt):
@@ -1358,3 +1359,102 @@ class UserPageLike:
         finally:
             con.close()
         return result
+
+class Superuser:
+
+    @staticmethod
+    def auth(request):
+        login = request.POST.get('login').strip()
+        password = request.POST.get('pass').strip()
+
+        if len(login) == 0 or len(password) == 0:
+            return 0
+
+        try:
+            con = sqlite3.connect(DB_NAME)
+
+            cur = con.cursor()
+            result = cur.execute(f"SELECT id, login, password FROM superuser WHERE login='{login}'").fetchall()
+            if len(result) == 0:
+                con.close()
+                return 0
+
+            bd_pass = result[0][2]
+
+            if bd_pass != get_hash(password):
+                con.close()
+                return 0
+
+            return 1
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            return JsonResponse({'message': 0})
+        finally:
+            con.close()
+
+    @staticmethod
+    def get_users():
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            result = cur.execute(f"SELECT id, nick, is_blocked, avatar FROM user").fetchall()
+
+            return Superuser.__parse_users(result)
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+        finally:
+            con.close()
+
+    @staticmethod
+    def __parse_users(users):
+        result = list()
+        for user in users:
+            id = user[0]
+            nick = user[1]
+            is_blocked = user[2]
+            avatar = user[3]
+            avatar = User.get_avatar_link(avatar, id)
+
+            tmp = dict()
+            tmp["id"] = id
+            tmp["nick"] = nick
+            tmp["avatar"] = avatar
+            tmp["is_blocked"] = is_blocked
+            result.append(tmp)
+        return result
+
+    @staticmethod
+    def block_user(request):
+        user_id = request.POST.get("user_id")
+        if not user_id: return -1
+        user_id = int(user_id)
+
+        try:
+
+            con = sqlite3.connect(DB_NAME)
+
+            cur = con.cursor()
+
+            result = cur.execute(f"SELECT is_blocked FROM user WHERE id={user_id}").fetchall()
+            is_blocked = result[0][0]
+
+            if is_blocked == 0:
+                is_blocked = 1
+            else:
+                is_blocked = 0
+
+            cur.execute(f"UPDATE user SET is_blocked=? WHERE id=?", \
+                        (is_blocked, user_id))
+            con.commit()
+            return JsonResponse({'message': is_blocked})
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+        finally:
+            con.close()
+        return json.dumps({'response': 2})
