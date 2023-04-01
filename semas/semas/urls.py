@@ -18,6 +18,8 @@ urlpatterns = [
     path('api/accept_friend_request', views.accept_friend_request),
     path('api/suauth', views.suauth),
     path('api/su/block_user', views.block_user),
+    path('api/su/find_user', views.find_user_by_link_su),
+    path('api/su/exit', views.exit_su),
 
     path('user/<int:id>', views.user),
     path('user/api/send_wall_message', views.send_wall_message),

@@ -7,9 +7,6 @@ from django.http import JsonResponse
 from settings import *
 import os
 
-from django.shortcuts import redirect, render
-
-
 class Message:
     def tolink(txt):
         import re
@@ -1457,4 +1454,42 @@ class Superuser:
             print(f"DataBase error {error.__str__()}")
         finally:
             con.close()
-        return json.dumps({'response': 2})
+        return JsonResponse({'message': 2})
+
+    @staticmethod
+    def find_user(request):
+        user_id = request.POST.get("user_id")
+        if not user_id: return -1
+        user_id = int(user_id)
+
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            result = cur.execute(f"SELECT id, nick, is_blocked, avatar FROM user WHERE id={user_id}").fetchall()
+
+            if len(result) == 0: return JsonResponse({"message": -1})
+
+            result = result[0]
+
+            lst = list()
+            id = result[0]
+            nick = result[1]
+            is_blocked = result[2]
+            avatar = result[3]
+            avatar = User.get_avatar_link(avatar, id)
+
+            tmp = dict()
+            tmp["id"] = id
+            tmp["nick"] = nick
+            tmp["avatar"] = avatar
+            tmp["is_blocked"] = is_blocked
+            lst.append(tmp)
+
+            return JsonResponse({"message": json.dumps(lst)})
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            return JsonResponse({"message": -1})
+        finally:
+            con.close()

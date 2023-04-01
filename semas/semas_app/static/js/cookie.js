@@ -29,7 +29,7 @@ function setCookie(name, value, options = {}) {
 }
 
 function Exit(){
-
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 	$.ajax({
 				url: '/api/exit',
 				type: "POST",

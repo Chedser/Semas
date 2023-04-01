@@ -32,7 +32,7 @@ $( document ).ready(function() {
                      }else{
                       	let date = new Date(Date.now() + 1000e3);
 								date = date.toUTCString();
-								setCookie("su", date, {"expires":date, "samesite":"strict"})
+								setCookie("su", date, {"expires":date})
                       window.location.replace("/admin");
                       }
 

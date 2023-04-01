@@ -19,9 +19,18 @@
 </head>
 <body>
 {% csrf_token %}
+<span class="w3-text-grey w3-left exit_span" onclick="Exit()">Выход</span><br />
 <h1 class="w3-center">Суперпользователь</h1>
 <div class = "w3-content w3-white w3-round w3-border-light-blue w3-center" style = "max-width:650px">
-
+<form class = "w3-panel  w3-padding" id="wall_form">
+		<textarea class="w3-input w3-border" id="user_link_inpt" rows="1" maxlength="100"  placeholder="Ссылка на пользователя" type="text" required></textarea>
+		<input type = "button"
+			   class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center"
+			   style = "width:100%" id="find_user_by_link_btn" onclick="FindUserByLink()" value = "OK">
+			<input type = "button"
+			   class="w3-button w3-indigo w3-hover-teal w3-left w3-khaki" onclick="window.location.reload()" value = "Сброс">
+	</form>
+	<hr />
   <table class="w3-table-all w3-card-4">
 
     <tr>
@@ -30,12 +39,13 @@
 	  <th>Заблокирован</th>
 	  <th></th>
     </tr>
-		{% for user in users %}
+	<tbody  id="users_table">
+	  {% for user in users %}
 			<tr>
 				<td>{{ user.id }}</td>
 				<td>
 					<a href="/user/{{ user.id }}" target="_blank">
-						<img class="w3-circle" src="{% static user.avatar %}" style="height:30px;width:30px" /> {{ user.nick }}
+						<img class="w3-circle avatar" src="{% static user.avatar %}" style="height:30px;width:30px" /> {{ user.nick }}
 					</a>
 				</td>
 				<td id="status_tr_{{ user.id }}">{{ user.is_blocked }}</td>
@@ -47,6 +57,7 @@
 				{% endif %}
 			</tr>
 		{% endfor %}
+	</tbody>
   </table>
 </div>
 </body>

@@ -175,6 +175,12 @@ def suauth(request):
         result = Superuser.auth(request)
         return JsonResponse({"message": result})
 
+def find_user_by_link_su(request):
+    if request.method == "POST":
+        result = Superuser.find_user(request)
+        return result
+
+
 def block_user(request):
     if request.method == "POST":
         result = Superuser.block_user(request)
@@ -184,6 +190,12 @@ def exit(request):
     if request.method == "POST" and request.COOKIES.get("id"):
         response = render(request, 'index.html')
         response.delete_cookie("id")
+        return response
+
+def exit_su(request):
+    if request.method == "POST" and request.COOKIES.get("su"):
+        response = render(request, 'index.html')
+        response.delete_cookie("su")
         return response
 
 def send_wall_message(request):
