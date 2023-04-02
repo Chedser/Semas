@@ -1216,7 +1216,6 @@ class Dialog:
                 return None
 
             result = Dialog.__parse_dialogs(dialogs, cookie_user_id)
-            print(result)
 
         except sqlite3.Error as error:
             con.rollback()

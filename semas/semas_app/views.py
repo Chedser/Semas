@@ -7,9 +7,8 @@ from django.shortcuts import render
 
 def index(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
-    if "id" in request.session:
-        cookie_user_id = request.session["id"]
-        cookie_user_id = int(cookie_user_id)
+    if request.session.get("id"):
+        cookie_user_id = int(request.session.get("id"))
         return redirect(f"user/{cookie_user_id}")
     return render(request, "index.html")
 
@@ -27,8 +26,8 @@ def user(request, id):
     friend_requests_count = None
     active_dialogs_count = None
     user_is_in_black_list = None
-    if "id" in request.session and id:  # Пользователь авторизован и id передано в качестве аргумента
-        cookie_user_id = int(request.session["id"])
+    if request.session.get("id") and id:  # Пользователь авторизован и id передано в качестве аргумента
+        cookie_user_id = int(request.session.get("id"))
         is_authed_user = True
         User.update_time_of_last_action(cookie_user_id)
         friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
@@ -60,14 +59,14 @@ def su(request):
         return render(request, "su.html")
 
 def admin(request):
-    if "su" not in request.session or request.method != "GET": return redirect("/su")
+    if not request.session.get("su") or request.method != "GET": return redirect("/su")
     users = Superuser.get_users()
     data = {"users": users}
     return render(request, "admin.html", context=data)
 
 def black_list(request):
-    if  "id" not in request.session or request.method != "GET": return redirect("/")
-    cookie_user_id = int(request.session["id"])
+    if  not request.session.get("id") or request.method != "GET": return redirect("/")
+    cookie_user_id = int(request.session.get("id"))
     friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
     active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
     blocked_users = User.get_blocked_users(cookie_user_id)
@@ -82,9 +81,9 @@ def black_list(request):
 
 def friends(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
-    if "id" in request.session:
-        cookie_user_id = request.session["id"]
-    if not cookie_user_id: return HttpResponse("<h1>Страница не найдена: 404</h1>", status=404)
+    if request.session.get("id"):
+        cookie_user_id = request.session.get("id")
+    else: return HttpResponse("<h1>Страница не найдена: 404</h1>", status=404)
 
     cookie_user_id = (int)(cookie_user_id)
     is_blocked = User.get_info(cookie_user_id)["is_blocked"]
@@ -101,8 +100,8 @@ def forum(request, id):
 
     if not forum_info: return HttpResponse("<h1>Страница не найдена: 404</h1>")
     messages = Forum.get_messages(id)
-    if "id" in request.session:
-        cookie_user_id = request.session["id"]
+    if request.session.get("id"):
+        cookie_user_id = request.session.get("id")
         cookie_user_id = int(cookie_user_id)
         is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
         active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
@@ -116,8 +115,8 @@ def forum(request, id):
 def forum_topics(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
     forums = Forum.get_forums()
-    if "id" in request.session:
-        cookie_user_id = request.session["id"]
+    if request.session.get("id"):
+        cookie_user_id = request.session.get("id")
         is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
         active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
         friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
@@ -129,11 +128,10 @@ def forum_topics(request):
     return render(request, "forum_topics.html", context=data)
 
 def dialog(request, id):
-    if "id" in request.session:
-        cookie_user_id = request.session["id"]
-
-    if not id or not cookie_user_id or \
-            request.method != "GET":
+    if not id or not request.method != "GET": redirect("/index")
+    if request.session.get("id"):
+        cookie_user_id = request.session.get("id")
+    else:
         return redirect("/index")
 
     dialog_info = Dialog.get_dialog_info(id)
@@ -145,8 +143,9 @@ def dialog(request, id):
     is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
     if is_blocked: return redirect(f"/user/{cookie_user_id}")
 
-    if not(dialog_info["sender_id"] == cookie_user_id or dialog_info["receiver_id"] == cookie_user_id):
-        return HttpResponse("<h1>Страница не найдена: 404</h1>")
+    if not(dialog_info["sender_id"] == cookie_user_id or \
+           dialog_info["receiver_id"] == cookie_user_id):
+        return  redirect(f"/user/{cookie_user_id}")
 
     Dialog.update_status(cookie_user_id, id) #Обновление статуса о прочтении сообщения
 
@@ -162,13 +161,10 @@ def dialog(request, id):
     return render(request, "dialog.html", context=data)
 
 def dialogs(request):
-    if "id" in request.session:
-        cookie_user_id = request.session["id"]
     if request.method != "GET" or \
-            not cookie_user_id:
+            not request.session.get("id"):
         return redirect("/index")
-
-    cookie_user_id = int (cookie_user_id)
+    cookie_user_id = int(request.session.get("id"))
     is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
     if is_blocked:
         return redirect(f"/user/{cookie_user_id}")
