@@ -17,7 +17,7 @@ function FindUserByLink(){
 
 				let blocked_content = "";
                 let yes_no = "";
-				 if (!parsed.is_blocked){
+				 if (!parsed.is_in_black_list){
 				    blocked_content = "<td>" +
 				                         "<a class=underline onclick=BlockUser(this," + parsed.id + ")>Заблокировать</a>" +
 				                       "</td>";

@@ -46,7 +46,7 @@ class Auth:
             con = sqlite3.connect(DB_NAME)
 
             cur = con.cursor()
-            result = cur.execute(f"SELECT id, login, password FROM user WHERE login='{login}'").fetchall()
+            result = cur.execute(f"SELECT id, login, password FROM user WHERE login=?", (login,)).fetchall()
             if len(result) == 0:
                 con.close()
                 return JsonResponse({'message': Response.WRONG_USER_OR_PASSWORD.value})
@@ -62,6 +62,7 @@ class Auth:
                 return JsonResponse({'message': Response.WRONG_USER_OR_PASSWORD.value})
             user_id = result[0][0]
 
+            # Создание сессии
             request.session["id"] = user_id
 
         except sqlite3.Error as error:
@@ -92,7 +93,7 @@ class Reg:
             con = sqlite3.connect(DB_NAME)
 
             cur = con.cursor()
-            result = cur.execute(f"SELECT id FROM user WHERE login='{login}' OR nick='{nick}'").fetchall()
+            result = cur.execute(f"SELECT id FROM user WHERE login=? OR nick=?", (login,nick)).fetchall()
             if len(result) != 0:
                 response = Response.USER_EXISTS.value
             else:
@@ -102,7 +103,7 @@ class Reg:
                             " time_of_last_action) \
                  VALUES (?,?,?,?,?,?)", (login, hash, nick, sex, (int)(time.time()), (int)(time.time())))
                 con.commit()
-                last_id = cur.execute(f"SELECT MAX(id) FROM user WHERE login='{login}'").fetchall()
+                last_id = cur.execute(f"SELECT MAX(id) FROM user WHERE login=?", (login,)).fetchall()
 
                 os.mkdir(f"semas_app/static/images/avatars/{last_id[0][0]}")
 
@@ -199,7 +200,8 @@ class MessageWall:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT wall_message.id AS id, senderId, message, user.nick AS nick, user.avatar AS avatar, date FROM wall_message \
-             INNER JOIN user ON wall_message.senderId=user.id WHERE receiverId={user_id} ORDER BY date DESC").fetchall()
+             INNER JOIN user ON wall_message.senderId=user.id "
+                                 f"WHERE receiverId=? ORDER BY date DESC", (user_id,)).fetchall()
             return MessageWall.__parse_wall_messages(result)
 
         except sqlite3.Error as error:
@@ -237,9 +239,8 @@ class User:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id, nick, sex, is_blocked, time_of_last_action, avatar \
-                FROM user WHERE id={user_id}").fetchall()
-            if len(result) == 0:
-                return None
+                FROM user WHERE id=?", (user_id,)).fetchall()
+            if len(result) == 0: return None
             return User.__parse_user_info(result[0])
 
         except sqlite3.Error as error:
@@ -285,7 +286,7 @@ class User:
             cur = con.cursor()
             result = cur.execute(f"SELECT user.id AS id, user.nick AS nick, avatar FROM black_list "
                                  f"INNER JOIN user ON user.id = black_list.user2 "
-                                 f"WHERE user1={cookie_user_id}").fetchall()
+                                 f"WHERE user1=?", (cookie_user_id,)).fetchall()
 
             return User.__parse_blocked_users(result)
 
@@ -303,9 +304,9 @@ class User:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT COUNT(*) FROM black_list WHERE (user1={user_id} AND "
-                                 f"user2={cookie_user_id}) OR "
-                                 f"(user1={cookie_user_id} AND user2={user_id})").fetchall()[0][0]
+            result = cur.execute(f"SELECT COUNT(*) FROM black_list WHERE (user1=? AND "
+                                 f"user2=?) OR (user1=? AND user2=?)",
+                                 (user_id, cookie_user_id, cookie_user_id, user_id)).fetchall()[0][0]
 
             return result
 
@@ -346,7 +347,7 @@ class User:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT id, nick, is_blocked, avatar FROM user WHERE id={user_id}").fetchall()
+            result = cur.execute(f"SELECT id, nick, avatar FROM user WHERE id=?", (user_id,)).fetchall()
 
             if len(result) == 0: return JsonResponse({"message": 1})
 
@@ -355,15 +356,14 @@ class User:
             lst = list()
             id = result[0]
             nick = result[1]
-            is_blocked = result[2]
-            avatar = result[3]
+            avatar = result[2]
             avatar = User.get_avatar_link(avatar, id)
-
+            is_in_black_list = User.user_is_in_black_list(id, cookie_user_id)
             tmp = dict()
             tmp["id"] = id
             tmp["nick"] = nick
             tmp["avatar"] = avatar
-            tmp["is_blocked"] = is_blocked
+            tmp["is_in_black_list"] = is_in_black_list
             lst.append(tmp)
 
             return JsonResponse({"message": json.dumps(lst)})
@@ -392,18 +392,18 @@ class User:
 
             cur = con.cursor()
 
-            result = cur.execute(f"SELECT COUNT(*) FROM black_list WHERE user1={cookie_user_id} "
-                                 f"AND user2={user_id}").fetchall()[0][0]
+            result = cur.execute(f"SELECT COUNT(*) FROM black_list WHERE user1=? "
+                                 f"AND user2=?", (cookie_user_id, user_id)).fetchall()[0][0]
 
             is_blocked = 0
 
             if not result:
                 cur.execute(f"INSERT INTO black_list(user1, user2, timestamp) VALUES "
-                            f"(?,?,?)", \
+                            f"(?,?,?)",
                             (cookie_user_id, user_id, int(time.time())))
                 is_blocked = 1
             else:
-                cur.execute(f"DELETE FROM black_list WHERE user1=? AND user2=?", \
+                cur.execute(f"DELETE FROM black_list WHERE user1=? AND user2=?",
                             (cookie_user_id, user_id))
 
             con.commit()
@@ -477,7 +477,7 @@ class File:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            cur.execute(f"UPDATE user SET avatar='{new_file_name}' WHERE id={cookie_user_id}")
+            cur.execute(f"UPDATE user SET avatar=? WHERE id=?", (new_file_name, cookie_user_id))
             con.commit()
             return JsonResponse({'message': Response.SUCCESS.value})
 
@@ -495,7 +495,7 @@ class Friend:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT COUNT(*) \
-                                            FROM friend_request WHERE friend2={(int)(cookie_user_id)}").fetchall()[0][0]
+                                            FROM friend_request WHERE friend2=?", ((int)(cookie_user_id),)).fetchall()[0][0]
             con.commit()
             return result
         except sqlite3.Error as error:
@@ -510,8 +510,8 @@ class Friend:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT COUNT(*) \
-                                                FROM friend WHERE friend1={(int)(cookie_user)} OR friend2={cookie_user}").fetchall()[
-                0][0]
+                                                FROM friend WHERE friend1=? OR friend2=?",
+                                 (cookie_user, cookie_user)).fetchall()[0][0]
             con.commit()
             return result
         except sqlite3.Error as error:
@@ -528,7 +528,7 @@ class Friend:
             cur = con.cursor()
             result = cur.execute(f"SELECT friend1, user.nick AS nick, user.avatar AS avatar \
                                      FROM friend_request INNER JOIN user ON user.id=friend1 \
-                                      WHERE friend2={(int)(cookie_user)}").fetchall()
+                                      WHERE friend2=?", ((int)(cookie_user)),).fetchall()
             if len(result) == 0: return result
             return Friend.__parse_friend_requests(result, cookie_user)
         except sqlite3.Error as error:
@@ -692,7 +692,8 @@ class Friend:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT friend1, friend2 FROM friend \
-                 WHERE friend1={(int)(cookie_user)} OR friend2={(int)(cookie_user)}").fetchall()
+                 WHERE friend1=? OR friend2=?",
+                                 (cookie_user, cookie_user)).fetchall()
             if len(result) == 0: return {}
 
             total = list()
@@ -703,7 +704,7 @@ class Friend:
                 elif user[1] != cookie_user:
                     current_user.append(user[1])
                 result2 = cur.execute(f"SELECT nick, avatar FROM user \
-                                 WHERE id={current_user[0]}").fetchall()
+                                 WHERE id=?", (current_user[0],)).fetchall()
                 tmp = dict()
                 tmp["id"] = current_user[0]
                 tmp["nick"] = result2[0][0]
@@ -736,7 +737,7 @@ class Friend:
                 elif user[1] != cookie_user:
                     current_user.append(user[1])
                 result2 = cur.execute(f"SELECT nick, avatar FROM user \
-                                        WHERE id={current_user[0]}").fetchall()
+                                        WHERE id=?", (current_user[0],)).fetchall()
                 tmp = dict()
                 tmp["id"] = current_user[0]
                 tmp["nick"] = result2[0][0]
@@ -897,7 +898,7 @@ class Forum:
             cur = con.cursor()
 
             result = cur.execute(f"SELECT forum_message.id AS id, senderId, message, date, user.avatar AS avatar, user.nick AS nick \
-                 FROM forum_message INNER JOIN user ON forum_message.senderId=user.id WHERE forumId={id}").fetchall()
+                 FROM forum_message INNER JOIN user ON forum_message.senderId=user.id WHERE forumId=?", (id,)).fetchall()
 
             if not len(result): return None
 
@@ -946,7 +947,7 @@ class Forum:
             cur = con.cursor()
 
             result = cur.execute(f"SELECT forum.id AS id,  creatorId, name, message, date, user.avatar AS avatar, user.nick AS nick \
-                    FROM forum INNER JOIN user ON forum.creatorId=user.id WHERE forum.id={id}").fetchall()
+                    FROM forum INNER JOIN user ON forum.creatorId=user.id WHERE forum.id=?", (id,)).fetchall()
             if not len(result): return None
             result = result[0]
             return Forum.__parse_forum_info(result)
@@ -1037,7 +1038,7 @@ class Dialog:
             cur = con.cursor()
 
             dialogs_count = cur.execute(f"SELECT COUNT(*)  FROM dialog"
-                                        f" WHERE receiverId={cookie_user_id} AND is_readen=0").fetchall()[0][0]
+                                        f" WHERE receiverId=? AND is_readen=0", (cookie_user_id,)).fetchall()[0][0]
             return dialogs_count
 
         except sqlite3.Error as error:
@@ -1055,8 +1056,8 @@ class Dialog:
             cur = con.cursor()
 
             dialogs_count = cur.execute(f"SELECT COUNT(*)  FROM dialog"
-                                        f" WHERE senderId={cookie_user_id} OR  receiverId={cookie_user_id}").fetchall()[
-                0][0]
+                                        f" WHERE senderId=? OR  receiverId=?",
+                                        (cookie_user_id, cookie_user_id)).fetchall()[0][0]
             return dialogs_count
 
         except sqlite3.Error as error:
@@ -1099,7 +1100,8 @@ class Dialog:
             cur = con.cursor()
 
             dialog = cur.execute(
-                f"SELECT id, senderId, receiverId, is_readen, date FROM dialog WHERE id={dialog_id}").fetchall()
+                f"SELECT id, senderId, receiverId, is_readen, date FROM dialog WHERE id=?",
+                (dialog_id,)).fetchall()
             if not dialog:
                 return None
             else:
@@ -1126,8 +1128,7 @@ class Dialog:
             cur = con.cursor()
 
             dialog = cur.execute(
-                f"SELECT senderId, receiverId FROM dialog WHERE id={dialog_id}").fetchall()[
-                0]
+                f"SELECT senderId, receiverId FROM dialog WHERE id=?", (dialog_id,)).fetchall()[0]
 
             if not len(dialog):
                 return None
@@ -1183,22 +1184,22 @@ class Dialog:
             cur = con.cursor()
 
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
-                  f"date FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=0 " \
+                  f"date FROM dialog WHERE receiverId=? AND is_readen=0 " \
                   "ORDER by timestamp DESC"
 
-            dialogs_not_readen = cur.execute(sql).fetchall()
+            dialogs_not_readen = cur.execute(sql, (cookie_user_id,)).fetchall()
 
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
-                  f"date FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=1 " \
+                  f"date FROM dialog WHERE receiverId=? AND is_readen=1 " \
                   "ORDER by timestamp DESC"
 
-            dialogs_readen = cur.execute(sql).fetchall()
+            dialogs_readen = cur.execute(sql, (cookie_user_id,)).fetchall()
 
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
-                  f"date FROM dialog WHERE senderId={cookie_user_id} " \
+                  f"date FROM dialog WHERE senderId=? " \
                   "ORDER by timestamp DESC"
 
-            dialogs_sender = cur.execute(sql).fetchall()
+            dialogs_sender = cur.execute(sql, (cookie_user_id,)).fetchall()
 
              # sql = f"SELECT id, senderId, receiverId, last_message, is_readen," \
             #f"date, timestamp FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=0 " \
@@ -1362,11 +1363,12 @@ class Dialog:
             else:
                 # Написать сообщение в существующий диалог
                 dialog_id = dialog_id[0][0]
-                Dialog.__send_outer_in_existing_dialog(dialog_id, cookie_user_id, receiver_id, message)
-                dialog_info = Dialog.get_dialog_info(dialog_id)
-                is_readen = dialog_info["is_readen"]
+                result = Dialog.__send_outer_in_existing_dialog(dialog_id, cookie_user_id, receiver_id, message)
 
-                return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+                if result:
+                    return JsonResponse({'message': Response.SUCCESS.value})
+                else:
+                    return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
 
         except sqlite3.Error as error:
             con.rollback()
@@ -1385,10 +1387,10 @@ class Dialog:
             sql = f"SELECT dialog_message.id AS id, userId, message, date, user.nick AS nick, user.avatar AS avatar " \
                   f"FROM dialog_message " \
                   f"INNER JOIN user ON user.id=userId " \
-                  f"WHERE dialogId={dialog_id} " \
+                  f"WHERE dialogId=? " \
                   f"ORDER by date"
 
-            messages = cur.execute(sql).fetchall()
+            messages = cur.execute(sql, (dialog_id,) ).fetchall()
 
             if not len(messages):
                 return None

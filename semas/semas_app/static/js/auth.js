@@ -21,16 +21,13 @@ function auth(){
 					};
 				
 	$.ajax({
-				url: 'api/auth',             // указываем URL и
-				data: dataToSend,                // Данные для отправки
+				url: 'api/auth',
+				data: dataToSend,
 				type: "POST",
 				headers: {'X-CSRFToken': csrftoken},
 				success: function (data, textStatus) { 
 				switch (data.message){
 						case 0:
-								let date = new Date(Date.now() + 86400e3);
-								date = date.toUTCString();
-								//setCookie("id", data.id, {"expires":date, "samesite":"strict"})
 								window.location.replace("/user/" + data.id); break;
 						case 1: alert("Неверный ввод"); break;
 						case 2: alert("Неверный пользователь или пароль"); break;

@@ -30,11 +30,10 @@ function sendMessage(btn, user_id){
 		data: dataToSend,
 		success: function(data, textStatus){
 			if(data.message == 0){
+				alert("Сообщение отправлено");
 				window.location.reload();
 			}else{
-				alert("Сообщение отправлено");
 				btn.removeAttribute('disabled');
-				window.location.reload();
 			}
 		},
 		fail: function (data, textStatus) {
