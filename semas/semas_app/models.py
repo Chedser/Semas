@@ -62,6 +62,8 @@ class Auth:
                 return JsonResponse({'message': Response.WRONG_USER_OR_PASSWORD.value})
             user_id = result[0][0]
 
+            request.session["id"] = user_id
+
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
@@ -125,8 +127,8 @@ class MessageWall:
 
         receiver_id = int(request.POST.get('receiver_id'))
 
-        if request.COOKIES.get("id"):
-            cookie_user_id = int(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = int(request.session.get("id"))
             is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
@@ -149,11 +151,10 @@ class MessageWall:
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
-        return JsonResponse({'message': Response.WRONG_INPUT.value})
 
     def delete_wall_message(request):
-        if request.COOKIES.get("id"):
-            cookie_user_id = (int)(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = (int)(request.session.get("id"))
             is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
@@ -306,7 +307,6 @@ class User:
                                  f"user2={cookie_user_id}) OR "
                                  f"(user1={cookie_user_id} AND user2={user_id})").fetchall()[0][0]
 
-            print(result)
             return result
 
         except sqlite3.Error as error:
@@ -335,7 +335,7 @@ class User:
     @staticmethod
     def find_user_for_block(request):
         user_id = request.POST.get("user_id")
-        cookie_user_id = request.COOKIES.get("id")
+        cookie_user_id = request.session.get("id")
         if not user_id or not cookie_user_id: return JsonResponse({"message": 1})
         user_id = int(user_id)
         cookie_user_id = int(cookie_user_id)
@@ -378,7 +378,7 @@ class User:
     @staticmethod
     def block_user(request):
         user_id = request.POST.get("user_id")
-        cookie_user_id = request.COOKIES.get("id")
+        cookie_user_id = request.session.get("id")
         if not user_id or not cookie_user_id: return JsonResponse({"message": 1})
         user_id = int(user_id)
         cookie_user_id = int(cookie_user_id)
@@ -453,11 +453,11 @@ class File:
         MAX_FILE_SIZE = 3 * 10 ** 6
 
         avatar = request.FILES.get("avatar")
-        if request.COOKIES.get("id") and \
+        if request.session.get("id") and \
                 request.POST.get("MAX_FILE_SIZE") and \
                 avatar:
             max_file_size_client = (int)(request.POST.get("MAX_FILE_SIZE"))
-            cookie_user_id = int(request.COOKIES.get("id"))
+            cookie_user_id = int(request.session.get("id"))
             is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
@@ -477,7 +477,7 @@ class File:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"UPDATE user SET avatar='{new_file_name}' WHERE id={cookie_user_id}")
+            cur.execute(f"UPDATE user SET avatar='{new_file_name}' WHERE id={cookie_user_id}")
             con.commit()
             return JsonResponse({'message': Response.SUCCESS.value})
 
@@ -487,9 +487,6 @@ class File:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         finally:
             con.close()
-
-        return JsonResponse({'message': Response.SUCCESS.value})
-
 
 class Friend:
     def get_friend_requests_count(cookie_user_id):
@@ -566,11 +563,10 @@ class Friend:
             return FriendStatus.UNKNOWN_ERROR.value
         finally:
             con.close()
-        return FriendStatus.UNKNOWN_ERROR.value
 
     def send_friend_request(request):
-        if request.COOKIES.get("id"):
-            cookie_user_id = (int)(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = (int)(request.session.get("id"))
             is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
@@ -605,8 +601,8 @@ class Friend:
         return JsonResponse({'message': Response.WRONG_INPUT.value})
 
     def cancel_friend_request(request):
-        if request.COOKIES.get("id"):
-            cookie_user_id = (int)(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = (int)(request.session.get("id"))
             is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
@@ -630,11 +626,10 @@ class Friend:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         finally:
             con.close()
-        return JsonResponse({'message': Response.WRONG_INPUT.value})
 
     def accept_friend_request(request):
-        if request.COOKIES.get("id"):
-            cookie_user_id = (int)(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = (int)(request.session.get("id"))
             is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
@@ -661,11 +656,10 @@ class Friend:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         finally:
             con.close()
-        return JsonResponse({'message': Response.WRONG_INPUT.value})
 
     def delete_friend(request):
-        if request.COOKIES.get("id"):
-            cookie_user_id = (int)(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = (int)(request.session.get("id"))
             is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
@@ -777,8 +771,8 @@ class Friend:
 
 class Forum:
     def create_forum(request):
-        if request.COOKIES.get("id"):
-            cookie_user_id = int(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = int(request.session.get("id"))
             is_blocked = User.get_info(cookie_user_id)["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.WRONG_INPUT.value})
         else:
@@ -916,8 +910,8 @@ class Forum:
             con.close()
 
     def send_message(request):
-        if request.COOKIES.get("id"):
-            cookie_user_id = int(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = int(request.session.get("id"))
             is_blocked = User.get_info(cookie_user_id)["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.WRONG_INPUT.value})
         else:
@@ -964,8 +958,8 @@ class Forum:
             con.close()
 
     def delete_message(request):
-        if request.COOKIES.get("id"):
-            cookie_user_id = (int)(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = (int)(request.session.get("id"))
             is_blocked = User.get_info(cookie_user_id)["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.WRONG_INPUT.value})
         else:
@@ -1182,7 +1176,7 @@ class Dialog:
     # ДОДЕЛАТЬ
     @staticmethod
     def get_dialogs(cookie_user_id):
-        result = None
+
         try:
             con = sqlite3.connect(DB_NAME)
 
@@ -1190,28 +1184,39 @@ class Dialog:
 
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
                   f"date FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=0 " \
-                  "ORDER by date DESC"
+                  "ORDER by timestamp DESC"
 
             dialogs_not_readen = cur.execute(sql).fetchall()
 
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
                   f"date FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=1 " \
-                  "ORDER by date DESC"
+                  "ORDER by timestamp DESC"
 
             dialogs_readen = cur.execute(sql).fetchall()
 
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
                   f"date FROM dialog WHERE senderId={cookie_user_id} " \
-                  "ORDER by date DESC"
+                  "ORDER by timestamp DESC"
 
             dialogs_sender = cur.execute(sql).fetchall()
+
+             # sql = f"SELECT id, senderId, receiverId, last_message, is_readen," \
+            #f"date, timestamp FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=0 " \
+            #f"UNION " \
+            #f"SELECT id, senderId, receiverId, last_message, is_readen, " \
+            #f"date, timestamp FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=1 " \
+            #f"UNION " \
+            #f"SELECT id, senderId, receiverId, last_message, is_readen, " \
+            #f"date, timestamp FROM dialog WHERE senderId={cookie_user_id} " \
+            #f"ORDER BY timestamp DESC"
 
             dialogs = dialogs_not_readen + dialogs_readen + dialogs_sender
 
             if not len(dialogs):
                 return None
 
-            return Dialog.__parse_dialogs(dialogs, cookie_user_id)
+            result = Dialog.__parse_dialogs(dialogs, cookie_user_id)
+            print(result)
 
         except sqlite3.Error as error:
             con.rollback()
@@ -1282,8 +1287,8 @@ class Dialog:
 
     @staticmethod
     def send_inner(request):
-        if request.COOKIES.get("id"):
-            cookie_user_id = int(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = int(request.session.get("id"))
             is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
@@ -1306,7 +1311,6 @@ class Dialog:
 
         if user_is_in_black_list != 0: return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-
         if receiver_id == cookie_user_id:
             sender_id, receiver_id = receiver_id, sender_id
 
@@ -1319,8 +1323,8 @@ class Dialog:
 
     @staticmethod
     def send_outer(request):
-        if request.COOKIES.get("id"):
-            cookie_user_id = int(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = int(request.session.get("id"))
             is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
@@ -1363,9 +1367,7 @@ class Dialog:
                 dialog_info = Dialog.get_dialog_info(dialog_id)
                 is_readen = dialog_info["is_readen"]
 
-                print(f"sender_id: {cookie_user_id}, receiver_id: {receiver_id}, is_readen: {is_readen}")
                 return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
-
 
         except sqlite3.Error as error:
             con.rollback()
@@ -1376,7 +1378,6 @@ class Dialog:
 
     @staticmethod
     def get_dialog_messages(dialog_id):
-        result = None
         try:
             con = sqlite3.connect(DB_NAME)
 
@@ -1393,7 +1394,7 @@ class Dialog:
             if not len(messages):
                 return None
 
-            return Dialog.__parse_dialog_messages(messages)
+            result = Dialog.__parse_dialog_messages(messages)
 
         except sqlite3.Error as error:
             con.rollback()
@@ -1449,8 +1450,8 @@ class UserPageLike:
 
     @staticmethod
     def set_page_like(request):
-        if request.COOKIES.get("id"):
-            cookie_user_id = int(request.COOKIES.get("id"))
+        if request.session.get("id"):
+            cookie_user_id = int(request.session.get("id"))
         else:
             return JsonResponse({'message': -1})
 
@@ -1541,7 +1542,7 @@ class Superuser:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
-            return JsonResponse({'message': 0})
+            return 0
         finally:
             con.close()
 

@@ -7,8 +7,8 @@ from django.shortcuts import render
 
 def index(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
-    cookie_user_id = request.COOKIES.get("id")
-    if cookie_user_id:
+    if "id" in request.session:
+        cookie_user_id = request.session["id"]
         cookie_user_id = int(cookie_user_id)
         return redirect(f"user/{cookie_user_id}")
     return render(request, "index.html")
@@ -16,37 +16,36 @@ def index(request):
 
 def user(request, id):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
-    cookie_user_id = request.COOKIES.get("id")  # id зарегистрированного пользователя
-
     is_authed_user = False
     is_login_user_page = False
     user_info = User.get_info(id)
 
     if (not id) or (not user_info): return HttpResponse("<h1>Страница не найдена: 404</h1>")
 
-    if cookie_user_id and id:  # Пользователь авторизован и id передано в качестве аргумента
-        cookie_user_id = int(cookie_user_id)
+    cookie_user_id = None
+    friend_status = None
+    friend_requests_count = None
+    active_dialogs_count = None
+    user_is_in_black_list = None
+    if "id" in request.session and id:  # Пользователь авторизован и id передано в качестве аргумента
+        cookie_user_id = int(request.session["id"])
         is_authed_user = True
         User.update_time_of_last_action(cookie_user_id)
+        friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+        active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+        if id != cookie_user_id:
+            user_is_in_black_list = User.user_is_in_black_list(id, cookie_user_id)
+        else:
+            user_is_in_black_list = -1
+        friend_status = Friend.get_friend_request_status(cookie_user_id, id)
+        if user_info["is_blocked"]:
+            friend_status = FriendStatus.UNAUTHED.value
         if cookie_user_id == id:  # И сидит на своей странице
             is_login_user_page = True
 
-    friend_status = Friend.get_friend_request_status(cookie_user_id, id)
-
-    if user_info["is_blocked"]:
-        friend_status = FriendStatus.UNAUTHED.value
-
     wall_messages = MessageWall.get_wall_messages(id)
-    friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
     friends = Friend.get_friends_user_page(id, 8)
-    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
     page_likes_count = UserPageLike.get_page_likes_count(id)
-
-    if id != cookie_user_id:
-        user_is_in_black_list = User.user_is_in_black_list(id, cookie_user_id)
-    else:
-        user_is_in_black_list = -1
-
 
     data = {"cookie_user_id": cookie_user_id, "user_id": id, "is_login_user_page": is_login_user_page, \
             "is_authed_user": is_authed_user, "wall_messages": wall_messages, "user_info": user_info, \
@@ -61,14 +60,14 @@ def su(request):
         return render(request, "su.html")
 
 def admin(request):
-    if not request.COOKIES.get("su") or request.method != "GET": return redirect("/su")
+    if "su" not in request.session or request.method != "GET": return redirect("/su")
     users = Superuser.get_users()
-    data = {"users":users}
+    data = {"users": users}
     return render(request, "admin.html", context=data)
 
 def black_list(request):
-    if not request.COOKIES.get("id") or request.method != "GET": return redirect("/")
-    cookie_user_id = int(request.COOKIES.get("id"))
+    if  "id" not in request.session or request.method != "GET": return redirect("/")
+    cookie_user_id = int(request.session["id"])
     friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
     active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
     blocked_users = User.get_blocked_users(cookie_user_id)
@@ -83,7 +82,8 @@ def black_list(request):
 
 def friends(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
-    cookie_user_id = request.COOKIES.get("id")
+    if "id" in request.session:
+        cookie_user_id = request.session["id"]
     if not cookie_user_id: return HttpResponse("<h1>Страница не найдена: 404</h1>", status=404)
 
     cookie_user_id = (int)(cookie_user_id)
@@ -101,8 +101,8 @@ def forum(request, id):
 
     if not forum_info: return HttpResponse("<h1>Страница не найдена: 404</h1>")
     messages = Forum.get_messages(id)
-    cookie_user_id = request.COOKIES.get("id")
-    if cookie_user_id:
+    if "id" in request.session:
+        cookie_user_id = request.session["id"]
         cookie_user_id = int(cookie_user_id)
         is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
         active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
@@ -115,14 +115,12 @@ def forum(request, id):
 
 def forum_topics(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
-    cookie_user_id = request.COOKIES.get("id")
     forums = Forum.get_forums()
-
-    if cookie_user_id:
+    if "id" in request.session:
+        cookie_user_id = request.session["id"]
         is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
         active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
         friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
-
 
     data = {"cookie_user_id": cookie_user_id, "forums": forums, "forums_count": len(forums),
             "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count,
@@ -131,7 +129,8 @@ def forum_topics(request):
     return render(request, "forum_topics.html", context=data)
 
 def dialog(request, id):
-    cookie_user_id = request.COOKIES.get("id")
+    if "id" in request.session:
+        cookie_user_id = request.session["id"]
 
     if not id or not cookie_user_id or \
             request.method != "GET":
@@ -156,14 +155,15 @@ def dialog(request, id):
     active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
     friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
     user_is_in_black_list = User.user_is_in_black_list(opponent["id"], cookie_user_id)
-    data = {"messages":messages, "dialog_id": id, "cookie_user_id": cookie_user_id, "opponent":opponent,
+    data = {"messages": messages, "dialog_id": id, "cookie_user_id": cookie_user_id, "opponent":opponent,
             "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count,
             "user_is_in_black_list": user_is_in_black_list}
 
     return render(request, "dialog.html", context=data)
 
 def dialogs(request):
-    cookie_user_id = request.COOKIES.get("id")
+    if "id" in request.session:
+        cookie_user_id = request.session["id"]
     if request.method != "GET" or \
             not cookie_user_id:
         return redirect("/index")
@@ -178,7 +178,7 @@ def dialogs(request):
         active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
         friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
 
-    data = {"dialogs":dialogs, "cookie_user_id":cookie_user_id, "dialogs_count": dialogs_count,
+    data = {"dialogs": dialogs, "cookie_user_id":cookie_user_id, "dialogs_count": dialogs_count,
             "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count}
 
     return render(request, "dialogs.html", context=data)
@@ -220,15 +220,15 @@ def block_user(request):
         return result
 
 def exit(request):
-    if request.method == "POST" and request.COOKIES.get("id"):
+    if request.method == "POST" and request.session["id"]:
+        del request.session["id"]
         response = render(request, 'index.html')
-        response.delete_cookie("id")
         return response
 
 def exit_su(request):
-    if request.method == "POST" and request.COOKIES.get("su"):
+    if request.method == "POST" and request.session["su"]:
         response = render(request, 'index.html')
-        response.delete_cookie("su")
+        del response.session["su"]
         return response
 
 def send_wall_message(request):
@@ -272,7 +272,6 @@ def forum_send_message(request):
         return Forum.send_message(request)
 
 def forum_delete_message(request):
-    print(f"Вход в {forum_delete_message}")
     if request.method == "POST":
         return Forum.delete_message(request)
 
