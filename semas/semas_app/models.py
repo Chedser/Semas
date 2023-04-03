@@ -1183,25 +1183,25 @@ class Dialog:
 
             cur = con.cursor()
 
-            #sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
-                  #f"date FROM dialog WHERE receiverId=? AND is_readen=0 " \
-                  #"ORDER by timestamp DESC"
+            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
+                  f"date FROM dialog WHERE receiverId=? AND is_readen=0 " \
+                  "ORDER by timestamp DESC"
 
-            #dialogs_not_readen = cur.execute(sql, (cookie_user_id,)).fetchall()
+            dialogs_not_readen = cur.execute(sql, (cookie_user_id,)).fetchall()
 
-            #sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
-                  #f"date FROM dialog WHERE receiverId=? AND is_readen=1 " \
-                  #"ORDER by timestamp DESC"
+            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
+                  f"date FROM dialog WHERE receiverId=? AND is_readen=1 " \
+                  "ORDER by timestamp DESC"
 
-            #dialogs_readen = cur.execute(sql, (cookie_user_id,)).fetchall()
+            dialogs_readen = cur.execute(sql, (cookie_user_id,)).fetchall()
 
-            #sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
-                  #f"date FROM dialog WHERE senderId=? " \
-                  #"ORDER by timestamp DESC" """
+            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
+                  f"date FROM dialog WHERE senderId=? " \
+                  "ORDER by timestamp DESC"
 
-            #dialogs_sender = cur.execute(sql, (cookie_user_id,)).fetchall()
+            dialogs_sender = cur.execute(sql, (cookie_user_id,)).fetchall()
 
-             # sql = f"SELECT id, senderId, receiverId, last_message, is_readen," \
+            #sql = f"SELECT id, senderId, receiverId, last_message, is_readen," \
             #f"date, timestamp FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=0 " \
             #f"UNION " \
             #f"SELECT id, senderId, receiverId, last_message, is_readen, " \
@@ -1209,16 +1209,13 @@ class Dialog:
             #f"UNION " \
             #f"SELECT id, senderId, receiverId, last_message, is_readen, " \
             #f"date, timestamp FROM dialog WHERE senderId={cookie_user_id} " \
-            #f"ORDER BY timestamp DESC"
+            #f"ORDER BY date DESC"
 
-            #dialogs = dialogs_not_readen + dialogs_readen + dialogs_sender
+            dialogs = dialogs_not_readen + dialogs_readen + dialogs_sender
 
-            sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
-            f"date FROM dialog WHERE senderId=? OR receiverId=? " \
-            "ORDER by timestamp DESC, is_readen ASC"
-
-            dialogs = cur.execute(sql, (cookie_user_id, cookie_user_id)).fetchall()
-
+            #sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
+            #f"date FROM dialog WHERE senderId=? OR receiverId=? " \
+            #"ORDER by date DESC,is_readen ASC"
 
             if not len(dialogs):
                 return None

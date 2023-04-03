@@ -6,7 +6,7 @@ from django.shortcuts import render
 
 
 def index(request):
-    if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
+    if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>",status_code=404)
     if request.session.get("id"):
         cookie_user_id = int(request.session.get("id"))
         return redirect(f"user/{cookie_user_id}")
