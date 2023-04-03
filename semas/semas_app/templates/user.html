@@ -17,17 +17,20 @@
 	<script src="{% static 'js/friends.js' %}"></script>
 	<script src="{% static 'js/dialog.js' %}"></script>
 	<script src="{% static 'js/likes.js' %}"></script>
+	<script src="{% static 'js/exit.js' %}"></script>
 {% endif %}
 
 <style>
 html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
 textarea{resize:none;}
+
+}
 </style>
 </head>
 <body class="w3-light-grey">
 
 <!-- Page Container -->
-<div class="w3-content w3-margin-top" style="max-width:1400px;">
+<div class="w3-content w3-margin-top" style="max-width:1400px;padding-bottom: 40px;">
 {% if is_authed_user and not user_info.is_blocked %}
 	{% include "./items/navbar.html" %}
 	{% csrf_token %}

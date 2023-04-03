@@ -528,7 +528,7 @@ class Friend:
             cur = con.cursor()
             result = cur.execute(f"SELECT friend1, user.nick AS nick, user.avatar AS avatar \
                                      FROM friend_request INNER JOIN user ON user.id=friend1 \
-                                      WHERE friend2=?", ((int)(cookie_user)),).fetchall()
+                                      WHERE friend2=?", (cookie_user,)).fetchall()
             if len(result) == 0: return result
             return Friend.__parse_friend_requests(result, cookie_user)
         except sqlite3.Error as error:
