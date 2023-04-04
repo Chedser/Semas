@@ -6,11 +6,12 @@ from .enums import *
 from django.http import JsonResponse
 from settings import *
 import os
+import re
+import html
 
 class Message:
     def tolink(txt):
-        import re
-        import html
+
         pattern1 = r'\b((?:https?://)(?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?(?:/[\w\.-]*)*/?)\b'
         pattern2 = r'\b((?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?(?:/[\w\.-]*)*/?)\b'
         result = html.escape(txt)
@@ -783,22 +784,25 @@ class Forum:
         if request.POST.get('message') and request.POST.get('topic').strip():
             message = request.POST.get('message').strip()
             topic = request.POST.get('topic').strip()
+            topic_modified = re.sub("[\s|\W]","", topic)
+            print(topic_modified)
+            if not len(topic_modified): return JsonResponse({'message': ForumCreateResponse.WRONG_INPUT.value})
         else:
-            return JsonResponse({'message': Response.WRONG_INPUT.value})
+            return JsonResponse({'message': ForumCreateResponse.WRONG_INPUT.value})
 
         if len(message) == 0 or len(topic) == 0:
-            return JsonResponse({'message': Response.WRONG_INPUT.value})
+            return JsonResponse({'message': ForumCreateResponse.WRONG_INPUT.value})
 
         try:
             con = sqlite3.connect(DB_NAME)
 
             cur = con.cursor()
 
-            forum_count = cur.execute(f"SELECT COUNT(*) FROM forum WHERE name_lower=?", (topic.lower(),)).fetchall()[0][0]
-            if forum_count > 0: return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+            forum_count = cur.execute(f"SELECT COUNT(*) FROM forum WHERE name_lower=?", (topic_modified,)).fetchall()[0][0]
+            if forum_count > 0: return JsonResponse({'message': ForumCreateResponse.FORUM_EXISTS.value})
 
             cur.execute("INSERT INTO forum (creatorId, name, name_lower, message, timestamp)\
-                          VALUES (?,?,?,?,?)", (cookie_user_id, topic, topic.lower(), message, (int)(time.time())))
+                          VALUES (?,?,?,?,?)", (cookie_user_id, topic, topic_modified, message, (int)(time.time())))
             con.commit()
 
             """lastrowid = cur.lastrowid
@@ -811,7 +815,7 @@ class Forum:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
-            return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+            return JsonResponse({'message': ForumCreateResponse.UNKNOWN_ERROR.value})
         finally:
             con.close()
 

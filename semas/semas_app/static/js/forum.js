@@ -24,13 +24,16 @@ function ForumCreate(btn){
 		headers: {'X-CSRFToken': csrftoken},
 		data: dataToSend,
 		success: function(data, textStatus){
-			if(data.message == 0){
-				window.location.reload();
-			}else{
-				alert("Такое название форума уже существует");
-				$(this).removeAttr("disabled");
+			switch (data.message){
+			case 0: window.location.reload(); break;
+			case 1: alert("Неверный ввод");
+			        $(this).removeAttr("disabled");break;
+			case 2: alert("Форум с таким названием существует");
+			        $(this).removeAttr("disabled");break;
+			case 3: alert("Неизвестная ошибкав");
+			        $(this).removeAttr("disabled");break;
 			}
-		
+
 		},
 		fail: function (data, textStatus) {
 						alert("Неизвестная ошибка");

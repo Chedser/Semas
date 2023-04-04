@@ -141,7 +141,10 @@ def forum_topics(request):
 
 
 def dialog(request, id):
-    if not id or not request.method != "GET" or not request.session.get("id"): return redirect("/index")
+
+    if not id or request.method != "GET" or not request.session.get("id"):
+        print(f"Не ид и не гет {request.method} {id} {request.session.get('id')}")
+        return redirect("/index")
 
     cookie_user_id = int(request.session.get("id"))
 

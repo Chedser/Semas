@@ -3,11 +3,18 @@ from enum import Enum
 
 class Response(Enum):
     SUCCESS = 0
-    WRONG_INPUT = 1
+    SUCCESS = 0
     WRONG_USER_OR_PASSWORD = 2
     USER_EXISTS = 3
     UNKNOWN_ERROR = 4
     USER_IS_BLOCKED = 5
+
+class ForumCreateResponse(Enum):
+    SUCCESS = 0
+    WRONG_INPUT = 1
+    FORUM_EXISTS = 2
+    UNKNOWN_ERROR = 3
+
 
 class Sex(Enum):
     MALE = 0
