@@ -2,9 +2,9 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 
 from .models import *
-from django.shortcuts import render
+from django.views.decorators.cache import never_cache
 
-
+@never_cache
 def index(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>", status_code=404)
     if request.session.get("id"):
@@ -12,7 +12,7 @@ def index(request):
         return redirect(f"user/{cookie_user_id}")
     return render(request, "index.html")
 
-
+@never_cache
 def user(request, id):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
     is_authed_user = False

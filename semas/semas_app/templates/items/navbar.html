@@ -1,15 +1,21 @@
+{% load static %}
 <nav class="w3-border w3-round w3-light-grey">
-		<a href="../user/{{cookie_user_id}}" class="w3-border w3-button">Страница</a>
-		<a href="../friends" class="w3-border w3-button">Друзья 
+		<a href="../user/{{cookie_user_id}}" class="w3-border w3-button">
+			<img class = "icon" src="{% static 'images/icons/home.png' %}">
+		</a>
+		<a href="../friends" class="w3-border w3-button">
+			<img class = "icon" src="{% static 'images/icons/friends.png' %}" />
 		{% if friend_requests_count %}
 		<span class="w3-badge w3-green">{{friend_requests_count}}</span>
 		{% endif %}
 		<span class="w3-badge w3-green"></span></a>
-		<a href="/forum" class="w3-border w3-button">Форум</a>
-
-		<a href="/dialogs" class="w3-border w3-button">Диалоги
+				<a href="/dialogs" class="w3-border w3-button">
+					<img class = "icon" src="{% static 'images/icons/dialogs.png' %}">
 			{% if active_dialogs_count %}
 				<span class="w3-badge w3-green">{{ active_dialogs_count }}</span>
 			{% endif %}
+		</a>
+		<a href="/forum" class="w3-border w3-button">
+			<img class = "icon" src="{% static 'images/icons/forum.png' %}">
 		</a>
 </nav>
