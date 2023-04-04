@@ -30,10 +30,7 @@ $( document ).ready(function() {
                         alert("Неверный пользователь или пароль");
                         $("input[type='submit']").first().removeAttr("disabled");
                      }else{
-                      	let date = new Date(Date.now() + 1000e3);
-								date = date.toUTCString();
-								setCookie("su", date, {"expires":date})
-                      window.location.replace("/admin");
+                        window.location.replace("/admin");
                       }
 
 				},

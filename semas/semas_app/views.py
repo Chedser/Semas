@@ -63,8 +63,15 @@ def su(request):
 def admin(request):
     if not request.session.get("su") or request.method != "GET": return redirect("/su")
     users = Superuser.get_users()
-    data = {"users": users}
+    data = {"users": users, "users_count": len(users)}
     return render(request, "admin.html", context=data)
+
+def admin_forum(request):
+    if not request.session.get("su") or request.method != "GET": return redirect("/su")
+    forums = Superuser.get_forums()
+    data = {"forums": forums, "forums_count": len(forums)}
+
+    return render(request, "admin_forum.html", context=data)
 
 
 def black_list(request):
@@ -101,21 +108,24 @@ def forum(request, id):
     if not id or request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>", status_code=404)
     forum_info = Forum.get_forum_info(id)
 
-    if not forum_info: return HttpResponse("<h1>Страница не найдена: 404</h1>")
+    if not forum_info: return redirect("/index")
+    forum_is_blocked = forum_info["is_blocked"]
+    if forum_is_blocked: return redirect("/forum")
     messages = Forum.get_messages(id)
     cookie_user_id = None
-    is_blocked = None
+    user_is_blocked = None
     active_dialogs_count = None
     friend_requests_count = None
     if request.session.get("id"):
         cookie_user_id = request.session.get("id")
         cookie_user_id = int(cookie_user_id)
-        is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+        user_is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
         active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
         friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+
     data = {"cookie_user_id": cookie_user_id, "forum_info": forum_info, "messages": messages,
             "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count,
-            "is_blocked": is_blocked}
+            "user_is_blocked": user_is_blocked}
 
     return render(request, "forum.html", context=data)
 
@@ -220,12 +230,21 @@ def find_user_by_link_for_block(request):
         result = User.find_user_for_block(request)
         return result
 
+def find_forum_by_link_su(request):
+    if request.method == "POST":
+        result = Superuser.find_forum(request)
+        return result
+
 
 def block_user_su(request):
     if request.method == "POST":
         result = Superuser.block_user(request)
         return result
 
+def block_forum_su(request):
+    if request.method == "POST":
+        result = Superuser.block_forum(request)
+        return result
 
 def block_user(request):
     if request.method == "POST":
@@ -242,8 +261,8 @@ def exit(request):
 
 def exit_su(request):
     if request.method == "POST" and request.session["su"]:
+        del request.session["su"]
         response = render(request, 'index.html')
-        del response.session["su"]
         return response
 
 
