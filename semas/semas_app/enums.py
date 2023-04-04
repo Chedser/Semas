@@ -3,7 +3,7 @@ from enum import Enum
 
 class Response(Enum):
     SUCCESS = 0
-    SUCCESS = 0
+    WRONG_INPUT = 1
     WRONG_USER_OR_PASSWORD = 2
     USER_EXISTS = 3
     UNKNOWN_ERROR = 4
