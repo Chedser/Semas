@@ -779,8 +779,12 @@ class Forum:
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-        message = request.POST.get('message').strip()
-        topic = request.POST.get('topic').strip()
+
+        if request.POST.get('message') and request.POST.get('topic').strip():
+            message = request.POST.get('message').strip()
+            topic = request.POST.get('topic').strip()
+        else:
+            return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         if len(message) == 0 or len(topic) == 0:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
@@ -790,7 +794,7 @@ class Forum:
 
             cur = con.cursor()
 
-            forum_count = cur.execute(f"SELECT COUNT(*) FROM forum WHERE name_lower='{topic.lower()}'").fetchall()[0][0]
+            forum_count = cur.execute(f"SELECT COUNT(*) FROM forum WHERE name_lower=?", (topic.lower(),)).fetchall()[0][0]
             if forum_count > 0: return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
 
             cur.execute("INSERT INTO forum (creatorId, name, name_lower, message, timestamp)\
