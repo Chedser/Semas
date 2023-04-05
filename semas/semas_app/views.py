@@ -111,7 +111,7 @@ def forum(request, id):
     if not id or request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>", status_code=404)
     forum_info = Forum.get_forum_info(id)
 
-    if not forum_info: return redirect("/index")
+    if not forum_info: return redirect("/forum")
     messages = Forum.get_messages(id)
     cookie_user_id = None
     user_is_blocked = None
@@ -242,9 +242,9 @@ def block_user_su(request):
         result = Superuser.block_user(request)
         return result
 
-def block_forum_su(request):
+def delete_forum_su(request):
     if request.method == "POST":
-        result = Superuser.block_forum(request)
+        result = Superuser.delete_forum(request)
         return result
 
 def block_user(request):

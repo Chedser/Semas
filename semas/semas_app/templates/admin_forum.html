@@ -42,7 +42,7 @@
 		<tr>
 		  <th></th>
 		  <th></th>
-		  <th>Заблокирован</th>
+		  <th></th>
 		  <th></th>
 		</tr>
 	</thead>
@@ -57,11 +57,7 @@
 				</td>
 				<td id="status_tr_{{ forum.id }}">{{ forum.is_blocked }}</td>
 				<td></td>
-				{% if not forum.is_blocked %}
-				<td><a class="underline" onclick="BlockForum(this, {{ forum.id }})">Заблокировать</a></td>
-					{% else %}
-				<td><a class="underline" onclick="BlockForum(this, {{ forum.id }})">Разблокировать</a></td>
-				{% endif %}
+				<td><a class="underline" onclick="DeleteForum(this, {{ forum.id }})">Удалить</a></td>
 			</tr>
 		{% endfor %}
 	</tbody>

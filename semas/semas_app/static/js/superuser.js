@@ -70,21 +70,22 @@ function FindUserByLink(){
 			});
 	}
 
-	function BlockForum(obj, forum_id_){
+	function DeleteForum(obj, forum_id_){
 	const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
 	$.ajax({
-				url: '../api/su/block_forum',
+				url: '../api/su/delete_forum',
 				headers: {'X-CSRFToken': csrftoken},
 				data: { forum_id: forum_id_ },
 				type: "POST",
 				success: function (data, textStatus) {
-				alert(data.message);
-				switch (data.message){
-					case 0: obj.innerText = "Заблокировать";  break;
-					case 1: obj.innerText = "Разблокировать"; break;
+
+				if (data.message == 0){
+                    obj.innerText = "";
+                    $(obj).attr("disabled", "disabled");
+                    $("#status_tr_" + forum_id_).html("Удален");
 				}
-				$("#status_tr_" + forum_id_).html(data.message);
+
 				},
 
 				fail: function (data, textStatus) {
@@ -116,28 +117,16 @@ function FindForumByLink(){
 						  parsed.topic +
 					"</a>" +
 				"</td>" +
-				"<td id=status_tr_" + parsed.id + ">" + parsed.is_blocked + "</td>" +
-				"<td></td>";
-
-				let blocked_content = "";
-
-				 if (!parsed.is_blocked){
-				    blocked_content = "<td>" +
-				                         "<a class=underline onclick=BlockForum(this," + parsed.id + ")>Заблокировать</a>" +
-				                       "</td>";
-				 }else{
-				   blocked_content = "<td>" +
-				                         "<a class=underline onclick=BlockForum(this," + parsed.id + ")>Разблокировать</a>" +
-				                       "</td>";
-				 }
-
-				 content += blocked_content;
+				"<td id=status_tr_" + parsed.id + "></td>" +
+				"<td>" +
+				     "<a class=underline onclick=DeleteForum(this," + parsed.id + ")>Удалить</a>" +
+				"</td>";
 
 				$("#forums_table").html(content);
 
 				},
 
-				fail: function (data, textStatus) { // вешаем свой обработчик на функцию success
+				fail: function (data, textStatus) {
 						alert("Неизвестная ошибка");
 					}
 			});

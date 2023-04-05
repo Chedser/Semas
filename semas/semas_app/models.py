@@ -1654,12 +1654,13 @@ class Superuser:
         return JsonResponse({'message': 2})
 
     @staticmethod
-    def block_forum(request):
+    def delete_forum(request):
         forum_id = request.POST.get("forum_id")
 
-        if not forum_id: return -1
+        if not forum_id: return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         forum_id = int(forum_id)
-        print(int(forum_id))
+
+        result = Response.SUCCESS.value
 
         try:
 
@@ -1667,25 +1668,17 @@ class Superuser:
 
             cur = con.cursor()
 
-            result = cur.execute(f"SELECT is_blocked FROM forum WHERE id={forum_id}").fetchall()
-            is_blocked = result[0][0]
+            cur.execute(f"DELETE FROM forum WHERE id=?", (forum_id, )).fetchall()
 
-            if is_blocked == 0:
-                is_blocked = 1
-            else:
-                is_blocked = 0
-
-            cur.execute(f"UPDATE forum SET is_blocked=? WHERE id=?", \
-                        (is_blocked, forum_id))
             con.commit()
-            return JsonResponse({'message': is_blocked})
 
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            result = Response.UNKNOWN_ERROR.value
         finally:
             con.close()
-        return JsonResponse({'message': 2})
+        return JsonResponse({'message': result})
 
     @staticmethod
     def find_user(request):
@@ -1734,7 +1727,7 @@ class Superuser:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT id, name, is_blocked FROM forum WHERE id={forum_id}").fetchall()
+            result = cur.execute(f"SELECT id, name FROM forum WHERE id={forum_id}").fetchall()
 
             if len(result) == 0: return JsonResponse({"message": -1})
 
@@ -1743,12 +1736,10 @@ class Superuser:
             lst = list()
             id = result[0]
             topic = result[1]
-            is_blocked = result[2]
 
             tmp = dict()
             tmp["id"] = id
             tmp["topic"] = topic
-            tmp["is_blocked"] = is_blocked
             lst.append(tmp)
 
             return JsonResponse({"message": json.dumps(lst)})
