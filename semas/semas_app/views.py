@@ -102,9 +102,33 @@ def friends(request):
     if is_blocked: return redirect(f"/user/{cookie_user_id}")
     friend_requests = Friend.get_friend_requests(cookie_user_id)
     friends = Friend.get_friends(cookie_user_id)
+    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
     data = {"friends": friends, "friends_count": len(friends), "friend_requests": friend_requests, \
-            "friend_requests_count": len(friend_requests), "cookie_user_id": cookie_user_id}
+            "friend_requests_count": len(friend_requests), "cookie_user_id": cookie_user_id, \
+            "active_dialogs_count": active_dialogs_count}
     return render(request, "friends.html", context=data)
+
+def users(request):
+    if request.method != "GET": return redirect("/index")
+    cookie_user_id = request.session.get("id")
+    friend_requests_count = None
+    active_dialogs_count = None
+
+    if cookie_user_id:
+        cookie_user_id = (int)(cookie_user_id)
+        friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+        active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+
+    users = User.get_all_users()
+
+    users_count = None
+
+    if users:
+        users_count = len(users)
+
+    data = {"friend_requests_count": friend_requests_count, "cookie_user_id": cookie_user_id, \
+            "active_dialogs_count": active_dialogs_count, "users": users, "users_count": users_count}
+    return render(request, "users.html", context=data)
 
 
 def forum(request, id):

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+<title>Пользователи</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/w3.css' %}">
+
+<link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
+<style>
+	html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
+	textarea{resize:none;}
+</style>
+</head>
+<body>
+{% if cookie_user_id %}
+	{% include "./items/navbar.html" %}
+	{% csrf_token %}
+{% endif %}
+<h1 class="w3-center">Пользователи {{ users_count }}</h1>
+<div class = "w3-container w3-white w3-round w3-border-light-blue w3-center" style = "max-width:650px; padding-bottom: 40px;">
+
+	{% for user in users %}
+		<div class="w3-container w3-card w3-white w3-round w3-margin">
+			<a href = "user/{{user.id}}" target="_blank">
+				<img src="{% static user.avatar %}" alt="Аватар"  style="width:50px; height:50px;"
+															  class="w3-left w3-circle w3-margin-right avatar">
+			<h4>{{ user.nick }}</h4>
+			</a>
+			<br>
+
+			<hr class="w3-clear">
+		</div>
+{% endfor %}
+
+</div>
+</body>
+</html>

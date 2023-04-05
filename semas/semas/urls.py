@@ -39,6 +39,7 @@ urlpatterns = [
     path('user/api/dialog_send_outer', views.dialog_send_outer),
     path('user/api/set_page_like', views.set_page_like),
     path('friends', views.friends),
+    path('users', views.users),
 
     path('dialogs', views.dialogs),
     path('dialog/<int:id>', views.dialog),

@@ -431,6 +431,37 @@ class User:
         finally:
             con.close()
 
+    @staticmethod
+    def get_all_users():
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            result = cur.execute(f"SELECT id, nick, avatar FROM user WHERE NOT is_blocked ORDER BY date_of_reg DESC").fetchall()
+
+            return User.__parse_all_users(result)
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+        finally:
+            con.close()
+
+    @staticmethod
+    def __parse_all_users(users):
+        result = list()
+        for user in users:
+            id = user[0]
+            nick = user[1]
+            avatar = user[2]
+            avatar = User.get_avatar_link(avatar, id)
+
+            tmp = dict()
+            tmp["id"] = id
+            tmp["nick"] = nick
+            tmp["avatar"] = avatar
+            result.append(tmp)
+        return result
+
 
 class File:
     # расширения файлов, которые разрешено загружать
