@@ -69,7 +69,10 @@ def admin(request):
 def admin_forum(request):
     if not request.session.get("su") or request.method != "GET": return redirect("/su")
     forums = Superuser.get_forums()
-    data = {"forums": forums, "forums_count": len(forums)}
+    forums_count = 0
+    if forums:
+        forums_count = len(forums)
+    data = {"forums": forums, "forums_count": forums_count}
 
     return render(request, "admin_forum.html", context=data)
 
@@ -109,8 +112,6 @@ def forum(request, id):
     forum_info = Forum.get_forum_info(id)
 
     if not forum_info: return redirect("/index")
-    forum_is_blocked = forum_info["is_blocked"]
-    if forum_is_blocked: return redirect("/forum")
     messages = Forum.get_messages(id)
     cookie_user_id = None
     user_is_blocked = None

@@ -827,7 +827,7 @@ class Forum:
             cur = con.cursor()
 
             result = cur.execute("SELECT forum.id AS id, creatorId, name, message, date, user.avatar AS avatar, user.nick AS nick \
-             FROM forum INNER JOIN user ON forum.creatorId=user.id WHERE NOT forum.is_blocked ORDER BY date DESC").fetchall()
+             FROM forum INNER JOIN user ON forum.creatorId=user.id ORDER BY date DESC").fetchall()
 
             return Forum.__parse_forums(result)
         except sqlite3.Error as error:
@@ -868,7 +868,7 @@ class Forum:
         avatar = forum[5]
         avatar = User.get_avatar_link(avatar, creatorId)
         nick = forum[6]
-        forum_is_blocked = forum[7]
+
         res = dict()
         res["id"] = id
         res["creator_id"] = creatorId
@@ -877,7 +877,6 @@ class Forum:
         res["date"] = date
         res["nick"] = nick
         res["avatar"] = avatar
-        res["is_blocked"] = forum_is_blocked
         return res
 
     def __parse_messages(messages):
@@ -956,7 +955,7 @@ class Forum:
 
             cur = con.cursor()
 
-            result = cur.execute(f"SELECT forum.id AS id,  creatorId, name, message, forum.date AS date, user.avatar AS avatar, user.nick AS nick, forum.is_blocked AS forum_is_blocked  \
+            result = cur.execute(f"SELECT forum.id AS id,  creatorId, name, message, forum.date AS date, user.avatar AS avatar, user.nick AS nick  \
                     FROM forum INNER JOIN user ON forum.creatorId=user.id WHERE forum.id=?", (id,)).fetchall()
             if not len(result): return None
             result = result[0]
@@ -1581,7 +1580,7 @@ class Superuser:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT id, name, is_blocked FROM forum ORDER BY date DESC").fetchall()
+            result = cur.execute(f"SELECT id, name FROM forum ORDER BY date DESC").fetchall()
 
             return Superuser.__parse_forums(result)
 
@@ -1597,12 +1596,10 @@ class Superuser:
         for forum in forums:
             id = forum[0]
             topic = forum[1]
-            is_blocked = forum[2]
 
             tmp = dict()
             tmp["id"] = id
             tmp["topic"] = topic
-            tmp["is_blocked"] = is_blocked
             result.append(tmp)
         return result
 
