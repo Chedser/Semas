@@ -932,6 +932,9 @@ class Forum:
 
         if not message or not forum_id: return JsonResponse({'message': Response.WRONG_INPUT.value})
 
+        forum_info = Forum.get_forum_info(forum_id)
+        if not forum_info: return JsonResponse({'message': Response.WRONG_INPUT.value})
+
         try:
             con = sqlite3.connect(DB_NAME)
 
