@@ -389,6 +389,8 @@ class User:
         if cookie_user_id == user_id:
             return JsonResponse({"message": 2})
 
+        User.update_time_of_last_action(cookie_user_id)
+
         try:
 
             con = sqlite3.connect(DB_NAME)
@@ -508,6 +510,7 @@ class File:
         url = f'./semas_app/static/images/avatars/{cookie_user_id}/{new_file_name}'
 
         File.__upload_file(avatar, url)
+        User.update_time_of_last_action(cookie_user_id)
 
         try:
             con = sqlite3.connect(DB_NAME)
@@ -614,6 +617,9 @@ class Friend:
 
         if cookie_user_id == user_id:  # Самому себе нельзя отправлять запрос
             return JsonResponse({'message': Response.WRONG_INPUT.value})
+
+        User.update_time_of_last_action(cookie_user_id)
+
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -650,6 +656,7 @@ class Friend:
 
         if cookie_user_id == user_id:  # Самому себе нельзя отправлять запрос
             return JsonResponse({'message': Response.WRONG_INPUT.value})
+        User.update_time_of_last_action(cookie_user_id)
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -677,6 +684,7 @@ class Friend:
 
         if cookie_user_id == user_id:  # Самому себе нельзя отправлять запрос
             return JsonResponse({'message': Response.WRONG_INPUT.value})
+        User.update_time_of_last_action(cookie_user_id)
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -707,7 +715,7 @@ class Friend:
 
         if cookie_user_id == user_id:  # Самому себе нельзя отправлять запрос
             return JsonResponse({'message': Response.WRONG_INPUT.value})
-
+        User.update_time_of_last_action(cookie_user_id)
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -827,6 +835,7 @@ class Forum:
 
         if len(message) == 0 or len(topic) == 0:
             return JsonResponse({'message': ForumCreateResponse.WRONG_INPUT.value})
+        User.update_time_of_last_action(cookie_user_id)
 
         try:
             con = sqlite3.connect(DB_NAME)
@@ -939,9 +948,7 @@ class Forum:
     def get_messages(id):
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             result = cur.execute(f"SELECT forum_message.id AS id, senderId, message, date, user.avatar AS avatar, user.nick AS nick \
                  FROM forum_message INNER JOIN user ON forum_message.senderId=user.id WHERE forumId=?",
                                  (id,)).fetchall()
@@ -966,7 +973,7 @@ class Forum:
 
         message = request.POST.get('message').strip()
         forum_id = request.POST.get('id')
-
+        User.update_time_of_last_action(cookie_user_id)
         if not message or not forum_id: return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         forum_info = Forum.get_forum_info(forum_id)
@@ -1207,7 +1214,7 @@ class Dialog:
         receiver_id = dialog_info["receiver_id"]
 
         if receiver_id != cookie_user_id: return
-
+        User.update_time_of_last_action(cookie_user_id)
         try:
             con = sqlite3.connect(DB_NAME)
 
@@ -1270,6 +1277,7 @@ class Dialog:
                 return None
 
             result = Dialog.__parse_dialogs(dialogs, cookie_user_id)
+            User.update_time_of_last_action(cookie_user_id)
 
         except sqlite3.Error as error:
             con.rollback()
@@ -1368,6 +1376,7 @@ class Dialog:
             sender_id, receiver_id = receiver_id, sender_id
 
         result = Dialog.__send_inner_in_existing_dialog(dialog_id, sender_id, receiver_id, message, 0)
+        User.update_time_of_last_action(cookie_user_id)
 
         if result:
             return JsonResponse({'message': Response.SUCCESS.value})
@@ -1396,12 +1405,11 @@ class Dialog:
         user_is_in_black_list = User.user_is_in_black_list(cookie_user_id, receiver_id)
 
         if user_is_in_black_list != 0: return JsonResponse({'message': Response.WRONG_INPUT.value})
+        User.update_time_of_last_action(cookie_user_id)
 
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             dialog_id = cur.execute(f"SELECT id FROM dialog "
                                     f"WHERE senderId={cookie_user_id} AND receiverId={receiver_id} "
                                     f"OR senderId={receiver_id} AND receiverId={cookie_user_id}").fetchall()
@@ -1514,6 +1522,8 @@ class UserPageLike:
         if not user_id: return JsonResponse({'message': -1})
 
         user_id = (int)(user_id)
+
+        User.update_time_of_last_action(cookie_user_id)
 
         try:
             con = sqlite3.connect(DB_NAME)
