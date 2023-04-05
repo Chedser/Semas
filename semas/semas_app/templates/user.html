@@ -23,7 +23,6 @@
 <style>
 html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
 textarea{resize:none;}
-
 }
 </style>
 </head>
@@ -106,16 +105,15 @@ textarea{resize:none;}
     <div class="w3-twothird">
 		{% if is_authed_user and not user_info.is_blocked %}
 		<div class="w3-content w3-right">
+			<div class="dropdown-content" id="dropdown_menu">
+    			<a href="/black_list" onclick="">Черный список</a>
+				<span class="exit_span" onclick="Exit()">Выход</span>
+			</div>
 			<div class="container dropbtn" onclick="ToggleDropdown(this)">
   				<div class="bar1"></div>
   				<div class="bar2"></div>
   				<div class="bar3"></div>
 			</div>
-			<div class="dropdown-content" id="dropdown_menu">
-    			<a href="/black_list" onclick="">Черный список</a>
-				<span class="exit_span" onclick="Exit()">Выход</span>
-			</div>
-
 
 		</div>
 			{% if cookie_user_id != user_id and user_is_in_black_list == 0 or cookie_user_id == user_id	%}
