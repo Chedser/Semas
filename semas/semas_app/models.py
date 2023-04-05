@@ -133,8 +133,10 @@ class MessageWall:
 
         if request.session.get("id"):
             cookie_user_id = int(request.session.get("id"))
-            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
-            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
+            user_info = User.get_info((int)(cookie_user_id))
+            if user_info:
+                is_blocked = user_info["is_blocked"]
+                if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
