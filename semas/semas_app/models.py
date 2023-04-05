@@ -9,6 +9,7 @@ import os
 import re
 import html
 
+
 class Message:
     def tolink(txt):
 
@@ -94,19 +95,20 @@ class Reg:
             con = sqlite3.connect(DB_NAME)
 
             cur = con.cursor()
-            result = cur.execute(f"SELECT id FROM user WHERE login=? OR nick=?", (login,nick)).fetchall()
+            result = cur.execute(f"SELECT id FROM user WHERE login=? OR nick=?", (login, nick)).fetchall()
             if len(result) != 0:
                 response = Response.USER_EXISTS.value
             else:
                 hash = get_hash(password)
 
-                cur.execute("INSERT INTO user (login,password,nick,sex,time_of_change_info," \
-                            " time_of_last_action) \
-                 VALUES (?,?,?,?,?,?)", (login, hash, nick, sex, (int)(time.time()), (int)(time.time())))
+                cur.execute("INSERT INTO user (login,password,nick,sex,u_time_of_last_action) \
+                 VALUES (?,?,?,?,?)", (login, hash, nick, sex,(int)(time.time())))
                 con.commit()
                 last_id = cur.execute(f"SELECT MAX(id) FROM user WHERE login=?", (login,)).fetchall()
 
-                os.mkdir(f"semas_app/static/images/avatars/{last_id[0][0]}")
+                file_path = f"semas_app/static/images/avatars/{last_id[0][0]}"
+                if not os.path.exists(file_path):
+                    os.mkdir(file_path)
 
         except sqlite3.Error as error:
             con.rollback()
@@ -143,7 +145,7 @@ class MessageWall:
 
             cur = con.cursor()
 
-            cur.execute("INSERT INTO wall_message (senderId, receiverId, message, timestamp)\
+            cur.execute("INSERT INTO wall_message (senderId, receiverId, message, u_time)\
                   VALUES (?,?,?,?)", (cookie_user_id, receiver_id, message, (int)(time.time())))
             con.commit()
             return JsonResponse({'message': Response.SUCCESS.value})
@@ -239,7 +241,7 @@ class User:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT id, nick, sex, is_blocked, time_of_last_action, avatar \
+            result = cur.execute(f"SELECT id, nick, sex, is_blocked, u_time_of_last_action, avatar \
                 FROM user WHERE id=?", (user_id,)).fetchall()
             if len(result) == 0: return None
             return User.__parse_user_info(result[0])
@@ -399,7 +401,7 @@ class User:
             is_blocked = 0
 
             if not result:
-                cur.execute(f"INSERT INTO black_list(user1, user2, timestamp) VALUES "
+                cur.execute(f"INSERT INTO black_list(user1, user2, u_time) VALUES "
                             f"(?,?,?)",
                             (cookie_user_id, user_id, int(time.time())))
                 is_blocked = 1
@@ -423,7 +425,7 @@ class User:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            cur.execute(f"UPDATE user SET  time_of_last_action=? WHERE id=?", ((int)(time.time()), cookie_user_id))
+            cur.execute(f"UPDATE user SET  u_time_of_last_action=? WHERE id=?", ((int)(time.time()), cookie_user_id))
             con.commit()
         except sqlite3.Error as error:
             con.rollback()
@@ -436,7 +438,8 @@ class User:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT id, nick, avatar FROM user WHERE NOT is_blocked ORDER BY date_of_reg DESC").fetchall()
+            result = cur.execute(
+                f"SELECT id, nick, avatar FROM user WHERE NOT is_blocked ORDER BY date_of_reg DESC").fetchall()
 
             return User.__parse_all_users(result)
 
@@ -520,6 +523,7 @@ class File:
         finally:
             con.close()
 
+
 class Friend:
     def get_friend_requests_count(cookie_user_id):
         if cookie_user_id is None: return 0
@@ -527,7 +531,8 @@ class Friend:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT COUNT(*) \
-                                            FROM friend_request WHERE friend2=?", ((int)(cookie_user_id),)).fetchall()[0][0]
+                                            FROM friend_request WHERE friend2=?", ((int)(cookie_user_id),)).fetchall()[
+                0][0]
             con.commit()
             return result
         except sqlite3.Error as error:
@@ -618,7 +623,7 @@ class Friend:
                 f"SELECT friend1, friend2 FROM friend_request WHERE (friend1={cookie_user_id} \
                                  AND friend2={user_id}) OR (friend1={user_id} AND friend2={cookie_user_id})").fetchall()
             if len(result_friends) == 0 and len(result_request) == 0:  # В друзьях нет в заявках тоже
-                cur.execute("INSERT INTO friend_request (friend1, friend2, timestamp) \
+                cur.execute("INSERT INTO friend_request (friend1, friend2, u_time) \
                         VALUES (?,?,?)", (cookie_user_id, user_id, (int)(time.time())))
                 con.commit()
                 return JsonResponse({'message': Response.SUCCESS.value})
@@ -678,7 +683,7 @@ class Friend:
             cur.execute(f"DELETE FROM friend_request WHERE (friend1={cookie_user_id} AND friend2={user_id}) \
                 OR (friend1={user_id} AND friend2={cookie_user_id})")
             con.commit()
-            cur.execute("INSERT INTO friend (friend1, friend2, timestamp) \
+            cur.execute("INSERT INTO friend (friend1, friend2, u_time) \
                                VALUES (?,?,?)", (cookie_user_id, user_id, (int)(time.time())))
             con.commit()
             return JsonResponse({'message': Response.SUCCESS.value})
@@ -811,11 +816,10 @@ class Forum:
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-
         if request.POST.get('message') and request.POST.get('topic').strip():
             message = request.POST.get('message').strip()
             topic = request.POST.get('topic').strip()
-            topic_modified = re.sub("[\s|\W]","", topic)
+            topic_modified = re.sub("[\s|\W]", "", topic)
             print(topic_modified)
             if not len(topic_modified): return JsonResponse({'message': ForumCreateResponse.WRONG_INPUT.value})
         else:
@@ -829,16 +833,17 @@ class Forum:
 
             cur = con.cursor()
 
-            forum_count = cur.execute(f"SELECT COUNT(*) FROM forum WHERE name_lower=?", (topic_modified,)).fetchall()[0][0]
+            forum_count = \
+            cur.execute(f"SELECT COUNT(*) FROM forum WHERE name_lower=?", (topic_modified,)).fetchall()[0][0]
             if forum_count > 0: return JsonResponse({'message': ForumCreateResponse.FORUM_EXISTS.value})
 
-            cur.execute("INSERT INTO forum (creatorId, name, name_lower, message, timestamp)\
+            cur.execute("INSERT INTO forum (creatorId, name, name_lower, message, u_time)\
                           VALUES (?,?,?,?,?)", (cookie_user_id, topic, topic_modified, message, (int)(time.time())))
             con.commit()
 
             """lastrowid = cur.lastrowid
 
-            cur.execute("INSERT INTO forum_message (forumId, senderId, message, timestamp)\
+            cur.execute("INSERT INTO forum_message (forumId, senderId, message, u_time)\
                                      VALUES (?,?,?,?)", (lastrowid, cookie_user_id, message, (int)(time.time())))
             con.commit() """
 
@@ -938,7 +943,8 @@ class Forum:
             cur = con.cursor()
 
             result = cur.execute(f"SELECT forum_message.id AS id, senderId, message, date, user.avatar AS avatar, user.nick AS nick \
-                 FROM forum_message INNER JOIN user ON forum_message.senderId=user.id WHERE forumId=?", (id,)).fetchall()
+                 FROM forum_message INNER JOIN user ON forum_message.senderId=user.id WHERE forumId=?",
+                                 (id,)).fetchall()
 
             if not len(result): return None
 
@@ -971,7 +977,7 @@ class Forum:
 
             cur = con.cursor()
 
-            cur.execute("INSERT INTO forum_message (senderId, forumId, message, timestamp)\
+            cur.execute("INSERT INTO forum_message (senderId, forumId, message, u_time)\
                                      VALUES (?,?,?,?)",
                         (cookie_user_id, forum_id, message, (int)(time.time())))
             con.commit()
@@ -1043,7 +1049,7 @@ class Dialog:
     def __create_dialog(sender_id, receiver_id, message):
         is_blocked_sender_id = User.get_info(sender_id)["is_blocked"]
         is_blocked_receiver_id = User.get_info(receiver_id)["is_blocked"]
-        if is_blocked_sender_id or is_blocked_receiver_id : return False
+        if is_blocked_sender_id or is_blocked_receiver_id: return False
         user_is_in_black_list = User.user_is_in_black_list(is_blocked_sender_id, is_blocked_receiver_id)
         if user_is_in_black_list: return False
         result = True
@@ -1052,14 +1058,14 @@ class Dialog:
 
             cur = con.cursor()
 
-            cur.execute("INSERT INTO dialog (senderId, receiverId, last_message, timestamp)\
+            cur.execute("INSERT INTO dialog (senderId, receiverId, last_message, u_time)\
                                      VALUES (?,?,?,?)",
                         (sender_id, receiver_id, message, (int)(time.time())))
             con.commit()
 
             lastrowid = cur.lastrowid
 
-            cur.execute("INSERT INTO dialog_message (userId, dialogId, message, timestamp)\
+            cur.execute("INSERT INTO dialog_message (userId, dialogId, message, u_time)\
                                                  VALUES (?,?,?,?)",
                         (sender_id, lastrowid, message, (int)(time.time())))
             con.commit()
@@ -1118,10 +1124,10 @@ class Dialog:
 
             cur = con.cursor()
             cur.execute(
-                f"UPDATE dialog SET senderId=?, receiverId=?, last_message=?, is_readen=0, timestamp=? WHERE id=?",
+                f"UPDATE dialog SET senderId=?, receiverId=?, last_message=?, is_readen=0, u_time=? WHERE id=?",
                 (sender_id, receiver_id, message, (int)(time.time()), dialog_id))
             con.commit()
-            cur.execute("INSERT INTO dialog_message (userId, dialogId, message, timestamp)\
+            cur.execute("INSERT INTO dialog_message (userId, dialogId, message, u_time)\
                                                          VALUES (?,?,?,?)",
                         (sender_id, dialog_id, message, (int)(time.time())))
             con.commit()
@@ -1207,7 +1213,7 @@ class Dialog:
 
             cur = con.cursor()
             cur.execute(
-                f"UPDATE dialog SET is_readen=1, timestamp=? WHERE id=?",
+                f"UPDATE dialog SET is_readen=1, u_time=? WHERE id=?",
                 ((int)(time.time()), dialog_id))
             con.commit()
 
@@ -1228,37 +1234,37 @@ class Dialog:
 
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
                   f"date FROM dialog WHERE receiverId=? AND is_readen=0 " \
-                  "ORDER by timestamp DESC"
+                  "ORDER by u_time DESC"
 
             dialogs_not_readen = cur.execute(sql, (cookie_user_id,)).fetchall()
 
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
                   f"date FROM dialog WHERE receiverId=? AND is_readen=1 " \
-                  "ORDER by timestamp DESC"
+                  "ORDER by u_time DESC"
 
             dialogs_readen = cur.execute(sql, (cookie_user_id,)).fetchall()
 
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
                   f"date FROM dialog WHERE senderId=? " \
-                  "ORDER by timestamp DESC"
+                  "ORDER by u_time DESC"
 
             dialogs_sender = cur.execute(sql, (cookie_user_id,)).fetchall()
 
-            #sql = f"SELECT id, senderId, receiverId, last_message, is_readen," \
-            #f"date, timestamp FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=0 " \
-            #f"UNION " \
-            #f"SELECT id, senderId, receiverId, last_message, is_readen, " \
-            #f"date, timestamp FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=1 " \
-            #f"UNION " \
-            #f"SELECT id, senderId, receiverId, last_message, is_readen, " \
-            #f"date, timestamp FROM dialog WHERE senderId={cookie_user_id} " \
-            #f"ORDER BY date DESC"
+            # sql = f"SELECT id, senderId, receiverId, last_message, is_readen," \
+            # f"date, u_time FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=0 " \
+            # f"UNION " \
+            # f"SELECT id, senderId, receiverId, last_message, is_readen, " \
+            # f"date, u_time FROM dialog WHERE receiverId={cookie_user_id} AND is_readen=1 " \
+            # f"UNION " \
+            # f"SELECT id, senderId, receiverId, last_message, is_readen, " \
+            # f"date, u_time FROM dialog WHERE senderId={cookie_user_id} " \
+            # f"ORDER BY date DESC"
 
             dialogs = dialogs_not_readen + dialogs_readen + dialogs_sender
 
-            #sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
-            #f"date FROM dialog WHERE senderId=? OR receiverId=? " \
-            #"ORDER by date DESC,is_readen ASC"
+            # sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
+            # f"date FROM dialog WHERE senderId=? OR receiverId=? " \
+            # "ORDER by date DESC,is_readen ASC"
 
             if not len(dialogs):
                 return None
@@ -1316,10 +1322,10 @@ class Dialog:
 
             cur = con.cursor()
             cur.execute(
-                f"UPDATE dialog SET senderId=?, receiverId=?, last_message=?, is_readen=?, timestamp=? WHERE id=?",
+                f"UPDATE dialog SET senderId=?, receiverId=?, last_message=?, is_readen=?, u_time=? WHERE id=?",
                 (sender_id, receiver_id, message, is_readen, (int)(time.time()), dialog_id))
             con.commit()
-            cur.execute("INSERT INTO dialog_message (userId, dialogId, message, timestamp)\
+            cur.execute("INSERT INTO dialog_message (userId, dialogId, message, u_time)\
                                                             VALUES (?,?,?,?)",
                         (sender_id, dialog_id, message, (int)(time.time())))
             con.commit()
@@ -1437,7 +1443,7 @@ class Dialog:
                   f"WHERE dialogId=? " \
                   f"ORDER by date"
 
-            messages = cur.execute(sql, (dialog_id,) ).fetchall()
+            messages = cur.execute(sql, (dialog_id,)).fetchall()
 
             if not len(messages):
                 return None
@@ -1545,7 +1551,7 @@ class UserPageLike:
             cur = con.cursor()
 
             if insert:
-                cur.execute(f"INSERT INTO user_page_like(userId,likerId,timestamp) VALUES (?,?,?)",
+                cur.execute(f"INSERT INTO user_page_like(userId,likerId,u_time) VALUES (?,?,?)",
                             (user_id, cookie_user_id, (int)(time.time())))
             else:
                 cur.execute(f"DELETE FROM  user_page_like WHERE userId=? AND likerId=?",
@@ -1559,6 +1565,7 @@ class UserPageLike:
         finally:
             con.close()
         return result
+
 
 class Superuser:
 
@@ -1702,7 +1709,7 @@ class Superuser:
 
             cur = con.cursor()
 
-            cur.execute(f"DELETE FROM forum WHERE id=?", (forum_id, )).fetchall()
+            cur.execute(f"DELETE FROM forum WHERE id=?", (forum_id,)).fetchall()
 
             con.commit()
 
@@ -1784,4 +1791,3 @@ class Superuser:
             return JsonResponse({"message": -1})
         finally:
             con.close()
-
