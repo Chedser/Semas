@@ -1,16 +1,22 @@
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
 from .models import *
 from django.views.decorators.cache import never_cache
+from .enums import *
+
+SECRET_KEY = f"b5b4e3f02b5c14563da0a8377f099f19cd8d02cb0d3167c4e81dd4436532" \
+             f"0895e13213d519b15322e64f30c685d0a1fd6943e381abeed19cbd5f5b15381151a6"
+
 
 @never_cache
 def index(request):
-    if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>", status_code=404)
+    if request.method != "GET": return redirect("/index")
     if request.session.get("id"):
         cookie_user_id = int(request.session.get("id"))
         return redirect(f"user/{cookie_user_id}")
     return render(request, "index.html")
+
 
 @never_cache
 def user(request, id):
@@ -55,17 +61,21 @@ def user(request, id):
     return render(request, "user.html", context=data)
 
 
+@never_cache
 def su(request):
     if request.method != "GET": return redirect("/")
     return render(request, "su.html")
 
 
+@never_cache
 def admin(request):
     if not request.session.get("su") or request.method != "GET": return redirect("/su")
     users = Superuser.get_users()
     data = {"users": users, "users_count": len(users)}
     return render(request, "admin.html", context=data)
 
+
+@never_cache
 def admin_forum(request):
     if not request.session.get("su") or request.method != "GET": return redirect("/su")
     forums = Superuser.get_forums()
@@ -77,6 +87,7 @@ def admin_forum(request):
     return render(request, "admin_forum.html", context=data)
 
 
+@never_cache
 def black_list(request):
     if not request.session.get("id") or request.method != "GET": return redirect("/")
     cookie_user_id = int(request.session.get("id"))
@@ -93,6 +104,7 @@ def black_list(request):
     return render(request, "black_list.html", context=data)
 
 
+@never_cache
 def friends(request):
     if request.method != "GET" or not request.session.get("id"): return redirect("/index")
     cookie_user_id = request.session.get("id")
@@ -108,6 +120,8 @@ def friends(request):
             "active_dialogs_count": active_dialogs_count}
     return render(request, "friends.html", context=data)
 
+
+@never_cache
 def users(request):
     if request.method != "GET": return redirect("/index")
     cookie_user_id = request.session.get("id")
@@ -131,6 +145,7 @@ def users(request):
     return render(request, "users.html", context=data)
 
 
+@never_cache
 def forum(request, id):
     if not id or request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>", status_code=404)
     forum_info = Forum.get_forum_info(id)
@@ -155,6 +170,7 @@ def forum(request, id):
     return render(request, "forum.html", context=data)
 
 
+@never_cache
 def forum_topics(request):
     if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
     forums = Forum.get_forums()
@@ -175,8 +191,8 @@ def forum_topics(request):
     return render(request, "forum_topics.html", context=data)
 
 
+@never_cache
 def dialog(request, id):
-
     if not id or request.method != "GET" or not request.session.get("id"):
         print(f"Не ид и не гет {request.method} {id} {request.session.get('id')}")
         return redirect("/index")
@@ -208,6 +224,7 @@ def dialog(request, id):
     return render(request, "dialog.html", context=data)
 
 
+@never_cache
 def dialogs(request):
     if request.method != "GET" or not request.session.get("id"):
         return redirect("/index")
@@ -228,55 +245,68 @@ def dialogs(request):
 
 
 # API
+@never_cache
 def reg(request):
     if request.method == "POST":
         return Reg.reg(request)
 
 
+@never_cache
 def auth(request):
     if request.method == "POST":
         return Auth.auth(request)
 
 
+@never_cache
 def suauth(request):
     if request.method == "POST":
         result = Superuser.auth(request)
         return JsonResponse({"message": result})
 
 
+@never_cache
 def find_user_by_link_su(request):
     if request.method == "POST":
         result = Superuser.find_user(request)
         return result
 
 
+@never_cache
 def find_user_by_link_for_block(request):
     if request.method == "POST":
         result = User.find_user_for_block(request)
         return result
 
+
+@never_cache
 def find_forum_by_link_su(request):
     if request.method == "POST":
         result = Superuser.find_forum(request)
         return result
 
 
+@never_cache
 def block_user_su(request):
     if request.method == "POST":
         result = Superuser.block_user(request)
         return result
 
+
+@never_cache
 def delete_forum_su(request):
     if request.method == "POST":
         result = Superuser.delete_forum(request)
         return result
 
+
+@never_cache
 def block_user(request):
     if request.method == "POST":
         result = User.block_user(request)
         return result
 
 
+@never_cache
 def exit(request):
     if request.method == "POST" and request.session["id"]:
         del request.session["id"]
@@ -284,6 +314,7 @@ def exit(request):
         return response
 
 
+@never_cache
 def exit_su(request):
     if request.method == "POST" and request.session["su"]:
         del request.session["su"]
@@ -291,66 +322,96 @@ def exit_su(request):
         return response
 
 
+@never_cache
 def send_wall_message(request):
     if request.method == "POST":
         return MessageWall.send_wall_message(request)
 
 
+@never_cache
 def delete_wall_message(request):
     if request.method == "POST":
         return MessageWall.delete_wall_message(request)
 
 
+@never_cache
 def friend_request(request):
     if request.method == "POST":
         return Friend.send_friend_request(request)
 
 
+@never_cache
 def cancel_friend_request(request):
     if request.method == "POST":
         return Friend.cancel_friend_request(request)
 
 
+@never_cache
 def accept_friend_request(request):
     if request.method == "POST":
         return Friend.accept_friend_request(request)
 
 
+@never_cache
 def delete_friend(request):
     if request.method == "POST":
         return Friend.delete_friend(request)
 
 
+@never_cache
 def change_avatar(request):
     if request.method == "POST":
         return File.change_avatar(request)
 
 
+@never_cache
 def forum_create(request):
     if request.method == "POST":
         return Forum.create_forum(request)
 
 
+@never_cache
 def forum_send_message(request):
     if request.method == "POST":
         return Forum.send_message(request)
 
 
+@never_cache
 def forum_delete_message(request):
     if request.method == "POST":
         return Forum.delete_message(request)
 
 
+@never_cache
 def dialog_send_outer(request):
     if request.method == "POST":
         return Dialog.send_outer(request)
 
 
+@never_cache
 def dialog_send_inner(request):
     if request.method == "POST":
         return Dialog.send_inner(request)
 
 
+@never_cache
 def set_page_like(request):
     if request.method == "POST":
         return UserPageLike.set_page_like(request)
+
+
+@never_cache
+def find_user_by_nick(request):
+    if request.method == "POST":
+        return User.find_user_by_nick(request)
+
+
+def get_token(request):
+    pass
+
+
+def captcha(request):
+    if request.method != "POST": return -1
+    token = request.POST.get("token")
+    if not token: return JsonResponse({'message': Response.WRONG_INPUT.value})
+    if token != SECRET_KEY: return JsonResponse({'message': Response.WRONG_INPUT.value})

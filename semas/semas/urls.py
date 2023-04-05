@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/find_user', views.find_user_by_link_for_block),
     path('api/su/exit', views.exit_su),
     path('api/cancel_friend_request', views.cancel_friend_request),
+    path('api/find_user_by_nick', views.find_user_by_nick),
 
     path('user/<int:id>', views.user),
     path('user/api/send_wall_message', views.send_wall_message),

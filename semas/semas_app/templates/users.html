@@ -8,6 +8,8 @@
 <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'css/w3.css' %}">
+	<script src="{% static 'js/jQuery.min.js' %}"></script>
+	<script src="{% static 'js/find_user.js' %}"></script>
 
 <link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
 <style>
@@ -18,13 +20,26 @@
 <body>
 {% if cookie_user_id %}
 	{% include "./items/navbar.html" %}
-	{% csrf_token %}
 {% endif %}
+
+{% csrf_token %}
+
+<div class="w3-content">
+	<form class = "w3-panel  w3-padding" id="user_form">
+			<textarea class="w3-input w3-border" id="user_nick_inpt" rows="1" maxlength="100"  placeholder="Ник" type="text" required></textarea>
+			<input type = "button"
+				   class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center"
+				   style = "width:100%" id="find_user_by_nick_btn" onclick="FindUserByNick(this)" value = "OK">
+				<input type = "button"
+				   class="w3-button w3-indigo w3-hover-teal w3-left w3-khaki" onclick="window.location.reload()" value = "Сброс">
+	</form>
+</div>
+
 <h1 class="w3-center">Пользователи {{ users_count }}</h1>
-<div class = "w3-container w3-white w3-round w3-border-light-blue w3-center" style = "max-width:650px; padding-bottom: 40px;">
+<div class = "w3-container w3-white w3-round w3-border-light-blue w3-center" style = "max-width:650px; padding-bottom: 40px;" id="users_container">
 
 	{% for user in users %}
-		<div class="w3-container w3-card w3-white w3-round w3-margin">
+		<div class="w3-container w3-card w3-white w3-round w3-margin w3-center" >
 			<a href = "user/{{user.id}}" target="_blank">
 				<img src="{% static user.avatar %}" alt="Аватар"  style="width:50px; height:50px;"
 															  class="w3-left w3-circle w3-margin-right avatar">

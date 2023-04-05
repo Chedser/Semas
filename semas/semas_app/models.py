@@ -469,6 +469,40 @@ class User:
             result.append(tmp)
         return result
 
+    @staticmethod
+    def find_user_by_nick(request):
+        if not request.POST.get("nick"): return JsonResponse({"message": -1})
+
+        nick = request.POST.get("nick")
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            total = None
+            result_right = cur.execute(f"SELECT id, nick, avatar FROM user WHERE nick LIKE '{nick}%' AND NOT is_blocked ORDER BY length(nick)").fetchall()
+            result_left  = cur.execute(f"SELECT id, nick, avatar FROM user WHERE nick LIKE '%{nick}' AND NOT is_blocked ORDER BY length(nick)").fetchall()
+            if (not len(result_right) and not len(result_left)) \
+                    or (len(result_right) and len(result_left)):
+                    total = cur.execute(
+                        f"SELECT id, nick, avatar FROM user WHERE nick LIKE '%{nick}%' AND NOT is_blocked ORDER BY length(nick)").fetchall()
+            elif len(result_right) and not len(result_left):
+                total = result_right
+            elif not len(result_right) and len(result_left):
+                total = result_left
+
+            if not total: return JsonResponse({"message": -1})
+
+            result = User.__parse_all_users(total)
+
+            return JsonResponse({"message": json.dumps(result)})
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            return JsonResponse({"message": -1})
+        finally:
+            con.close()
+
+
 
 class File:
     # расширения файлов, которые разрешено загружать
