@@ -21,11 +21,18 @@ function FindUserByNick(btn){
 				let parsed = jQuery.parseJSON(data.message);
 				content = GetUsers(parsed);
 
-				$("#users_container").html(content);
+                if(parsed.length == 0){
+                    alert("Пользователь не найден");
                     $(btn).removeAttr("disabled");
+                    return;
+                }
+
+				$("#users_container").html(content);
+				$("#users_count_span").html(parsed.length);
+                $(btn).removeAttr("disabled");
 				},
 
-				fail: function (data, textStatus) { // вешаем свой обработчик на функцию success
+				fail: function (data, textStatus) {
 						$(btn).removeAttr("disabled");
 					}
 			});

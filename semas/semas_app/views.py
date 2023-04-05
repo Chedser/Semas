@@ -57,7 +57,7 @@ def user(request, id):
             "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends, \
             "friends_count": len(friends), "active_dialogs_count": active_dialogs_count,
             "page_likes_count": page_likes_count, "user_is_in_black_list": user_is_in_black_list}
-
+    time_elapsed = time.time() - init_time
     return render(request, "user.html", context=data)
 
 

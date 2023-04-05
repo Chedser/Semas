@@ -35,7 +35,7 @@
 	</form>
 </div>
 
-<h1 class="w3-center">Пользователи {{ users_count }}</h1>
+<h1 class="w3-center">Пользователи <span id="users_count_span">{{ users_count }}</span></h1>
 <div class = "w3-container w3-white w3-round w3-border-light-blue w3-center" style = "max-width:650px; padding-bottom: 40px;" id="users_container">
 
 	{% for user in users %}

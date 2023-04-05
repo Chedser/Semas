@@ -477,21 +477,10 @@ class User:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            total = None
-            result_right = cur.execute(f"SELECT id, nick, avatar FROM user WHERE nick LIKE '{nick}%' AND NOT is_blocked ORDER BY length(nick)").fetchall()
-            result_left  = cur.execute(f"SELECT id, nick, avatar FROM user WHERE nick LIKE '%{nick}' AND NOT is_blocked ORDER BY length(nick)").fetchall()
-            if (not len(result_right) and not len(result_left)) \
-                    or (len(result_right) and len(result_left)):
-                    total = cur.execute(
-                        f"SELECT id, nick, avatar FROM user WHERE nick LIKE '%{nick}%' AND NOT is_blocked ORDER BY length(nick)").fetchall()
-            elif len(result_right) and not len(result_left):
-                total = result_right
-            elif not len(result_right) and len(result_left):
-                total = result_left
+            result = cur.execute(
+                        f"SELECT id, nick, avatar FROM user WHERE nick LIKE '{nick}%' AND NOT is_blocked ORDER BY length(nick)").fetchall()
 
-            if not total: return JsonResponse({"message": -1})
-
-            result = User.__parse_all_users(total)
+            result = User.__parse_all_users(result)
 
             return JsonResponse({"message": json.dumps(result)})
 
