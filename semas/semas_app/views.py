@@ -422,14 +422,3 @@ def set_page_like(request):
 def find_user_by_nick(request):
     if request.method == "POST":
         return User.find_user_by_nick(request)
-
-
-def get_token(request):
-    pass
-
-
-def captcha(request):
-    if request.method != "POST": return -1
-    token = request.POST.get("token")
-    if not token: return JsonResponse({'message': Response.WRONG_INPUT.value})
-    if token != SECRET_KEY: return JsonResponse({'message': Response.WRONG_INPUT.value})
