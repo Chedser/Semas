@@ -29,3 +29,8 @@ class FriendStatus(Enum):
     DECLINE_REQUEST = 4 #Заявку отправил тот, у которого сидим. Отменить или принять заявку
     IS_FRIEND = 5 #Друзья
     UNKNOWN_ERROR = 6 #Неизвестная ошибка
+
+class NoticeType(Enum):
+    SELF_PAGE_MESSAGE = 0
+    OTHER_USER_PAGE_MESSAGE = 1
+    CREATE_FORUM = 2

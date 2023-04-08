@@ -57,7 +57,7 @@ def user(request, id):
             "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends, \
             "friends_count": len(friends), "active_dialogs_count": active_dialogs_count,
             "page_likes_count": page_likes_count, "user_is_in_black_list": user_is_in_black_list}
-    time_elapsed = time.time() - init_time
+
     return render(request, "user.html", context=data)
 
 
@@ -242,6 +242,24 @@ def dialogs(request):
             "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count}
 
     return render(request, "dialogs.html", context=data)
+
+@never_cache
+def notice(request):
+    if request.method != "GET": return redirect("/index")
+    cookie_user_id = None
+    active_dialogs_count = None
+    friend_requests_count = None
+    if request.session.get("id"):
+        cookie_user_id = int(request.session.get("id"))
+        active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+        friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+    notice = Notice.get_notice(cookie_user_id)
+    notices_count = None
+    if len(notice):
+        notices_count = len(notice)
+    data = {"notices": notice, "notices_count": notices_count, "cookie_user_id": cookie_user_id, \
+            "active_dialogs_count": active_dialogs_count, " friend_requests_count":  friend_requests_count}
+    return render(request, "notice.html", context=data)
 
 
 # API

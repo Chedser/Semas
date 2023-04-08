@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+<title>Оповещения</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/w3.css' %}">
+	<script src="{% static 'js/jQuery.min.js' %}"></script>
+
+<link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
+<style>
+	html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
+	textarea{resize:none;}
+</style>
+</head>
+<body>
+{% if cookie_user_id %}
+	{% include "./items/navbar.html" %}
+{% endif %}
+
+<h1 class="w3-center">Оповещения
+	{% if notices_count %}
+		<span>{{ notices_count }}</span>
+	{% endif %}
+</h1>
+
+{% if not notices_count  %}
+	<span class="w3-text-grey">Оповещений пока что нет</span>
+{% endif %}
+<div class = "w3-container w3-white w3-round w3-border-light-blue w3-center" style = "max-width:650px; padding-bottom: 40px;" id="users_container">
+
+	{% for notice in notices %}
+		{% if notice.type == 0 %} {# Сообщение на своей странице #}
+			<div class="w3-container w3-card w3-white w3-round w3-margin w3-center" >
+				<a href = "user/{{notice.sender_id}}" target="_blank">
+					<img src="{% static notice.sender_avatar %}" alt="Аватар"  style="width:50px; height:50px;"
+																  class="w3-left w3-circle w3-margin-right avatar">
+				<h4>{{ notice.sender_nick }}</h4>
+				</a>
+				<span class="w3-text-grey small">{{ notice.date }}</span>
+				<br>
+				<p>{{ notice.message }}</p>
+
+				<hr class="w3-clear">
+			</div>
+		{% endif %}
+
+			{% if notice.type == 1 %} {# Сообщение на чужой странице #}
+			<div class="w3-container w3-card w3-white w3-round w3-margin w3-center" >
+				<a href = "user/{{notice.sender_id}}" target="_blank">
+					<img src="{% static notice.sender_avatar %}" alt="Аватар"  style="width:50px; height:50px;"
+																  class="w3-left w3-circle w3-margin-right avatar">
+				<h4>{{ notice.sender_nick }}</h4>
+				</a>
+					&dArr;
+				<br/>
+				<a href = "user/{{notice.receiver_id}}" target="_blank">
+					<img src="{% static notice.receiver_avatar %}" alt="Аватар"  style="width:50px; height:50px;"
+																  class="w3-left w3-circle w3-margin-right avatar">
+				<h4>{{ notice.receiver_nick }}</h4>
+				</a>
+				<span class="w3-text-grey small">{{ notice.date }}</span>
+				<br>
+				<p>{{ notice.message }}</p>
+
+				<hr class="w3-clear">
+			</div>
+		{% endif %}
+
+		{% if notice.type == 2 %} {# Форум #}
+			<div class="w3-container w3-card w3-white w3-round w3-margin w3-center" >
+				<a href = "user/{{notice.creator_id}}" target="_blank">
+					<img src="{% static notice.avatar %}" alt="Аватар"  style="width:50px; height:50px;"
+																  class="w3-left w3-circle w3-margin-right avatar">
+				<h4>{{ notice.nick }}</h4>
+				</a>
+					<span class="w3-text-grey small">{{ notice.date }}</span><br />
+				<br/>
+
+				<span>Создал форум</span> <a href="forum/{{ notice.id }}" target="_blank">{{ notice.name }}</a><br />
+
+				<p>{{ notice.message }}</p>
+
+				<hr class="w3-clear">
+			</div>
+		{% endif %}
+
+{% endfor %}
+
+</div>
+</body>
+</html>

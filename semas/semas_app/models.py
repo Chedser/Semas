@@ -150,6 +150,16 @@ class MessageWall:
             cur.execute("INSERT INTO wall_message (senderId, receiverId, message, u_time)\
                   VALUES (?,?,?,?)", (cookie_user_id, receiver_id, message, (int)(time.time())))
             con.commit()
+
+            lastrowid = cur.lastrowid
+            notice_type = NoticeType.SELF_PAGE_MESSAGE.value
+            if cookie_user_id != receiver_id:
+                notice_type = NoticeType.OTHER_USER_PAGE_MESSAGE.value
+
+            cur.execute("INSERT INTO notice (entityId, type, u_time)\
+                              VALUES (?,?,?)", (lastrowid, notice_type, (int)(time.time())))
+            con.commit()
+
             return JsonResponse({'message': Response.SUCCESS.value})
         except sqlite3.Error as error:
             con.rollback()
@@ -215,6 +225,41 @@ class MessageWall:
             return None
         finally:
             con.close()
+
+    @staticmethod
+    def get_wall_message_by_id(id):
+        if not id: return None
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            result = cur.execute(f"SELECT id, senderId, receiverId, message, date FROM wall_message  WHERE id=?", (id,)).fetchall()[0]
+            print(result)
+            return MessageWall.__parse_wall_message(result)
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            return None
+        finally:
+            con.close()
+
+    @staticmethod
+    def __parse_wall_message(result):
+        if not result:  return None
+
+        id = result[0]
+        sender_id = result[1]
+        receiver_id = result[2]
+        message = result[3]
+        date = result[4]
+
+        dct = dict()
+        dct["id"] = id
+        dct["sender_id"] = sender_id
+        dct["receiver_id"] = receiver_id
+        dct["message"] = Message.truncate(Message.tolink(message), 256)
+        dct["date"] = date
+        return dct
 
     def __parse_wall_messages(wall_messages):
         result = list()
@@ -853,7 +898,7 @@ class Forum:
             message = request.POST.get('message').strip()
             topic = request.POST.get('topic').strip()
             topic_modified = re.sub("[\s|\W]", "", topic)
-            print(topic_modified)
+
             if not len(topic_modified): return JsonResponse({'message': ForumCreateResponse.WRONG_INPUT.value})
         else:
             return JsonResponse({'message': ForumCreateResponse.WRONG_INPUT.value})
@@ -875,11 +920,12 @@ class Forum:
                           VALUES (?,?,?,?,?)", (cookie_user_id, topic, topic_modified, message, (int)(time.time())))
             con.commit()
 
-            """lastrowid = cur.lastrowid
+            lastrowid = cur.lastrowid
+            notice_type = NoticeType.CREATE_FORUM.value
 
-            cur.execute("INSERT INTO forum_message (forumId, senderId, message, u_time)\
-                                     VALUES (?,?,?,?)", (lastrowid, cookie_user_id, message, (int)(time.time())))
-            con.commit() """
+            cur.execute("INSERT INTO notice (entityId, type, u_time)\
+                              VALUES (?,?,?)", (lastrowid, notice_type, (int)(time.time())))
+            con.commit()
 
             return JsonResponse({'message': Response.SUCCESS.value})
         except sqlite3.Error as error:
@@ -1021,6 +1067,7 @@ class Forum:
         finally:
             con.close()
 
+    @staticmethod
     def get_forum_info(id):
         try:
             con = sqlite3.connect(DB_NAME)
@@ -1599,6 +1646,90 @@ class UserPageLike:
             result = False
         finally:
             con.close()
+        return result
+
+class Notice:
+    @staticmethod
+    def get_notice(cookie_user_id = None):
+        if cookie_user_id:
+            cookie_user_id = int(cookie_user_id)
+            User.update_time_of_last_action(cookie_user_id)
+        try:
+            con = sqlite3.connect(DB_NAME)
+
+            cur = con.cursor()
+
+            notice = cur.execute(
+                f"SELECT id, entityId, type, date FROM notice").fetchall()
+
+            return Notice.__parse_notice(notice)
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            result = None
+        finally:
+            con.close()
+        return result
+
+    @staticmethod
+    def __parse_notice(notices):
+        result = list()
+        for notice in notices:
+            id = notice[0]
+            entity_id = notice[1]
+            type = notice[2]
+            date = notice[3]
+
+            tmp = dict()
+            tmp["id"] = id
+            tmp["type"] = type
+
+            if type == NoticeType.SELF_PAGE_MESSAGE.value or \
+                type == NoticeType.OTHER_USER_PAGE_MESSAGE.value:
+                wall_message = MessageWall.get_wall_message_by_id(entity_id)
+                sender_id = wall_message["sender_id"]
+                sender_info = User.get_info(sender_id)
+                sender_nick = sender_info["nick"]
+                sender_avatar = sender_info["avatar"]
+
+                receiver_id = wall_message["receiver_id"]
+                receiver_info = User.get_info(receiver_id)
+                receiver_nick = receiver_info["nick"]
+                receiver_avatar = receiver_info["avatar"]
+
+                message = wall_message["message"]
+
+                tmp["sender_id"] = sender_id
+                tmp["sender_nick"] = sender_nick
+                tmp["sender_avatar"] = sender_avatar
+
+                tmp["receiver_id"] = receiver_id
+                tmp["receiver_nick"] = receiver_nick
+                tmp["receiver_avatar"] = receiver_avatar
+
+                tmp["message"] = message
+
+            if type == NoticeType.CREATE_FORUM.value:
+
+                forum_info = Forum.get_forum_info(entity_id)
+                id = forum_info["id"]
+                creatorId = forum_info["creator_id"]
+                name = forum_info["name"]
+                nick = forum_info["nick"]
+                avatar = forum_info["avatar"]
+                message = forum_info["message"]
+
+                tmp["id"] = id
+                tmp["creator_id"] = creatorId
+                tmp["name"] = name
+                tmp["message"] = Message.tolink(message)
+                tmp["date"] = date
+                tmp["nick"] = nick
+                tmp["avatar"] = avatar
+
+            tmp["date"] = date
+            result.append(tmp)
         return result
 
 

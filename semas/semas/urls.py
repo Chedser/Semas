@@ -10,6 +10,7 @@ urlpatterns = [
     path('admin', views.admin),
     path('admin/forum', views.admin_forum),
     path('black_list', views.black_list),
+    path('notice', views.notice),
     path('api/reg', views.reg),
     path('api/auth', views.auth),
     path('api/exit', views.exit),
