@@ -1660,7 +1660,7 @@ class Notice:
             cur = con.cursor()
 
             notice = cur.execute(
-                f"SELECT id, entityId, type, date FROM notice").fetchall()
+                f"SELECT id, entityId, type, date FROM notice ORDER by id DESC").fetchall()
 
             return Notice.__parse_notice(notice)
 
