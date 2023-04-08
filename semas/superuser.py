@@ -45,18 +45,6 @@ try:
 
     con = sqlite3.connect('db.sqlite3')
 
-    schema = "CREATE TABLE IF NOT EXISTS superuser (\
-            id INTEGER DEFAULT 0,\
-            login TEXT(10) NOT NULL,\
-            password TEXT(100) NOT NULL,\
-            date_of_reg DATETIME DEFAULT CURRENT_TIMESTAMP,\
-            date_of_change DATETIME DEFAULT CURRENT_TIMESTAMP\
-            );"
-
-    cur = con.cursor()
-    cur.execute(schema)
-    con.commit()
-
     result = cur.execute("SELECT COUNT(*) FROM superuser").fetchall()
 
     if result.pop(0)[0] == 0:

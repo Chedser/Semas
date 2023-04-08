@@ -116,6 +116,14 @@ CREATE TABLE IF NOT EXISTS notice (
 	u_time INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS superuser (\
+            id INTEGER,
+            login TEXT(10) NOT NULL,
+            password TEXT(100) NOT NULL,
+            date_of_reg DATETIME DEFAULT CURRENT_TIMESTAMP,
+            date_of_change DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
 CREATE TRIGGER IF NOT EXISTS [UpdateLastTime]
 AFTER
 UPDATE
