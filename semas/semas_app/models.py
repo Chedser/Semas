@@ -198,6 +198,7 @@ class MessageWall:
                 cur = con.cursor()
 
                 cur.execute(f"DELETE FROM wall_message WHERE id=?", (message_id,))
+                cur.execute(f"DELETE FROM notice WHERE entityId=?", (message_id,))
                 con.commit()
                 return JsonResponse({'message': Response.SUCCESS.value})
             except sqlite3.Error as error:
@@ -232,9 +233,10 @@ class MessageWall:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT id, senderId, receiverId, message, date FROM wall_message  WHERE id=?", (id,)).fetchall()[0]
-            print(result)
-            return MessageWall.__parse_wall_message(result)
+            result = cur.execute(f"SELECT id, senderId, receiverId, message, date FROM wall_message  WHERE id=?", (id,)).fetchall()
+            if not len(result): return None
+
+            return MessageWall.__parse_wall_message(result[0])
 
         except sqlite3.Error as error:
             con.rollback()
@@ -596,7 +598,6 @@ class File:
         finally:
             con.close()
 
-
 class Friend:
     def get_friend_requests_count(cookie_user_id):
         if cookie_user_id is None: return 0
@@ -883,7 +884,6 @@ class Friend:
             tmp["is_in_black_list"] = is_in_black_list
             result.append(tmp)
         return result
-
 
 class Forum:
     def create_forum(request):
@@ -1559,7 +1559,6 @@ class Dialog:
             result.append(tmp)
         return result
 
-
 class UserPageLike:
     @staticmethod
     def get_page_likes_count(user_id):
@@ -1732,7 +1731,6 @@ class Notice:
             result.append(tmp)
         return result
 
-
 class Superuser:
 
     @staticmethod
@@ -1875,7 +1873,9 @@ class Superuser:
 
             cur = con.cursor()
 
-            cur.execute(f"DELETE FROM forum WHERE id=?", (forum_id,)).fetchall()
+            cur.execute(f"DELETE FROM forum WHERE id=?", (forum_id,))
+
+            cur.execute(f"DELETE FROM notice WHERE entityId=?", (forum_id,))
 
             con.commit()
 
