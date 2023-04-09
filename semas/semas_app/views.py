@@ -45,7 +45,7 @@ def user(request, id):
         if cookie_user_id == id:  # И сидит на своей странице
             is_login_user_page = True
 
-    wall_messages = MessageWall.get_wall_messages(id)
+    wall_messages = MessageWall.get_wall_messages(id, cookie_user_id)
     friends = Friend.get_friends_user_page(id, 8)
     page_likes_count = UserPageLike.get_page_likes_count(id)
 

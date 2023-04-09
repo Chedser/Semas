@@ -223,7 +223,7 @@ class MessageWall:
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
 
     @staticmethod
-    def get_wall_messages(user_id):
+    def get_wall_messages(user_id, cookie_user_id = None):
         if not user_id: return None
         try:
             con = sqlite3.connect(DB_NAME)
@@ -231,7 +231,7 @@ class MessageWall:
             result = cur.execute(f"SELECT wall_message.id AS id, senderId, text, user.nick AS nick, user.avatar AS avatar, date FROM wall_message \
              INNER JOIN user ON wall_message.senderId=user.id "
                                  f"WHERE receiverId=? ORDER BY date DESC", (user_id,)).fetchall()
-            return MessageWall.__parse_wall_messages(result)
+            return MessageWall.__parse_wall_messages(result, cookie_user_id)
 
         except sqlite3.Error as error:
             con.rollback()
@@ -262,7 +262,7 @@ class MessageWall:
             con.close()
 
     @staticmethod
-    def __parse_wall_message(result):
+    def __parse_wall_message(result, cookie_user_id):
         if not result:  return None
 
         id = result[0]
@@ -270,17 +270,25 @@ class MessageWall:
         receiver_id = result[2]
         message = result[3]
         date = result[4]
+        likes_count = WallMessageLike.get_wall_message_likes_count(id)
+
+        liker_is_blocked = -1
+
+        if cookie_user_id:
+            liker_is_blocked = User.get_info(cookie_user_id)["is_blocked"]
 
         dct = dict()
         dct["id"] = id
         dct["sender_id"] = sender_id
         dct["receiver_id"] = receiver_id
         dct["message"] = Message.truncate(Message.tolink(message), 256)
+        dct["likes_count"] = likes_count
+        dct["liker_is_blocked"] = liker_is_blocked
         dct["date"] = date
         return dct
 
     @staticmethod
-    def __parse_wall_messages(wall_messages):
+    def __parse_wall_messages(wall_messages, cookie_user_id):
         result = list()
 
         for wall_message in wall_messages:
@@ -291,12 +299,22 @@ class MessageWall:
             avatar = wall_message[4]
             avatar = User.get_avatar_link(avatar, sender_id)
             date = wall_message[5]
+
+            likes_count = WallMessageLike.get_wall_message_likes_count(id)
+
+            liker_is_blocked = -1
+
+            if cookie_user_id:
+                liker_is_blocked = User.get_info(cookie_user_id)["is_blocked"]
+
             tmp = dict()
             tmp["id"] = id
             tmp["sender_id"] = sender_id
             tmp["message"] = Message.tolink(message)
             tmp["nick"] = nick
             tmp["avatar"] = avatar
+            tmp["liker_is_blocked"] = liker_is_blocked
+            tmp["likes_count"] = likes_count
             tmp["date"] = date
             result.append(tmp)
         return result
@@ -1706,6 +1724,7 @@ class WallMessageLike:
     @staticmethod
     def get_wall_message_likes_count(message_id):
         if not message_id: return None
+
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1733,16 +1752,22 @@ class WallMessageLike:
 
         if not message_id: return JsonResponse({'message': -1})
 
-        user_id = (int)(message_id)
+        message_id = (int)(message_id)
 
         User.update_time_of_last_action(cookie_user_id)
 
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
+
+            message_exists = cur.execute(f"SELECT COUNT(*) FROM wall_message WHERE id=?",
+                        (message_id,)).fetchall()[0][0]
+
+            if not message_exists: return JsonResponse({'message': -1})
+
             likes_count_from_user = cur.execute(f"SELECT COUNT(*) FROM wall_message_like WHERE messageId=? AND likerId=?",
                                                 (message_id, cookie_user_id)).fetchall()[0][0]
-            likes_count_total = WallMessageLike.get_page_likes_count(user_id)
+            likes_count_total = WallMessageLike.get_wall_message_likes_count(message_id)
             insert = True
             if likes_count_from_user:
                 likes_count_total = likes_count_total - 1

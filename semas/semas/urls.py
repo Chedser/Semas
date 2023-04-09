@@ -29,7 +29,7 @@ urlpatterns = [
     path('api/su/exit', views.exit_su),
     path('api/cancel_friend_request', views.cancel_friend_request),
     path('api/find_user_by_nick', views.find_user_by_nick),
-    path('api/set_wall_message_like', views.set_wall_message_like),
+
 
     path('user/<int:id>', views.user),
     path('user/api/send_wall_message', views.send_wall_message),
@@ -41,6 +41,7 @@ urlpatterns = [
     path('user/api/change_avatar', views.change_avatar),
     path('user/api/dialog_send_outer', views.dialog_send_outer),
     path('user/api/set_page_like', views.set_page_like),
+    path('user/api/set_wall_message_like', views.set_wall_message_like),
     path('friends', views.friends),
     path('users', views.users),
 

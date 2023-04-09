@@ -147,6 +147,16 @@ textarea{resize:none;}
 					  onclick="DeleteWallMessage(this,{{ wall_message.id }},{{ user_info.id }}, {{ wall_message.sender_id }})"
 					  class="w3-right w3-text-grey delete_msg_span">x</span>
 			{% endif %}
+				  	{% if is_authed_user and cookie_user_id != wall_message.sender_id and  wall_message.liker_is_blocked == 0 %}
+						<img  class="w3-center like" src="{% static 'images/like.png' %}" onclick="SetWallMessageLike(this,{{ wall_message.id }})" />
+					{% else %}
+						<img  class="w3-center like" src="{% static 'images/like.png' %}" />
+					{% endif %}
+					{% if wall_message.likes_count %}
+						<span id="wall_message_likes_count_span{{ wall_message.id }}">{{ wall_message.likes_count }}</span>
+					{% else %}
+						<span id="wall_message_likes_count_span{{ wall_message.id }}"></span>
+					{% endif %}
 		</div>
 		
 		{% empty %}

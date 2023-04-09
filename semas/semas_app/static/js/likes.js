@@ -37,16 +37,16 @@ function SetWallMessageLike(btn,message_id_){
 					};
 
 		$.ajax({
-				url: 'api/set_wall_message_like',
+				url: '/user/api/set_wall_message_like',
 				data: dataToSend,
 				type: "POST",
 				headers: {'X-CSRFToken': csrftoken},
 				success: function (data, textStatus) {
                     if (data.message != -1){
                         if (data.message == 0){
-                            $("#wall_message_likes_count_span").html("");
+                            $("#wall_message_likes_count_span" + message_id_).html("");
                         }else{
-                            $("#wall_message_likes_count_span").html(data.message);
+                            $("#wall_message_likes_count_span" + message_id_).html(data.message);
                         }
                         $(btn).removeAttr("disabled");
 
