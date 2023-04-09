@@ -59,15 +59,7 @@ $(document).ready(function() {
 		</div>
 
 	{% if user_is_in_black_list == 0 %}
-	<div class = "w3-panel  w3-padding">
-		<form>
-			<textarea class="w3-input w3-border" id="message_dialog" rows="3" maxlength="1000"  placeholder="Напишите что-нибудь" type="text" required></textarea>
-			<input type = "button" id="dialog_inner_btn"
-				   class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center"
-				   style = "width:100%" value = "OK">
-		<input type="hidden" id="message_dialog_hidden" value="{{dialog_id}}">
-		</form>
-	</div>
+		{% include "./items/textareas/dialog_textarea.html" %}
 	{% else %}
 	<div class = "w3-panel  w3-padding w3-center">
 		<span class="w3-text-grey">Невозможно отправить сообщение</span>
