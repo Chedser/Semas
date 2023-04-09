@@ -1593,9 +1593,7 @@ class UserPageLike:
         if not user_id: return None
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             likes_count = cur.execute(f"SELECT COUNT(*) FROM user_page_like WHERE userId=?", (user_id,)).fetchall()[0][0]
 
             result = likes_count
@@ -1603,6 +1601,7 @@ class UserPageLike:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), UserPageLike.get_page_likes_count.__name__)
             result = None
         finally:
             con.close()
@@ -1625,9 +1624,7 @@ class UserPageLike:
 
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             likes_count_from_user = cur.execute(f"SELECT COUNT(*) FROM user_page_like WHERE userId=? AND likerId=?",
                                                 (user_id, cookie_user_id)).fetchall()[0][0]
             likes_count_total = UserPageLike.get_page_likes_count(user_id)
@@ -1646,6 +1643,7 @@ class UserPageLike:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), UserPageLike.set_page_like.__name__)
             return JsonResponse({'message': -1})
         finally:
             con.close()
@@ -1655,7 +1653,6 @@ class UserPageLike:
         result = True
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
 
             if insert:
@@ -1669,6 +1666,7 @@ class UserPageLike:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), UserPageLike.__update_page_like.__name__)
             result = False
         finally:
             con.close()
@@ -1683,9 +1681,7 @@ class Notice:
             User.update_time_of_last_action(cookie_user_id)
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             notice = cur.execute(
                 f"SELECT id, entityId, type, date FROM notice ORDER by id DESC").fetchall()
 
@@ -1694,6 +1690,7 @@ class Notice:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Notice.get_notice.__name__)
             result = None
         finally:
             con.close()
@@ -1760,7 +1757,6 @@ class Notice:
 
 
 class Superuser:
-
     @staticmethod
     def auth(request):
         login = request.POST.get('login').strip()
@@ -1789,6 +1785,7 @@ class Superuser:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Superuser.auth.__name__)
             return 0
         finally:
             con.close()
@@ -1805,6 +1802,7 @@ class Superuser:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Superuser.get_users.__name__)
         finally:
             con.close()
 
@@ -1820,6 +1818,7 @@ class Superuser:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Superuser.get_forums.__name__)
         finally:
             con.close()
 
@@ -1861,9 +1860,7 @@ class Superuser:
         user_id = int(user_id)
 
         try:
-
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
 
             result = cur.execute(f"SELECT is_blocked FROM user WHERE id={user_id}").fetchall()
@@ -1882,6 +1879,7 @@ class Superuser:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Superuser.block_user.__name__)
         finally:
             con.close()
         return JsonResponse({'message': 2})
@@ -1896,20 +1894,16 @@ class Superuser:
         result = Response.SUCCESS.value
 
         try:
-
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             cur.execute(f"DELETE FROM forum WHERE id=?", (forum_id,))
-
             cur.execute(f"DELETE FROM notice WHERE entityId=?", (forum_id,))
-
             con.commit()
 
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Superuser.delete_forum.__name__)
             result = Response.UNKNOWN_ERROR.value
         finally:
             con.close()
@@ -1949,6 +1943,7 @@ class Superuser:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Superuser.find_user.__name__)
             return JsonResponse({"message": -1})
         finally:
             con.close()
@@ -1982,6 +1977,7 @@ class Superuser:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Superuser.find_forum.__name__)
             return JsonResponse({"message": -1})
         finally:
             con.close()
