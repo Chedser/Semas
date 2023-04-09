@@ -8,7 +8,7 @@ from settings import *
 import os
 import re
 import html
-from .security import *
+from .logs import *
 
 
 class Message:
@@ -33,6 +33,7 @@ class Message:
 class Auth:
     @staticmethod
     def auth(request):
+
         login = request.POST.get('login').strip()
         password = request.POST.get('pass').strip()
 
@@ -71,6 +72,7 @@ class Auth:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Auth.auth.__name__)
         finally:
             con.close()
         return JsonResponse({'message': Response.SUCCESS.value, 'id': user_id})
@@ -117,6 +119,7 @@ class Reg:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Reg.reg.__name__)
             response = Response.UNKNOWN_ERROR.value
         finally:
             con.close()
@@ -168,6 +171,7 @@ class MessageWall:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), MessageWall.send_wall_message.__name__)
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
@@ -208,6 +212,7 @@ class MessageWall:
             except sqlite3.Error as error:
                 con.rollback()
                 print(f"DataBase error {error.__str__()}")
+                Log.write_log(error.__str__(), MessageWall.delete_wall_message.__name__)
                 return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
             finally:
                 con.close()
@@ -227,6 +232,7 @@ class MessageWall:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), MessageWall.get_wall_messages.__name__)
             return None
         finally:
             con.close()
@@ -246,6 +252,7 @@ class MessageWall:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), MessageWall.get_wall_message_by_id.__name__)
             return None
         finally:
             con.close()
@@ -303,6 +310,7 @@ class User:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), User.get_info.__name__)
             return None
         finally:
             con.close()
@@ -350,6 +358,7 @@ class User:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), User.get_blocked_users.__name__)
         finally:
             con.close()
 
@@ -370,6 +379,7 @@ class User:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), User.user_is_in_black_list.__name__)
         finally:
             con.close()
 
@@ -428,6 +438,7 @@ class User:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), User.find_user_for_block.__name__)
             return JsonResponse({"message": 1})
         finally:
             con.close()
@@ -448,12 +459,9 @@ class User:
         try:
 
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             result = cur.execute(f"SELECT COUNT(*) FROM black_list WHERE user1=? "
                                  f"AND user2=?", (cookie_user_id, user_id)).fetchall()[0][0]
-
             is_blocked = 0
 
             if not result:
@@ -471,6 +479,7 @@ class User:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), User.block_user.__name__)
         finally:
             con.close()
         return JsonResponse({'message': 2})
@@ -486,6 +495,7 @@ class User:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), User.update_time_of_last_action.__name__)
         finally:
             con.close()
 
@@ -502,6 +512,7 @@ class User:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), User.get_all_users.__name__)
         finally:
             con.close()
 
@@ -539,6 +550,7 @@ class User:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), User.find_user_by_nick.__name__)
             return JsonResponse({"message": -1})
         finally:
             con.close()
@@ -598,6 +610,7 @@ class File:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), File.change_avatar.__name__)
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         finally:
             con.close()
@@ -617,6 +630,7 @@ class Friend:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Friend.get_friend_requests_count.__name__)
         finally:
             con.close()
 
@@ -633,6 +647,7 @@ class Friend:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Friend.get_friends_count.__name__)
         finally:
             con.close()
 
@@ -650,6 +665,7 @@ class Friend:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Friend.get_friend_requests.__name__)
         finally:
             con.close()
 
@@ -676,6 +692,7 @@ class Friend:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Friend.get_friend_request_status.__name__)
             return FriendStatus.UNKNOWN_ERROR.value
         finally:
             con.close()
@@ -714,6 +731,7 @@ class Friend:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Friend.send_friend_request.__name__)
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         finally:
             con.close()
@@ -743,6 +761,7 @@ class Friend:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Friend.cancel_friend_request.__name__)
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         finally:
             con.close()
@@ -774,6 +793,7 @@ class Friend:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Friend.accept_friend_request.__name__)
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         finally:
             con.close()
@@ -803,6 +823,7 @@ class Friend:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Friend.delete_friend.__name__)
         finally:
             con.close()
 
@@ -837,6 +858,7 @@ class Friend:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Friend.get_friends.__name__)
         finally:
             con.close()
 
@@ -870,6 +892,7 @@ class Friend:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Friend.get_friends_user_page.__name__)
         finally:
             con.close()
 
@@ -937,6 +960,7 @@ class Forum:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Forum.create_forum.__name__)
             return JsonResponse({'message': ForumCreateResponse.UNKNOWN_ERROR.value})
         finally:
             con.close()
@@ -955,6 +979,7 @@ class Forum:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Forum.get_forums.__name__)
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
@@ -1036,6 +1061,7 @@ class Forum:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Forum.get_messages.__name__)
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
@@ -1058,9 +1084,7 @@ class Forum:
 
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             cur.execute("INSERT INTO forum_message (senderId, forumId, text, u_time)\
                                      VALUES (?,?,?,?)",
                         (cookie_user_id, forum_id, message, (int)(time.time())))
@@ -1069,6 +1093,7 @@ class Forum:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Forum.send_message.__name__)
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
@@ -1077,9 +1102,7 @@ class Forum:
     def get_forum_info(id):
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             result = cur.execute(f"SELECT forum.id AS id,  creatorId, name, text, forum.date AS date, user.avatar AS avatar, user.nick AS nick  \
                     FROM forum INNER JOIN user ON forum.creatorId=user.id WHERE forum.id=?", (id,)).fetchall()
             if not len(result): return None
@@ -1088,6 +1111,7 @@ class Forum:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Forum.get_forum_info.__name__)
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
@@ -1115,15 +1139,14 @@ class Forum:
 
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             cur.execute(f"DELETE FROM forum_message WHERE id=?", (message_id,))
             con.commit()
             return JsonResponse({'message': Response.SUCCESS.value})
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Forum.delete_message.__name__)
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
@@ -1140,9 +1163,7 @@ class Dialog:
         result = True
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             cur.execute("INSERT INTO dialog (senderId, receiverId, last_message, u_time)\
                                      VALUES (?,?,?,?)",
                         (sender_id, receiver_id, message, (int)(time.time())))
@@ -1158,6 +1179,7 @@ class Dialog:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.__create_dialog.__name__)
             result = False
         finally:
             con.close()
@@ -1168,9 +1190,7 @@ class Dialog:
         if not cookie_user_id: return None
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             dialogs_count = cur.execute(f"SELECT COUNT(*)  FROM dialog"
                                         f" WHERE receiverId=? AND is_readen=0", (cookie_user_id,)).fetchall()[0][0]
             return dialogs_count
@@ -1178,6 +1198,7 @@ class Dialog:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.get_active_dialogs_count.__name__)
         finally:
             con.close()
         return None
@@ -1197,6 +1218,7 @@ class Dialog:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.get_dialogs_count.__name__)
         finally:
             con.close()
         return None
@@ -1206,7 +1228,6 @@ class Dialog:
         result = True
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
             cur.execute(
                 f"UPDATE dialog SET senderId=?, receiverId=?, last_message=?, is_readen=0, u_time=? WHERE id=?",
@@ -1220,6 +1241,7 @@ class Dialog:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.__send_outer_in_existing_dialog.__name__)
             result = False
         finally:
             con.close()
@@ -1230,9 +1252,7 @@ class Dialog:
         result = dict()
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             dialog = cur.execute(
                 f"SELECT id, senderId, receiverId, is_readen, date FROM dialog WHERE id=?",
                 (dialog_id,)).fetchall()
@@ -1249,6 +1269,7 @@ class Dialog:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.get_dialog_info.__name__)
             result = None
         finally:
             con.close()
@@ -1258,9 +1279,7 @@ class Dialog:
     def get_dialog_opponent_info(cookie_user_id, dialog_id):
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             dialog = cur.execute(
                 f"SELECT senderId, receiverId FROM dialog WHERE id=?", (dialog_id,)).fetchall()[0]
 
@@ -1281,6 +1300,7 @@ class Dialog:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.get_dialog_opponent_info.__name__)
             result = None
         finally:
             con.close()
@@ -1305,6 +1325,7 @@ class Dialog:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.update_status.__name__)
         finally:
             con.close()
 
@@ -1314,9 +1335,7 @@ class Dialog:
 
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             sql = f"SELECT id, senderId, receiverId, last_message, is_readen, " \
                   f"date FROM dialog WHERE receiverId=? AND is_readen=0 " \
                   "ORDER by u_time DESC"
@@ -1360,6 +1379,7 @@ class Dialog:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.get_dialogs.__name__)
             result = None
         finally:
             con.close()
@@ -1419,6 +1439,7 @@ class Dialog:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.__send_inner_in_existing_dialog.__name__)
             result = False
         finally:
             con.close()
@@ -1512,6 +1533,7 @@ class Dialog:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.send_outer.__name__)
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
@@ -1520,9 +1542,7 @@ class Dialog:
     def get_dialog_messages(dialog_id):
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             sql = f"SELECT dialog_message.id AS id, userId, text, date, user.nick AS nick, user.avatar AS avatar " \
                   f"FROM dialog_message " \
                   f"INNER JOIN user ON user.id=userId " \
@@ -1539,6 +1559,7 @@ class Dialog:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.get_dialog_messages.__name__)
             result = None
         finally:
             con.close()
@@ -1575,8 +1596,7 @@ class UserPageLike:
 
             cur = con.cursor()
 
-            likes_count = cur.execute(f"SELECT COUNT(*) FROM user_page_like WHERE userId=?", (user_id,)).fetchall()[0][
-                0]
+            likes_count = cur.execute(f"SELECT COUNT(*) FROM user_page_like WHERE userId=?", (user_id,)).fetchall()[0][0]
 
             result = likes_count
 
