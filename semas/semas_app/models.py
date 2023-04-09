@@ -551,6 +551,10 @@ class User:
             result = cur.execute(
                 f"SELECT id, nick, avatar FROM user WHERE nick LIKE '{nick}%' AND NOT is_blocked ORDER BY length(nick)").fetchall()
 
+            if not len(result):
+                result = cur.execute(
+                    f"SELECT id, nick, avatar FROM user WHERE nick LIKE '%{nick}%' AND NOT is_blocked ORDER BY length(nick)").fetchall()
+
             result = User.__parse_all_users(result)
 
             return JsonResponse({"message": json.dumps(result)})
