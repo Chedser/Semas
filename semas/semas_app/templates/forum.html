@@ -42,12 +42,7 @@
 		</div>
 		
 		{% if cookie_user_id and not user_is_blocked %}
-		<div class="w3-card w3-padding w3-margin-top">
-			<textarea class="w3-input w3-border" id="forum_msg_inner" rows="3" maxlength="1000"  placeholder="Сообщение" required></textarea>
-			<input type = "button" class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center"
-				   style = "width:100%" id="forum_send_message_btn" value = "OK">
-			<input type="hidden" id="forum_send_message_hidden" value="{{ forum_info.id }}" />
-		</div>
+			{% include "./items/textareas/forum_textarea.html" %}
 		{% endif %}
 		
 	</div>
