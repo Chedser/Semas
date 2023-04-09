@@ -262,7 +262,7 @@ class MessageWall:
             con.close()
 
     @staticmethod
-    def __parse_wall_message(result, cookie_user_id):
+    def __parse_wall_message(result):
         if not result:  return None
 
         id = result[0]
@@ -272,18 +272,12 @@ class MessageWall:
         date = result[4]
         likes_count = WallMessageLike.get_wall_message_likes_count(id)
 
-        liker_is_blocked = -1
-
-        if cookie_user_id:
-            liker_is_blocked = User.get_info(cookie_user_id)["is_blocked"]
-
         dct = dict()
         dct["id"] = id
         dct["sender_id"] = sender_id
         dct["receiver_id"] = receiver_id
         dct["message"] = Message.truncate(Message.tolink(message), 256)
         dct["likes_count"] = likes_count
-        dct["liker_is_blocked"] = liker_is_blocked
         dct["date"] = date
         return dct
 
@@ -302,18 +296,12 @@ class MessageWall:
 
             likes_count = WallMessageLike.get_wall_message_likes_count(id)
 
-            liker_is_blocked = -1
-
-            if cookie_user_id:
-                liker_is_blocked = User.get_info(cookie_user_id)["is_blocked"]
-
             tmp = dict()
             tmp["id"] = id
             tmp["sender_id"] = sender_id
             tmp["message"] = Message.tolink(message)
             tmp["nick"] = nick
             tmp["avatar"] = avatar
-            tmp["liker_is_blocked"] = liker_is_blocked
             tmp["likes_count"] = likes_count
             tmp["date"] = date
             result.append(tmp)

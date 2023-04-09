@@ -25,6 +25,7 @@ def user(request, id):
     if (not id) or (not user_info): return redirect("/")
 
     cookie_user_id = None
+    cookie_user_id_is_blocked = None
     friend_status = None
     friend_requests_count = None
     active_dialogs_count = None
@@ -35,6 +36,7 @@ def user(request, id):
         User.update_time_of_last_action(cookie_user_id)
         friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
         active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+        cookie_user_id_is_blocked = User.get_info(cookie_user_id)["is_blocked"]
         if id != cookie_user_id:
             user_is_in_black_list = User.user_is_in_black_list(id, cookie_user_id)
         else:
@@ -53,7 +55,8 @@ def user(request, id):
             "is_authed_user": is_authed_user, "wall_messages": wall_messages, "user_info": user_info, \
             "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends, \
             "friends_count": len(friends), "active_dialogs_count": active_dialogs_count,
-            "page_likes_count": page_likes_count, "user_is_in_black_list": user_is_in_black_list}
+            "page_likes_count": page_likes_count, "user_is_in_black_list": user_is_in_black_list,
+            "cookie_user_id_is_blocked": cookie_user_id_is_blocked}
 
     return render(request, "user.html", context=data)
 
