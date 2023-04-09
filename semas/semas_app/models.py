@@ -12,6 +12,7 @@ from .logs import *
 
 
 class Message:
+    @staticmethod
     def tolink(txt):
 
         pattern1 = r'\b((?:https?://)(?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?(?:/[\w\.-]*)*/?)\b'
@@ -23,6 +24,7 @@ class Message:
             result = re.sub(pattern2, r'<a href=//\1 target=_blank>\1</a>', result)
         return result
 
+    @staticmethod
     def truncate(txt, count):
         if len(txt) <= count:
             return txt
@@ -33,7 +35,6 @@ class Message:
 class Auth:
     @staticmethod
     def auth(request):
-
         login = request.POST.get('login').strip()
         password = request.POST.get('pass').strip()
 
@@ -79,6 +80,7 @@ class Auth:
 
 
 class Reg:
+    @staticmethod
     def reg(request):
         login = request.POST.get('login').strip()
         nick = request.POST.get('nick').strip()
@@ -127,7 +129,7 @@ class Reg:
 
 
 class MessageWall:
-
+    @staticmethod
     def send_wall_message(request):
         message = request.POST.get('message').strip()
         receiver_id = request.POST.get('receiver_id')
@@ -176,6 +178,7 @@ class MessageWall:
         finally:
             con.close()
 
+    @staticmethod
     def delete_wall_message(request):
         if request.session.get("id"):
             cookie_user_id = (int)(request.session.get("id"))
@@ -219,6 +222,7 @@ class MessageWall:
         else:
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
 
+    @staticmethod
     def get_wall_messages(user_id):
         if not user_id: return None
         try:
@@ -275,6 +279,7 @@ class MessageWall:
         dct["date"] = date
         return dct
 
+    @staticmethod
     def __parse_wall_messages(wall_messages):
         result = list()
 
@@ -298,6 +303,7 @@ class MessageWall:
 
 
 class User:
+    @staticmethod
     def get_info(user_id):
         try:
             con = sqlite3.connect(DB_NAME)
@@ -316,6 +322,7 @@ class User:
             con.close()
         return None
 
+    @staticmethod
     def __parse_user_info(user_info):
         result = dict()
         user_id = user_info[0]
@@ -332,6 +339,7 @@ class User:
         result["avatar"] = User.get_avatar_link(avatar, user_id)
         return result
 
+    @staticmethod
     def get_avatar_link(avatar, user_id):
         if not avatar:
             link = f"images/default.png"
@@ -339,6 +347,7 @@ class User:
             link = f"images/avatars/{user_id}/{avatar}"
         return link
 
+    @staticmethod
     def __is_online(time_of_last_action):
         return (((int)(time.time()) - time_of_last_action) < 300)
 
@@ -484,6 +493,7 @@ class User:
             con.close()
         return JsonResponse({'message': 2})
 
+    @staticmethod
     def update_time_of_last_action(cookie_user_id):
         if not cookie_user_id: return None
 
@@ -617,6 +627,7 @@ class File:
 
 
 class Friend:
+    @staticmethod
     def get_friend_requests_count(cookie_user_id):
         if cookie_user_id is None: return 0
         try:
@@ -634,6 +645,7 @@ class Friend:
         finally:
             con.close()
 
+    @staticmethod
     def get_friends_count(cookie_user):
         if cookie_user is None: return 0
         try:
@@ -651,6 +663,7 @@ class Friend:
         finally:
             con.close()
 
+    @staticmethod
     def get_friend_requests(cookie_user):
         if cookie_user is None: return 0
 
@@ -669,6 +682,7 @@ class Friend:
         finally:
             con.close()
 
+    @staticmethod
     def get_friend_request_status(cookie_user_id: int, user_id):
         if not cookie_user_id: return FriendStatus.UNAUTHED.value
         if cookie_user_id == user_id: return FriendStatus.SAME_PAGE.value  # Сидим на своей странице
@@ -697,6 +711,7 @@ class Friend:
         finally:
             con.close()
 
+    @staticmethod
     def send_friend_request(request):
         if request.session.get("id"):
             cookie_user_id = (int)(request.session.get("id"))
@@ -737,6 +752,7 @@ class Friend:
             con.close()
         return JsonResponse({'message': Response.WRONG_INPUT.value})
 
+    @staticmethod
     def cancel_friend_request(request):
         if request.session.get("id"):
             cookie_user_id = (int)(request.session.get("id"))
@@ -766,6 +782,7 @@ class Friend:
         finally:
             con.close()
 
+    @staticmethod
     def accept_friend_request(request):
         if request.session.get("id"):
             cookie_user_id = (int)(request.session.get("id"))
@@ -798,6 +815,7 @@ class Friend:
         finally:
             con.close()
 
+    @staticmethod
     def delete_friend(request):
         if request.session.get("id"):
             cookie_user_id = (int)(request.session.get("id"))
@@ -827,6 +845,7 @@ class Friend:
         finally:
             con.close()
 
+    @staticmethod
     def get_friends(cookie_user):
         if not cookie_user: return None
 
@@ -862,6 +881,7 @@ class Friend:
         finally:
             con.close()
 
+    @staticmethod
     def get_friends_user_page(cookie_user, limit):
         if not cookie_user: return None
 
@@ -896,6 +916,7 @@ class Friend:
         finally:
             con.close()
 
+    @staticmethod
     def __parse_friend_requests(friend_requests, cookie_user_id):
         result = list()
         for friend_request in friend_requests:
@@ -915,6 +936,7 @@ class Friend:
 
 
 class Forum:
+    @staticmethod
     def create_forum(request):
         if request.session.get("id"):
             cookie_user_id = int(request.session.get("id"))
@@ -984,6 +1006,7 @@ class Forum:
         finally:
             con.close()
 
+    @staticmethod
     def __parse_forums(forums):
         result = list()
         for forum in forums:
@@ -1006,6 +1029,7 @@ class Forum:
             result.append(tmp)
         return result
 
+    @staticmethod
     def __parse_forum_info(forum):
         id = forum[0]
         creatorId = forum[1]
@@ -1026,6 +1050,7 @@ class Forum:
         res["avatar"] = avatar
         return res
 
+    @staticmethod
     def __parse_messages(messages):
         result = list()
         for message in messages:
@@ -1047,6 +1072,7 @@ class Forum:
             result.append(tmp)
         return result
 
+    @staticmethod
     def get_messages(id):
         try:
             con = sqlite3.connect(DB_NAME)
@@ -1066,6 +1092,7 @@ class Forum:
         finally:
             con.close()
 
+    @staticmethod
     def send_message(request):
         if request.session.get("id"):
             cookie_user_id = int(request.session.get("id"))
@@ -1116,6 +1143,7 @@ class Forum:
         finally:
             con.close()
 
+    @staticmethod
     def delete_message(request):
         if request.session.get("id"):
             cookie_user_id = (int)(request.session.get("id"))
@@ -1385,6 +1413,7 @@ class Dialog:
             con.close()
         return result
 
+    @staticmethod
     def __parse_dialogs(dialogs, cookie_user_id):
         result = list()
         for dialog in dialogs:
@@ -1565,6 +1594,7 @@ class Dialog:
             con.close()
         return result
 
+    @staticmethod
     def __parse_dialog_messages(messages):
         result = list()
         for message in messages:
