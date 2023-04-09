@@ -27,3 +27,33 @@ function SetPageLike(btn,user_id_){
 					}
 			});
 }
+
+function SetWallMessageLike(btn,message_id_){
+		const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+		$(btn).attr("disabled", "disabled");
+
+		let dataToSend = {
+					message_id:message_id_
+					};
+
+		$.ajax({
+				url: 'api/set_wall_message_like',
+				data: dataToSend,
+				type: "POST",
+				headers: {'X-CSRFToken': csrftoken},
+				success: function (data, textStatus) {
+                    if (data.message != -1){
+                        if (data.message == 0){
+                            $("#wall_message_likes_count_span").html("");
+                        }else{
+                            $("#wall_message_likes_count_span").html(data.message);
+                        }
+                        $(btn).removeAttr("disabled");
+
+                    }
+				},
+				fail: function (data, textStatus) {
+						$(btn).removeAttr("disabled");
+					}
+			});
+}
