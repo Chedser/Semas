@@ -15,6 +15,7 @@
 		<script src="{% static 'js/items_controller.js' %}"></script>
 		<script src="{% static 'js/friends.js' %}"></script>
 		<script src="{% static 'js/forum.js' %}"></script>
+		<script src="{% static 'js/likes.js' %}"></script>
 	{% endif %}
 	<style>
 		html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
@@ -71,6 +72,16 @@
 					  onclick="DeleteForumMessage(this,{{ message.id }},{{ message.sender_id }})"
 					  class="w3-right w3-text-grey delete_msg_span">x</span>
 			{% endif %}
+					{% if cookie_user_id and cookie_user_id != message.sender_id and  user_is_blocked == 0 %}
+						<img  class="w3-center like" src="{% static 'images/like.png' %}" onclick="SetForumMessageLike(this,{{ message.id }})" />
+					{% else %}
+						<img  class="w3-center like" src="{% static 'images/like.png' %}" />
+					{% endif %}
+					{% if message.likes_count %}
+						<span id="forum_message_likes_count_span{{ message.id }}">{{ message.likes_count }}</span>
+					{% else %}
+						<span id="forum_message_likes_count_span{{ message.id }}"></span>
+					{% endif %}
       </div>
 		
 		{% empty %}

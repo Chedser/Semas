@@ -57,3 +57,33 @@ function SetWallMessageLike(btn,message_id_){
 					}
 			});
 }
+
+function SetForumMessageLike(btn,message_id_){
+		const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+		$(btn).attr("disabled", "disabled");
+
+		let dataToSend = {
+					message_id:message_id_
+					};
+
+		$.ajax({
+				url: '../api/set_forum_message_like',
+				data: dataToSend,
+				type: "POST",
+				headers: {'X-CSRFToken': csrftoken},
+				success: function (data, textStatus) {
+                    if (data.message != -1){
+                        if (data.message == 0){
+                            $("#forum_message_likes_count_span" + message_id_).html("");
+                        }else{
+                            $("#forum_message_likes_count_span" + message_id_).html(data.message);
+                        }
+                        $(btn).removeAttr("disabled");
+
+                    }
+				},
+				fail: function (data, textStatus) {
+						$(btn).removeAttr("disabled");
+					}
+			});
+}

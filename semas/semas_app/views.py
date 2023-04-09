@@ -148,6 +148,7 @@ def forum(request, id):
     forum_info = Forum.get_forum_info(id)
 
     if not forum_info: return redirect("/forum")
+
     messages = Forum.get_messages(id)
     cookie_user_id = None
     user_is_blocked = None
@@ -417,6 +418,10 @@ def set_wall_message_like(request):
     if request.method == "POST":
         return WallMessageLike.set_wall_message_like(request)
 
+@never_cache
+def set_forum_message_like(request):
+    if request.method == "POST":
+        return ForumMessageLike.set_forum_message_like(request)
 
 @never_cache
 def find_user_by_nick(request):

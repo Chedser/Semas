@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/su/exit', views.exit_su),
     path('api/cancel_friend_request', views.cancel_friend_request),
     path('api/find_user_by_nick', views.find_user_by_nick),
+    path('api/set_forum_message_like', views.set_forum_message_like),
 
 
     path('user/<int:id>', views.user),
