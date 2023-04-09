@@ -1036,6 +1036,8 @@ class Forum:
             avatar = forum[5]
             avatar = User.get_avatar_link(avatar, creatorId)
             nick = forum[6]
+            likes_count = ForumMainMessageLike.get_forum_main_message_likes_count(id)
+
             tmp = dict()
             tmp["id"] = id
             tmp["creator_id"] = creatorId
@@ -1044,6 +1046,7 @@ class Forum:
             tmp["date"] = date
             tmp["nick"] = nick
             tmp["avatar"] = avatar
+            tmp["likes_count"] = likes_count
             result.append(tmp)
         return result
 
@@ -1896,6 +1899,100 @@ class ForumMessageLike:
             else:
                 cur.execute(f"DELETE FROM  forum_message_like WHERE messageId=? AND likerId=?",
                             (message_id, cookie_user_id))
+            con.commit()
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), ForumMessageLike.__update_forum_message_like.__name__)
+            result = False
+        finally:
+            con.close()
+        return result
+
+
+#СДЕЛАТЬ
+class ForumMainMessageLike:
+    @staticmethod
+    def get_forum_main_message_likes_count(forum_id):
+        if not forum_id: return None
+
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            likes_count = cur.execute(f"SELECT COUNT(*) FROM forum_main_message_like WHERE id=?", (forum_id,)).fetchall()[0][0]
+
+            result = likes_count
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), ForumMainMessageLike.get_forum_main_message_likes_count.__name__)
+            result = None
+        finally:
+            con.close()
+        return result
+
+    @staticmethod
+    def set_forum_main_message_like(request):
+        if request.session.get("id"):
+            cookie_user_id = int(request.session.get("id"))
+        else:
+            return JsonResponse({'message': -1})
+
+        forum_id = request.POST.get('forum_id')
+
+        if not forum_id: return JsonResponse({'message': -1})
+
+        forum_id = (int)(forum_id)
+
+        User.update_time_of_last_action(cookie_user_id)
+
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+
+            forum_exists = cur.execute(f"SELECT COUNT(*) FROM forum WHERE id=?",
+                        (forum_id,)).fetchall()[0][0]
+
+            if not forum_exists: return JsonResponse({'message': -1})
+
+            likes_count_from_user = cur.execute(f"SELECT COUNT(*) FROM forum_main_message_like WHERE id=? AND likerId=?",
+                                                (forum_id, cookie_user_id)).fetchall()[0][0]
+            likes_count_total = ForumMainMessageLike.get_forum_main_message_likes_count(forum_id)
+            insert = True
+            if likes_count_from_user:
+                likes_count_total = likes_count_total - 1
+                insert = False
+            else:
+                likes_count_total = likes_count_total + 1
+
+            if ForumMainMessageLike.__update_forum_main_message_like(forum_id, cookie_user_id, insert):
+                return JsonResponse({'message': likes_count_total})
+            else:
+                return JsonResponse({'message': -1})
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), ForumMainMessageLike.set_forum_main_message_like.__name__)
+            return JsonResponse({'message': -1})
+        finally:
+            con.close()
+
+    @staticmethod
+    def __update_forum_main_message_like(forum_id, cookie_user_id, insert):
+        result = True
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+
+            if insert:
+                cur.execute(f"INSERT INTO forum_main_message_like(forumId,likerId,u_time) VALUES (?,?,?)",
+                            (forum_id, cookie_user_id, (int)(time.time())))
+            else:
+                cur.execute(f"DELETE FROM  forum_main_message_like WHERE forumId=? AND likerId=?",
+                            (forum_id, cookie_user_id))
             con.commit()
 
         except sqlite3.Error as error:

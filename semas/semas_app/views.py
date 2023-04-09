@@ -424,6 +424,11 @@ def set_forum_message_like(request):
         return ForumMessageLike.set_forum_message_like(request)
 
 @never_cache
+def set_forum_main_message_like(request):
+    if request.method == "POST":
+        return ForumMainMessageLike.set_forum_main_message_like(request)
+
+@never_cache
 def find_user_by_nick(request):
     if request.method == "POST":
         return User.find_user_by_nick(request)
