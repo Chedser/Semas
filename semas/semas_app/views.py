@@ -265,7 +265,6 @@ def reg(request):
     if request.method == "POST":
         return Reg.reg(request)
 
-
 @never_cache
 def auth(request):
     if request.method == "POST":
@@ -412,6 +411,11 @@ def dialog_send_inner(request):
 def set_page_like(request):
     if request.method == "POST":
         return UserPageLike.set_page_like(request)
+
+@never_cache
+def set_wall_message_like(request):
+    if request.method == "POST":
+        return WallMessageLike.set_wall_message_like(request)
 
 
 @never_cache
