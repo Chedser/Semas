@@ -151,7 +151,7 @@ class MessageWall:
 
             cur = con.cursor()
 
-            cur.execute("INSERT INTO wall_message (senderId, receiverId, message, u_time)\
+            cur.execute("INSERT INTO wall_message (senderId, receiverId, text, u_time)\
                   VALUES (?,?,?,?)", (cookie_user_id, receiver_id, message, (int)(time.time())))
             con.commit()
 
@@ -219,7 +219,7 @@ class MessageWall:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT wall_message.id AS id, senderId, message, user.nick AS nick, user.avatar AS avatar, date FROM wall_message \
+            result = cur.execute(f"SELECT wall_message.id AS id, senderId, text, user.nick AS nick, user.avatar AS avatar, date FROM wall_message \
              INNER JOIN user ON wall_message.senderId=user.id "
                                  f"WHERE receiverId=? ORDER BY date DESC", (user_id,)).fetchall()
             return MessageWall.__parse_wall_messages(result)
@@ -237,7 +237,7 @@ class MessageWall:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT id, senderId, receiverId, message, date FROM wall_message  WHERE id=?",
+            result = cur.execute(f"SELECT id, senderId, receiverId, text, date FROM wall_message  WHERE id=?",
                                  (id,)).fetchall()
             if not len(result): return None
 
@@ -922,7 +922,7 @@ class Forum:
                 cur.execute(f"SELECT COUNT(*) FROM forum WHERE name_lower=?", (topic_modified,)).fetchall()[0][0]
             if forum_count > 0: return JsonResponse({'message': ForumCreateResponse.FORUM_EXISTS.value})
 
-            cur.execute("INSERT INTO forum (creatorId, name, name_lower, message, u_time)\
+            cur.execute("INSERT INTO forum (creatorId, name, name_lower, text, u_time)\
                           VALUES (?,?,?,?,?)", (cookie_user_id, topic, topic_modified, message, (int)(time.time())))
             con.commit()
 
@@ -948,7 +948,7 @@ class Forum:
 
             cur = con.cursor()
 
-            result = cur.execute("SELECT forum.id AS id, creatorId, name, message, date, user.avatar AS avatar, user.nick AS nick \
+            result = cur.execute("SELECT forum.id AS id, creatorId, name, text, date, user.avatar AS avatar, user.nick AS nick \
              FROM forum INNER JOIN user ON forum.creatorId=user.id ORDER BY date DESC").fetchall()
 
             return Forum.__parse_forums(result)
@@ -1026,7 +1026,7 @@ class Forum:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT forum_message.id AS id, senderId, message, date, user.avatar AS avatar, user.nick AS nick \
+            result = cur.execute(f"SELECT forum_message.id AS id, senderId, text, date, user.avatar AS avatar, user.nick AS nick \
                  FROM forum_message INNER JOIN user ON forum_message.senderId=user.id WHERE forumId=?",
                                  (id,)).fetchall()
 
@@ -1061,7 +1061,7 @@ class Forum:
 
             cur = con.cursor()
 
-            cur.execute("INSERT INTO forum_message (senderId, forumId, message, u_time)\
+            cur.execute("INSERT INTO forum_message (senderId, forumId, text, u_time)\
                                      VALUES (?,?,?,?)",
                         (cookie_user_id, forum_id, message, (int)(time.time())))
             con.commit()
@@ -1080,7 +1080,7 @@ class Forum:
 
             cur = con.cursor()
 
-            result = cur.execute(f"SELECT forum.id AS id,  creatorId, name, message, forum.date AS date, user.avatar AS avatar, user.nick AS nick  \
+            result = cur.execute(f"SELECT forum.id AS id,  creatorId, name, text, forum.date AS date, user.avatar AS avatar, user.nick AS nick  \
                     FROM forum INNER JOIN user ON forum.creatorId=user.id WHERE forum.id=?", (id,)).fetchall()
             if not len(result): return None
             result = result[0]
@@ -1150,7 +1150,7 @@ class Dialog:
 
             lastrowid = cur.lastrowid
 
-            cur.execute("INSERT INTO dialog_message (userId, dialogId, message, u_time)\
+            cur.execute("INSERT INTO dialog_message (userId, dialogId, text, u_time)\
                                                  VALUES (?,?,?,?)",
                         (sender_id, lastrowid, message, (int)(time.time())))
             con.commit()
@@ -1212,7 +1212,7 @@ class Dialog:
                 f"UPDATE dialog SET senderId=?, receiverId=?, last_message=?, is_readen=0, u_time=? WHERE id=?",
                 (sender_id, receiver_id, message, (int)(time.time()), dialog_id))
             con.commit()
-            cur.execute("INSERT INTO dialog_message (userId, dialogId, message, u_time)\
+            cur.execute("INSERT INTO dialog_message (userId, dialogId, text, u_time)\
                                                          VALUES (?,?,?,?)",
                         (sender_id, dialog_id, message, (int)(time.time())))
             con.commit()
@@ -1411,7 +1411,7 @@ class Dialog:
                 f"UPDATE dialog SET senderId=?, receiverId=?, last_message=?, is_readen=?, u_time=? WHERE id=?",
                 (sender_id, receiver_id, message, is_readen, (int)(time.time()), dialog_id))
             con.commit()
-            cur.execute("INSERT INTO dialog_message (userId, dialogId, message, u_time)\
+            cur.execute("INSERT INTO dialog_message (userId, dialogId, text, u_time)\
                                                             VALUES (?,?,?,?)",
                         (sender_id, dialog_id, message, (int)(time.time())))
             con.commit()
@@ -1523,7 +1523,7 @@ class Dialog:
 
             cur = con.cursor()
 
-            sql = f"SELECT dialog_message.id AS id, userId, message, date, user.nick AS nick, user.avatar AS avatar " \
+            sql = f"SELECT dialog_message.id AS id, userId, text, date, user.nick AS nick, user.avatar AS avatar " \
                   f"FROM dialog_message " \
                   f"INNER JOIN user ON user.id=userId " \
                   f"WHERE dialogId=? " \
