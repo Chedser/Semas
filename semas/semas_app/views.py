@@ -328,7 +328,9 @@ def block_user(request):
 def exit(request):
     if request.method == "POST" and request.session["id"]:
         del request.session["id"]
-        response = render(request, 'index.html')
+        response = redirect("/index")
+        response.delete_cookie('csrftoken')
+        response.delete_cookie('sessionid')
         return response
 
 
