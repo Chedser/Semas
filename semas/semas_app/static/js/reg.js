@@ -57,3 +57,10 @@ function reg(){
 
 	})
 }
+
+$(document).ready(function(){
+ auth();
+ reg();
+});
+
+

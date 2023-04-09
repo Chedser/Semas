@@ -4,8 +4,8 @@ import time
 
 class Recaptcha:
     @staticmethod
-    def add(csrftoken):
-        if not csrftoken: return None
+    def add(request):
+
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -33,9 +33,9 @@ class Recaptcha:
             result = cur.execute(f"SELECT csrftoken FROM recaptcha "
                                  f"WHERE csrftoken=?", (csrftoken,)).fetchall()
 
-            if not len(result):
+            if len(result):
                 cur.execute(f"UPDATE recaptcha SET is_used=1, u_time=? WHERE csrftoken=?",
-                            (int(time.time())), csrftoken)
+                            (int(time.time()), csrftoken))
 
             con.commit()
 
@@ -56,18 +56,15 @@ class Recaptcha:
 
             result = None
 
-            if len(result):
-                result = is_used[0]
-
-            con.commit()
-
-            return result
+            if len(is_used):
+                result = is_used[0][0]
 
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
         finally:
             con.close()
+        return result
 
 
 

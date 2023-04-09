@@ -82,11 +82,9 @@ class Reg:
         nick = request.POST.get('nick').strip()
         sex = request.POST.get('sex')
         password = request.POST.get('pass').strip()
-        csrftoken = request.COOKIES.get("csrftoken")
         session = request.session.get("id")
 
         if session: del session
-
         if len(login) == 0 or \
                 len(nick) == 0 or \
                 len(sex) == 0 or \
@@ -98,10 +96,6 @@ class Reg:
 
         try:
 
-            if Recaptcha.is_used(csrftoken):
-                return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
-
-
             con = sqlite3.connect(DB_NAME)
 
             cur = con.cursor()
@@ -112,15 +106,13 @@ class Reg:
                 hash = get_hash(password)
 
                 cur.execute("INSERT INTO user (login,password,nick,sex,u_time_of_last_action) \
-                 VALUES (?,?,?,?,?)", (login, hash, nick, sex,(int)(time.time())))
+                 VALUES (?,?,?,?,?)", (login, hash, nick, sex, (int)(time.time())))
                 con.commit()
                 last_id = cur.execute(f"SELECT MAX(id) FROM user WHERE login=?", (login,)).fetchall()
 
                 file_path = f"semas_app/static/images/avatars/{last_id[0][0]}"
                 if not os.path.exists(file_path):
                     os.mkdir(file_path)
-
-                Recaptcha.update(csrftoken)
 
         except sqlite3.Error as error:
             con.rollback()
@@ -245,7 +237,8 @@ class MessageWall:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT id, senderId, receiverId, message, date FROM wall_message  WHERE id=?", (id,)).fetchall()
+            result = cur.execute(f"SELECT id, senderId, receiverId, message, date FROM wall_message  WHERE id=?",
+                                 (id,)).fetchall()
             if not len(result): return None
 
             return MessageWall.__parse_wall_message(result[0])
@@ -537,7 +530,7 @@ class User:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(
-                        f"SELECT id, nick, avatar FROM user WHERE nick LIKE '{nick}%' AND NOT is_blocked ORDER BY length(nick)").fetchall()
+                f"SELECT id, nick, avatar FROM user WHERE nick LIKE '{nick}%' AND NOT is_blocked ORDER BY length(nick)").fetchall()
 
             result = User.__parse_all_users(result)
 
@@ -549,7 +542,6 @@ class User:
             return JsonResponse({"message": -1})
         finally:
             con.close()
-
 
 
 class File:
@@ -609,6 +601,7 @@ class File:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         finally:
             con.close()
+
 
 class Friend:
     def get_friend_requests_count(cookie_user_id):
@@ -897,6 +890,7 @@ class Friend:
             result.append(tmp)
         return result
 
+
 class Forum:
     def create_forum(request):
         if request.session.get("id"):
@@ -925,7 +919,7 @@ class Forum:
             cur = con.cursor()
 
             forum_count = \
-            cur.execute(f"SELECT COUNT(*) FROM forum WHERE name_lower=?", (topic_modified,)).fetchall()[0][0]
+                cur.execute(f"SELECT COUNT(*) FROM forum WHERE name_lower=?", (topic_modified,)).fetchall()[0][0]
             if forum_count > 0: return JsonResponse({'message': ForumCreateResponse.FORUM_EXISTS.value})
 
             cur.execute("INSERT INTO forum (creatorId, name, name_lower, message, u_time)\
@@ -1571,6 +1565,7 @@ class Dialog:
             result.append(tmp)
         return result
 
+
 class UserPageLike:
     @staticmethod
     def get_page_likes_count(user_id):
@@ -1659,9 +1654,10 @@ class UserPageLike:
             con.close()
         return result
 
+
 class Notice:
     @staticmethod
-    def get_notice(cookie_user_id = None):
+    def get_notice(cookie_user_id=None):
         if cookie_user_id:
             cookie_user_id = int(cookie_user_id)
             User.update_time_of_last_action(cookie_user_id)
@@ -1697,7 +1693,7 @@ class Notice:
             tmp["type"] = type
 
             if type == NoticeType.SELF_PAGE_MESSAGE.value or \
-                type == NoticeType.OTHER_USER_PAGE_MESSAGE.value:
+                    type == NoticeType.OTHER_USER_PAGE_MESSAGE.value:
                 wall_message = MessageWall.get_wall_message_by_id(entity_id)
                 sender_id = wall_message["sender_id"]
                 sender_info = User.get_info(sender_id)
@@ -1722,7 +1718,6 @@ class Notice:
                 tmp["message"] = message
 
             if type == NoticeType.CREATE_FORUM.value:
-
                 forum_info = Forum.get_forum_info(entity_id)
                 id = forum_info["id"]
                 creatorId = forum_info["creator_id"]
@@ -1742,6 +1737,7 @@ class Notice:
             tmp["date"] = date
             result.append(tmp)
         return result
+
 
 class Superuser:
 

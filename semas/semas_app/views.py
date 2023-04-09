@@ -4,17 +4,11 @@ from django.shortcuts import render, redirect
 from .models import *
 from django.views.decorators.cache import never_cache
 from .enums import *
-from .security  import *
-
-SECRET_KEY = f"b5b4e3f02b5c14563da0a8377f099f19cd8d02cb0d3167c4e81dd4436532" \
-             f"0895e13213d519b15322e64f30c685d0a1fd6943e381abeed19cbd5f5b15381151a6"
-
 
 @never_cache
 def index(request):
     if request.method != "GET": return redirect("/index")
-    csrftoken = request.COOKIES.get("csrftoken")
-    Recaptcha.add(csrftoken)
+
     if request.session.get("id"):
         cookie_user_id = int(request.session.get("id"))
         return redirect(f"user/{cookie_user_id}")
@@ -23,12 +17,12 @@ def index(request):
 
 @never_cache
 def user(request, id):
-    if request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>")
+    if request.method != "GET": return redirect("/")
     is_authed_user = False
     is_login_user_page = False
     user_info = User.get_info(id)
 
-    if (not id) or (not user_info): return HttpResponse("<h1>Страница не найдена: 404</h1>")
+    if (not id) or (not user_info): return redirect("/")
 
     cookie_user_id = None
     friend_status = None
@@ -332,10 +326,7 @@ def exit(request):
     if request.method == "POST" and request.session["id"]:
         del request.session["id"]
         response = redirect("/index")
-        response.delete_cookie('csrftoken')
-        response.delete_cookie('sessionid')
         return response
-
 
 @never_cache
 def exit_su(request):
