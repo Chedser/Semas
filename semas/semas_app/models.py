@@ -1061,6 +1061,8 @@ class Forum:
         avatar = User.get_avatar_link(avatar, creatorId)
         nick = forum[6]
 
+        likes_count = ForumMainMessageLike.get_forum_main_message_likes_count(id)
+
         res = dict()
         res["id"] = id
         res["creator_id"] = creatorId
@@ -1069,6 +1071,7 @@ class Forum:
         res["date"] = date
         res["nick"] = nick
         res["avatar"] = avatar
+        res["likes_count"] = likes_count
         return res
 
     @staticmethod
@@ -1920,7 +1923,7 @@ class ForumMainMessageLike:
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            likes_count = cur.execute(f"SELECT COUNT(*) FROM forum_main_message_like WHERE id=?", (forum_id,)).fetchall()[0][0]
+            likes_count = cur.execute(f"SELECT COUNT(*) FROM forum_main_message_like WHERE forumId=?", (forum_id,)).fetchall()[0][0]
 
             result = likes_count
 
@@ -1957,7 +1960,7 @@ class ForumMainMessageLike:
 
             if not forum_exists: return JsonResponse({'message': -1})
 
-            likes_count_from_user = cur.execute(f"SELECT COUNT(*) FROM forum_main_message_like WHERE id=? AND likerId=?",
+            likes_count_from_user = cur.execute(f"SELECT COUNT(*) FROM forum_main_message_like WHERE forumId=? AND likerId=?",
                                                 (forum_id, cookie_user_id)).fetchall()[0][0]
             likes_count_total = ForumMainMessageLike.get_forum_main_message_likes_count(forum_id)
             insert = True
