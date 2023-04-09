@@ -8,6 +8,7 @@ from settings import *
 import os
 import re
 import html
+from .security import *
 
 
 class Message:
@@ -81,6 +82,10 @@ class Reg:
         nick = request.POST.get('nick').strip()
         sex = request.POST.get('sex')
         password = request.POST.get('pass').strip()
+        csrftoken = request.COOKIES.get("csrftoken")
+        session = request.session.get("id")
+
+        if session: del session
 
         if len(login) == 0 or \
                 len(nick) == 0 or \
@@ -92,6 +97,11 @@ class Reg:
         response = Response.SUCCESS.value
 
         try:
+
+            if Recaptcha.is_used(csrftoken):
+                return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+
+
             con = sqlite3.connect(DB_NAME)
 
             cur = con.cursor()
@@ -109,6 +119,8 @@ class Reg:
                 file_path = f"semas_app/static/images/avatars/{last_id[0][0]}"
                 if not os.path.exists(file_path):
                     os.mkdir(file_path)
+
+                Recaptcha.update(csrftoken)
 
         except sqlite3.Error as error:
             con.rollback()

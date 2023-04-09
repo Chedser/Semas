@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from .models import *
 from django.views.decorators.cache import never_cache
 from .enums import *
+from .security  import *
 
 SECRET_KEY = f"b5b4e3f02b5c14563da0a8377f099f19cd8d02cb0d3167c4e81dd4436532" \
              f"0895e13213d519b15322e64f30c685d0a1fd6943e381abeed19cbd5f5b15381151a6"
@@ -12,6 +13,8 @@ SECRET_KEY = f"b5b4e3f02b5c14563da0a8377f099f19cd8d02cb0d3167c4e81dd4436532" \
 @never_cache
 def index(request):
     if request.method != "GET": return redirect("/index")
+    csrftoken = request.COOKIES.get("csrftoken")
+    Recaptcha.add(csrftoken)
     if request.session.get("id"):
         cookie_user_id = int(request.session.get("id"))
         return redirect(f"user/{cookie_user_id}")
