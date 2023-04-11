@@ -106,8 +106,9 @@ textarea{resize:none;}
 		{% if is_authed_user and not user_info.is_blocked %}
 		<div class="w3-content w3-right">
 			<div class="dropdown-content" id="dropdown_menu">
-    			<a href="/black_list" onclick="">Черный список</a>
-				<span class="exit_span" onclick="Exit()">Выход</span>
+    			<a href="/change_pass">Сменить пароль</a>
+				<a href="/black_list">Черный список</a>
+				<span class="/exit_span" onclick="Exit()">Выход</span>
 			</div>
 			<div class="container dropbtn" onclick="ToggleDropdown(this)">
   				<div class="bar1"></div>
@@ -162,7 +163,6 @@ textarea{resize:none;}
 		{% empty %}
 		<h6 class="w3-opacity w3-center">Сообщений пока что нет</h6>
 		{% endfor %}
-
 			  {% endif %} {# if not user_info.is_blocked #}
 	  <!-- End Messages Container -->
 	  </div>

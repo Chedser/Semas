@@ -246,7 +246,7 @@ def dialogs(request):
 
 @never_cache
 def notice(request):
-    if request.method != "GET": return redirect("/index")
+    if request.method != "GET": return redirect("/")
     cookie_user_id = None
     active_dialogs_count = None
     friend_requests_count = None
@@ -261,6 +261,20 @@ def notice(request):
     data = {"notices": notice, "notices_count": notices_count, "cookie_user_id": cookie_user_id, \
             "active_dialogs_count": active_dialogs_count, " friend_requests_count":  friend_requests_count}
     return render(request, "notice.html", context=data)
+
+@never_cache
+def change_pass(request):
+    if request.method != "GET" or not request.session.get("id"): return redirect("/")
+
+    cookie_user_id = int(request.session.get("id"))
+    active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
+    friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
+    cookie_user_id_is_blocked = User.get_info(cookie_user_id)["is_blocked"]
+
+    data = {"cookie_user_id": cookie_user_id,"cookie_user_id_is_blocked": cookie_user_id_is_blocked, \
+            "active_dialogs_count": active_dialogs_count, " friend_requests_count": friend_requests_count}
+
+    return render(request, "change_pass.html", context=data)
 
 
 # API
@@ -433,5 +447,10 @@ def set_forum_main_message_like(request):
 
 @never_cache
 def find_user_by_nick(request):
+    if request.method == "POST":
+        return User.find_user_by_nick(request)
+
+@never_cache
+def change_pass_api(request):
     if request.method == "POST":
         return User.find_user_by_nick(request)
