@@ -1,57 +1,51 @@
 
 function reg(){
 	
-	$("#reg_form").on("submit", function(event){
+	$("#change_pass_form").on("submit", function(event){
 		event.preventDefault();
-			let login = $("#login_reg").val().trim();
-			let nick = $("#nick_reg").val().trim();
-			let sex = getRadioValue($('input[type="radio"]'));
-			let pass = $("#pass_reg").val().trim();
-			let pass_repeat = $("#pass_repeat_reg").val().trim();
+			let old_pass = $("#old_pass").val().trim();
+			let new_pass = $("#new_pass").val().trim();
+			let new_pass_repeat = $("#new_pass_repeat").val().trim();
 			const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
 			
-			
-			if(login == "" || 
-				pass == "" ||
-				nick == "" ||
-				pass_repeat_reg == ""){
+			if(old_pass == "" ||
+				new_pass == "" ||
+				new_pass_repeat == ""){
 				alert("Пусто");
 				return;}
 		
-		if(pass != pass_repeat){
+		if(new_pass != new_pass_repeat){
 			alert("Пароли не совпадают");
 			return;
 		}
+
+		if(old_pass === new_pass){
+		    alert("Старый и новый пароли совпадают");
+		    return;
+		}
 		
-		$("#reg_btn").attr("disabled", "disabled");
-		
-		let dataToSend = {
-					login: login,
-					nick:nick,
-					sex: sex,
-					pass: pass};
-				
+		$("#change_pass_btn").attr("disabled", "disabled");
+
+
 	$.ajax({
-				url: 'api/reg',             // указываем URL и
-				data: dataToSend,                // Данные для отправки
+				url: '../api/change_pass',
+				data: {pass: new_pass},
 				type: "POST",
 				headers: {'X-CSRFToken': csrftoken},
 				success: function (data, textStatus) { 
-				switch (data.message){
-						case 0:
-								alert(nick + ", Вы зарегистрированы! Теперь авторизуйтесь");
-								window.location.reload();break;
-						case 1: alert("Пользователь существует"); break;
-						case 2: alert("Неверный ввод"); break;
-						case 3: alert("Пользователь существует"); break;
-						case 4: alert("Неизвестная ошибка"); break;
-						
-					}
-				$("#reg_btn").first().removeAttr("disabled");
+                    if(data.message == 0){
+                        $("#old_pass").val("");
+                        $("#new_pass").val("");
+                        $("#new_pass_repeat").val("");
+                        alert("Пароль успешно изменен");
+                    }else{
+                        alert("Неизвестная ошибка");
+                    }
+				$("#change_pass_btn").removeAttr("disabled");
 				},
-				fail: function (data, textStatus) { // вешаем свой обработчик на функцию success
-						alert("Неизвестная ошибка");
-						$("#reg_btn").first().removeAttr("disabled");
+				fail: function (data, textStatus) {
+						$("#change_pass_btn").removeAttr("disabled");
 					}
 			});
 
@@ -59,7 +53,6 @@ function reg(){
 }
 
 $(document).ready(function(){
- auth();
  reg();
 });
 

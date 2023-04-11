@@ -567,6 +567,36 @@ class User:
         finally:
             con.close()
 
+    @staticmethod
+    def change_pass(request):
+        if not request.session.get("id") or not request.POST.get("pass"):
+            return JsonResponse({"message": Response.WRONG_INPUT.value})
+
+        cookie_user_id = int(request.session.get("id"))
+        pass_ = request.POST.get("pass").strip()
+
+        if not len(pass_): return JsonResponse({"message": Response.WRONG_INPUT.value})
+
+        hash = get_hash(pass_)
+
+        result = Response.SUCCESS.value
+
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            cur.execute(f"UPDATE user SET password=? WHERE id=?", (hash, cookie_user_id))
+            con.commit()
+        except sqlite3.Error as error:
+            con.rollback()
+            result = Response.UNKNOWN_ERROR.value
+            print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), User.change_pass.__name__)
+        finally:
+            con.close()
+        return JsonResponse({"message": result})
+
+
+
 class File:
     # расширения файлов, которые разрешено загружать
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}

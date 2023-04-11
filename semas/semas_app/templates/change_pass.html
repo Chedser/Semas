@@ -12,7 +12,7 @@
 <link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
 	{% if cookie_user_id and not user_info.is_blocked %}
 	<script src="{% static 'js/jQuery.min.js' %}"></script>
-	<script src="{% static 'js/change_pass.js' %}"></script>
+	<script src="{% static 'js/pass.js' %}"></script>
 {% endif %}
 <style>
 	html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
@@ -26,13 +26,13 @@
 {% endif %}
 <h1 class="w3-center">Смена пароля</h1>
 <div class = "w3-content w3-white w3-round w3-border-light-blue w3-center" style = "max-width:500px; padding-bottom: 40px;">
-<form class = "w3-panel  w3-padding" id="wall_form">
+<form class = "w3-panel  w3-padding" id="change_pass_form">
 		<input type="password" class="w3-input w3-border w3-margin-bottom" id="old_pass" maxlength="30"  placeholder="Старый пароль"  required />
 		<input type="password" class="w3-input w3-border w3-margin-bottom" id="new_pass" maxlength="30"  placeholder="Новый пароль"  required />
 		<input type="password" class="w3-input w3-border" id="new_pass_repeat" maxlength="30"  placeholder="Повтор"  required />
-		<input type = "button"
+		<input type = "submit"
 			   class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center"
-			   style = "width:100%" id="find_user_by_link_btn" onclick="FindUserByLink()" value = "OK">
+			   style = "width:100%" id="change_pass_btn" value = "OK">
 	</form>
 
 </div>

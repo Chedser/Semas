@@ -305,7 +305,7 @@ def find_user_by_link_su(request):
 
 @never_cache
 def find_user_by_link_for_block(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         result = User.find_user_for_block(request)
         return result
 
@@ -333,21 +333,21 @@ def delete_forum_su(request):
 
 @never_cache
 def block_user(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         result = User.block_user(request)
         return result
 
 
 @never_cache
 def exit(request):
-    if request.method == "POST" and request.session["id"]:
+    if request.method == "POST" and request.session.get("id"):
         del request.session["id"]
         response = redirect("/index")
         return response
 
 @never_cache
 def exit_su(request):
-    if request.method == "POST" and request.session["su"]:
+    if request.method == "POST" and request.session.get("su"):
         del request.session["su"]
         response = render(request, 'index.html')
         return response
@@ -355,94 +355,94 @@ def exit_su(request):
 
 @never_cache
 def send_wall_message(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return MessageWall.send_wall_message(request)
 
 
 @never_cache
 def delete_wall_message(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return MessageWall.delete_wall_message(request)
 
 
 @never_cache
 def friend_request(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return Friend.send_friend_request(request)
 
 
 @never_cache
 def cancel_friend_request(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return Friend.cancel_friend_request(request)
 
 
 @never_cache
 def accept_friend_request(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return Friend.accept_friend_request(request)
 
 
 @never_cache
 def delete_friend(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return Friend.delete_friend(request)
 
 
 @never_cache
 def change_avatar(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return File.change_avatar(request)
 
 
 @never_cache
 def forum_create(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return Forum.create_forum(request)
 
 
 @never_cache
 def forum_send_message(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return Forum.send_message(request)
 
 
 @never_cache
 def forum_delete_message(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return Forum.delete_message(request)
 
 
 @never_cache
 def dialog_send_outer(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return Dialog.send_outer(request)
 
 
 @never_cache
 def dialog_send_inner(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return Dialog.send_inner(request)
 
 
 @never_cache
 def set_page_like(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return UserPageLike.set_page_like(request)
 
 @never_cache
 def set_wall_message_like(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return WallMessageLike.set_wall_message_like(request)
 
 @never_cache
 def set_forum_message_like(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return ForumMessageLike.set_forum_message_like(request)
 
 @never_cache
 def set_forum_main_message_like(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.session.get("id"):
         return ForumMainMessageLike.set_forum_main_message_like(request)
 
 @never_cache
@@ -452,5 +452,5 @@ def find_user_by_nick(request):
 
 @never_cache
 def change_pass_api(request):
-    if request.method == "POST":
-        return User.find_user_by_nick(request)
+    if request.method == "POST" and request.session.get("id"):
+        return User.change_pass(request)
