@@ -263,7 +263,7 @@ def notice(request):
     return render(request, "notice.html", context=data)
 
 @never_cache
-def change_pass(request):
+def password(request):
     if request.method != "GET" or not request.session.get("id"): return redirect("/")
 
     cookie_user_id = int(request.session.get("id"))
@@ -451,6 +451,6 @@ def find_user_by_nick(request):
         return User.find_user_by_nick(request)
 
 @never_cache
-def change_pass_api(request):
+def change_pass(request):
     if request.method == "POST" and request.session.get("id"):
         return User.change_pass(request)
