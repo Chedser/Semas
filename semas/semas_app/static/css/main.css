@@ -125,8 +125,6 @@ nav a:hover {
   transition: 0.4s;
 }
 
-
-
 .dropdown {
   float: left;
   overflow: hidden;
@@ -152,6 +150,7 @@ nav a:hover {
   display: none;
   position: absolute;
   right:30px;
+  top:45px;
   background-color: #f9f9f9;
   min-width: 160px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);

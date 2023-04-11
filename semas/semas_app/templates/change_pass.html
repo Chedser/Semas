@@ -19,20 +19,20 @@
 	textarea{resize:none;}
 </style>
 </head>
-<body>
+<body class="w3-center">
 {% if cookie_user_id and cookie_user_id_is_blocked == 0 %}
 	{% include "./items/navbar.html" %}
 	{% csrf_token %}
 {% endif %}
 <h1 class="w3-center">Смена пароля</h1>
-<div class = "w3-content w3-white w3-round w3-border-light-blue w3-center" style = "max-width:650px; padding-bottom: 40px;">
+<div class = "w3-content w3-white w3-round w3-border-light-blue w3-center" style = "max-width:500px; padding-bottom: 40px;">
 <form class = "w3-panel  w3-padding" id="wall_form">
-		<textarea class="w3-input w3-border" id="user_link_inpt" rows="1" maxlength="100"  placeholder="Ссылка на пользователя" type="text" required></textarea>
+		<input type="password" class="w3-input w3-border w3-margin-bottom" id="old_pass" maxlength="30"  placeholder="Старый пароль"  required />
+		<input type="password" class="w3-input w3-border w3-margin-bottom" id="new_pass" maxlength="30"  placeholder="Новый пароль"  required />
+		<input type="password" class="w3-input w3-border" id="new_pass_repeat" maxlength="30"  placeholder="Повтор"  required />
 		<input type = "button"
 			   class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center"
 			   style = "width:100%" id="find_user_by_link_btn" onclick="FindUserByLink()" value = "OK">
-			<input type = "button"
-			   class="w3-button w3-indigo w3-hover-teal w3-left w3-khaki" onclick="window.location.reload()" value = "Сброс">
 	</form>
 
 </div>
