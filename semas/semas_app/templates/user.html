@@ -30,7 +30,7 @@ textarea{resize:none;}
 
 <!-- Page Container -->
 <div class="w3-content w3-margin-top" style="max-width:1400px;padding-bottom: 40px;">
-{% if is_authed_user and not user_info.is_blocked %}
+{% if is_authed_user and cookie_user_id_is_blocked == 0 %}
 	{% include "./items/navbar.html" %}
 	{% csrf_token %}
 {% endif %}
