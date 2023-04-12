@@ -2,7 +2,7 @@
 {% load static %}
 <html lang="ru">
 <head>
-<title>Суперпользователь</title>
+<title>Лог</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
@@ -21,43 +21,27 @@
 {% csrf_token %}
 <span class="w3-text-grey w3-left exit_span" onclick="Exit()">Выход</span><br />
 <a href="/admin" class="w3-text-grey w3-right">Пользователи </a><br />
-<h1 class="w3-center">Суперпользователь</h1>
+<a href="/admin/forum" class="w3-text-grey w3-right">Форум </a>
+<h1 class="w3-center">Лог</h1>
 <div class = "w3-content w3-white w3-round w3-border-light-blue w3-center" style = "max-width:650px; padding-bottom:10px;">
-<form class = "w3-panel  w3-padding" id="forum_form">
-		<textarea class="w3-input w3-border" id="forum_link_inpt" rows="1" maxlength="100"  placeholder="Ссылка на форум" type="text" required></textarea>
-		<input type = "button"
-			   class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center"
-			   style = "width:100%" id="find_forum_by_link_btn" onclick="FindForumByLink()" value = "OK">
-			<input type = "button"
-			   class="w3-button w3-indigo w3-hover-teal w3-left w3-khaki" onclick="window.location.reload()" value = "Сброс">
-	</form>
+
 	<hr />
-	<h4>Форум
-		{% if forums_count  %}
-			{{ forums_count }}
-		{% endif %}
-	</h4>
 	<table class="w3-table-all w3-card-4">
     <thead>
 		<tr>
-		  <th></th>
-		  <th></th>
-		  <th></th>
-		  <th></th>
+		  <th>ID</th>
+		  <th>Сообщение</th>
+		  <th>Тип</th>
+		  <th>Дата</th>
 		</tr>
 	</thead>
 	<tbody  id="forums_table">
-	  {% for forum in forums %}
+	  {% for log in logs %}
 			<tr>
-				<td>{{ forum.id }}</td>
-				<td>
-					<a href="/forum/{{ forum.id }}" target="_blank">
-						{{ forum.topic }}
-					</a>
-				</td>
-				<td id="status_tr_{{ forum.id }}">{{ forum.is_blocked }}</td>
-				<td></td>
-				<td><a class="underline" onclick="DeleteForum(this, {{ forum.id }})">Удалить</a></td>
+				<td>{{ log.id }}</td>
+				<td>{{ log.message }}</td>
+				<td>{{ log.type }}</td>
+				<td>{{ log.date }}</td>
 			</tr>
 		{% endfor %}
 	</tbody>

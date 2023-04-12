@@ -10,6 +10,7 @@ urlpatterns = [
     path('admin', views.admin),
     path('restore_pass', views.restore_pass),
     path('admin/forum', views.admin_forum),
+    path('admin/log', views.admin_log),
     path('black_list', views.black_list),
     path('notice', views.notice),
     path('pass', views.password),

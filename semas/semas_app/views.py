@@ -87,6 +87,16 @@ def admin_forum(request):
 
     return render(request, "admin_forum.html", context=data)
 
+def admin_log(request):
+    if not request.session.get("su") or request.method != "GET": return redirect("/su")
+    logs = Superuser.get_logs()
+    logs_count = 0
+    if logs:
+        logs_count = len(logs)
+    data = {"logs": logs, "logs_count": logs_count}
+
+    return render(request, "admin_log.html", context=data)
+
 
 @never_cache
 def black_list(request):

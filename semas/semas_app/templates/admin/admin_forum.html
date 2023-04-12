@@ -20,48 +20,45 @@
 <body>
 {% csrf_token %}
 <span class="w3-text-grey w3-left exit_span" onclick="Exit()">Выход</span><br />
-<a href="/admin/forum" class="w3-text-grey w3-right">Форум</a><br />
+<a href="/admin" class="w3-text-grey w3-right">Пользователи </a><br />
+<a href="/admin/log" class="w3-text-grey w3-right">Лог</a>
 <h1 class="w3-center">Суперпользователь</h1>
 <div class = "w3-content w3-white w3-round w3-border-light-blue w3-center" style = "max-width:650px; padding-bottom:10px;">
-<form class = "w3-panel  w3-padding" id="user_form">
-		<textarea class="w3-input w3-border" id="user_link_inpt" rows="1" maxlength="100"  placeholder="Ссылка на пользователя" type="text" required></textarea>
+<form class = "w3-panel  w3-padding" id="forum_form">
+		<textarea class="w3-input w3-border" id="forum_link_inpt" rows="1" maxlength="100"  placeholder="Ссылка на форум" type="text" required></textarea>
 		<input type = "button"
 			   class="w3-button w3-indigo w3-hover-teal w3-margin-top w3-margin-bottom w3-center"
-			   style = "width:100%" id="find_user_by_link_btn" onclick="FindUserByLink()" value = "OK">
+			   style = "width:100%" id="find_forum_by_link_btn" onclick="FindForumByLink()" value = "OK">
 			<input type = "button"
 			   class="w3-button w3-indigo w3-hover-teal w3-left w3-khaki" onclick="window.location.reload()" value = "Сброс">
 	</form>
 	<hr />
-	<h4>Пользователи
-	{% if users_count  %}
-			{{ users_count }}
+	<h4>Форум
+		{% if forums_count  %}
+			{{ forums_count }}
 		{% endif %}
 	</h4>
 	<table class="w3-table-all w3-card-4">
     <thead>
 		<tr>
-		  <th>ID</th>
-		  <th>Ник</th>
-		  <th>Заблокирован</th>
+		  <th></th>
+		  <th></th>
+		  <th></th>
 		  <th></th>
 		</tr>
 	</thead>
-	<tbody  id="users_table">
-	  {% for user in users %}
+	<tbody  id="forums_table">
+	  {% for forum in forums %}
 			<tr>
-				<td>{{ user.id }}</td>
+				<td>{{ forum.id }}</td>
 				<td>
-					<a href="/user/{{ user.id }}" target="_blank">
-						<img class="w3-circle avatar" src="{% static user.avatar %}" style="height:30px;width:30px" /> {{ user.nick }}
+					<a href="/forum/{{ forum.id }}" target="_blank">
+						{{ forum.topic }}
 					</a>
 				</td>
-				<td id="status_tr_{{ user.id }}">{{ user.is_blocked }}</td>
+				<td id="status_tr_{{ forum.id }}">{{ forum.is_blocked }}</td>
 				<td></td>
-				{% if not user.is_blocked %}
-				<td><a class="underline" onclick="BlockUser(this, {{ user.id }})">Заблокировать</a></td>
-					{% else %}
-				<td><a class="underline" onclick="BlockUser(this, {{ user.id }})">Разблокировать</a></td>
-				{% endif %}
+				<td><a class="underline" onclick="DeleteForum(this, {{ forum.id }})">Удалить</a></td>
 			</tr>
 		{% endfor %}
 	</tbody>
