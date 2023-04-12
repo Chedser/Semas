@@ -104,12 +104,16 @@ class Reg:
                 cur.execute("INSERT INTO user (login,password,nick,sex,u_time_of_last_action) \
                  VALUES (?,?,?,?,?)", (login, hash, nick, sex, (int)(time.time())))
                 con.commit()
-                last_id = cur.execute(f"SELECT MAX(id) FROM user WHERE login=?", (login,)).fetchall()
+                last_id = cur.execute(f"SELECT MAX(id) FROM user WHERE login=?", (login,)).fetchall()[0][0]
 
-                file_path = f"semas_app/static/images/avatars/{last_id[0][0]}"
+                file_path = f"semas_app/static/images/avatars/{last_id}"
                 if not os.path.exists(file_path):
                     os.mkdir(file_path)
                 Log.write_log(f"New user: {nick} {login}", Reg.reg.__name__, LogType.NEW_USER.value)
+
+                cur.execute(f"INSERT INTO notice(entityId, type, u_time) VALUES(?,?,?)", \
+                            (last_id, NoticeType.NEW_USER.value, int(time.time())) )
+                con.commit()
 
         except sqlite3.Error as error:
             con.rollback()
@@ -2024,7 +2028,7 @@ class ForumMainMessageLike:
 
 class Notice:
     @staticmethod
-    def get_notice(cookie_user_id=None):
+    def get_notice(cookie_user_id = None):
         if cookie_user_id:
             cookie_user_id = int(cookie_user_id)
             User.update_time_of_last_action(cookie_user_id)
@@ -2059,7 +2063,7 @@ class Notice:
             tmp["type"] = type
 
             if type == NoticeType.SELF_PAGE_MESSAGE.value or \
-                    type == NoticeType.OTHER_USER_PAGE_MESSAGE.value:
+                type == NoticeType.OTHER_USER_PAGE_MESSAGE.value:
                 wall_message = MessageWall.get_wall_message_by_id(entity_id)
                 sender_id = wall_message["sender_id"]
                 sender_info = User.get_info(sender_id)
@@ -2097,6 +2101,15 @@ class Notice:
                 tmp["name"] = name
                 tmp["message"] = Message.tolink(message)
                 tmp["date"] = date
+                tmp["nick"] = nick
+                tmp["avatar"] = avatar
+
+            if type == NoticeType.NEW_USER.value:
+                id = entity_id
+                user_info = User.get_info(id)
+                nick = user_info["nick"]
+                avatar = user_info["avatar"]
+
                 tmp["nick"] = nick
                 tmp["avatar"] = avatar
 
