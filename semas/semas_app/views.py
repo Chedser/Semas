@@ -31,6 +31,7 @@ def user(request, id):
     friend_requests_count = None
     active_dialogs_count = None
     user_is_in_black_list = None
+    dialog_id = 0
     if request.session.get("id") and id:  # Пользователь авторизован и id передано в качестве аргумента
         cookie_user_id = int(request.session.get("id"))
         is_authed_user = True
@@ -38,6 +39,7 @@ def user(request, id):
         friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
         active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
         cookie_user_id_is_blocked = User.get_info(cookie_user_id)["is_blocked"]
+        dialog_id = Dialog.get_dialog_id(cookie_user_id, id)
         if id != cookie_user_id:
             user_is_in_black_list = User.user_is_in_black_list(id, cookie_user_id)
         else:
@@ -57,7 +59,7 @@ def user(request, id):
             "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends, \
             "friends_count": len(friends), "active_dialogs_count": active_dialogs_count,
             "page_likes_count": page_likes_count, "user_is_in_black_list": user_is_in_black_list,
-            "cookie_user_id_is_blocked": cookie_user_id_is_blocked}
+            "cookie_user_id_is_blocked": cookie_user_id_is_blocked, "dialog_id": dialog_id}
 
     return render(request, "user.html", context=data)
 

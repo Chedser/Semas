@@ -1261,6 +1261,26 @@ class Dialog:
         return result
 
     @staticmethod
+    def get_dialog_id(cookie_user_id, receiver_id):
+        try:
+            con = sqlite3.connect(DB_NAME)
+            cur = con.cursor()
+            result = cur.execute(f"SELECT id FROM dialog "
+                                    f"WHERE senderId={cookie_user_id} AND receiverId={receiver_id} "
+                                    f"OR senderId={receiver_id} AND receiverId={cookie_user_id}").fetchall()
+            dialog_id = 0
+            if len(result):
+                dialog_id = result[0][0]
+
+        except sqlite3.Error as error:
+            con.rollback()
+            print(f"DataBase error {error.__str__()}")
+            Log.write_log(error.__str__(), Dialog.get_dialog_id.__name__)
+        finally:
+            con.close()
+        return dialog_id
+
+    @staticmethod
     def get_active_dialogs_count(cookie_user_id):
         if not cookie_user_id: return None
         try:

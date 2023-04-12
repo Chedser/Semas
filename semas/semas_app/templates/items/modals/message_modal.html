@@ -4,6 +4,9 @@
         <span  onclick=$("#message_modal").css({"display":"none"})
         class="w3-button w3-display-topright">&times;</span>
         <h2>Сообщение для {{user_info.nick}}</h2>
+        {% if dialog_id %}
+          <a href = "/dialog/{{dialog_id}}">Открыть диалог</a>
+        {% endif %}
       </header>
       <div class="w3-container w3-padding">
 
