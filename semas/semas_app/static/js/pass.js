@@ -53,8 +53,22 @@ function RestorePass(){
 	})
 }
 
+function CopyPass(){
+    	$("#copy_span").on("click", function(event){
+            let text = $("#restored_pass_val").html();
+            navigator.clipboard.writeText(text)
+            .then(() => {
+                    alert("Пароль скопирован в буффер обмена");
+                    })
+                .catch(err => {
+                    alert("Неизвестная ошибка");
+                });
+	    });
+}
+
 $(document).ready(function(){
     RestorePass();
+    CopyPass();
 });
 
 

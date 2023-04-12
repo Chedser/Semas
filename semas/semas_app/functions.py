@@ -17,12 +17,10 @@ def gen_pass(nick, email):
     chars = '+-/*!&$#?=@<>abcdefghijklnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
     password = ""
 
-    length = random.randrange(7,10)
+    length = random.randrange(10,12)
 
     for i in range(length):
         password += random.choice(chars)
-
-    result = 0
 
     try:
         con = sqlite3.connect(DB_NAME)

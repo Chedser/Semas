@@ -41,7 +41,7 @@ nav a:hover {
   color: black;
 }
 
-.dialog_lnk{
+.dialog_lnk, .copy_span{
 	cursor:pointer;
 }
 
