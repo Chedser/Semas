@@ -13,7 +13,7 @@ def index(request):
     if request.session.get("id"):
         cookie_user_id = int(request.session.get("id"))
         return redirect(f"user/{cookie_user_id}")
-    return render(request, "admin.html")
+    return render(request, "index.html")
 
 
 @never_cache
@@ -356,7 +356,7 @@ def block_user(request):
 
 @never_cache
 def exit(request):
-    if request.method == "POST" and request.session.get("id"):
+    if request.method == "POST" and request.session.get("su"):
         del request.session["id"]
         response = redirect("/index")
         return response
@@ -365,7 +365,7 @@ def exit(request):
 def exit_su(request):
     if request.method == "POST" and request.session.get("su"):
         del request.session["su"]
-        response = render(request, 'admin.html')
+        response = render(request, 'su.html')
         return response
 
 
