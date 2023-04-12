@@ -93,9 +93,7 @@ class Reg:
         response = Response.SUCCESS.value
 
         try:
-
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
             result = cur.execute(f"SELECT id FROM user WHERE login=? OR nick=?", (login, nick)).fetchall()
             if len(result) != 0:
@@ -111,6 +109,7 @@ class Reg:
                 file_path = f"semas_app/static/images/avatars/{last_id[0][0]}"
                 if not os.path.exists(file_path):
                     os.mkdir(file_path)
+                Log.write_log(f"New user: {nick} {login}", Reg.reg.__name__, LogType.NEW_USER.value)
 
         except sqlite3.Error as error:
             con.rollback()

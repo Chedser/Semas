@@ -34,3 +34,7 @@ class NoticeType(Enum):
     SELF_PAGE_MESSAGE = 0
     OTHER_USER_PAGE_MESSAGE = 1
     CREATE_FORUM = 2
+
+class LogType(Enum):
+    DB_ERROR = 0
+    NEW_USER = 1
