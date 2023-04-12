@@ -9,9 +9,10 @@ urlpatterns = [
     re_path(r"^index", views.index),
 
     path('restore_pass', views.restore_pass),
-    path('admin', views.admin),
+
     path('admin/forum', views.admin_forum),
     path('admin/log', views.admin_log),
+    re_path('admin/?', views.admin),
     path('black_list', views.black_list),
     path('notice', views.notice),
     path('pass', views.password),

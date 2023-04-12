@@ -13,7 +13,7 @@ def index(request):
     if request.session.get("id"):
         cookie_user_id = int(request.session.get("id"))
         return redirect(f"user/{cookie_user_id}")
-    return render(request, "index.html")
+    return render(request, "admin.html")
 
 
 @never_cache
@@ -73,7 +73,7 @@ def admin(request):
     if not request.session.get("su") or request.method != "GET": return redirect("/su")
     users = Superuser.get_users()
     data = {"users": users, "users_count": len(users)}
-    return render(request, "admin/index.html", context=data)
+    return render(request, "admin.html", context=data)
 
 
 @never_cache
@@ -85,7 +85,7 @@ def admin_forum(request):
         forums_count = len(forums)
     data = {"forums": forums, "forums_count": forums_count}
 
-    return render(request, "admin/forum.html", context=data)
+    return render(request, "admin_forum.html", context=data)
 
 def admin_log(request):
     if not request.session.get("su") or request.method != "GET": return redirect("/su")
@@ -95,7 +95,7 @@ def admin_log(request):
         logs_count = len(logs)
     data = {"logs": logs, "logs_count": logs_count}
 
-    return render(request, "admin/log.html", context=data)
+    return render(request, "admin_log.html", context=data)
 
 
 @never_cache
@@ -179,7 +179,7 @@ def forum(request, id):
             "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count,
             "user_is_blocked": user_is_blocked}
 
-    return render(request, "forum.html", context=data)
+    return render(request, "admin_forum.html", context=data)
 
 
 @never_cache
@@ -365,7 +365,7 @@ def exit(request):
 def exit_su(request):
     if request.method == "POST" and request.session.get("su"):
         del request.session["su"]
-        response = render(request, 'index.html')
+        response = render(request, 'admin.html')
         return response
 
 
