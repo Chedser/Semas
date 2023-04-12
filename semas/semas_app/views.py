@@ -73,7 +73,7 @@ def admin(request):
     if not request.session.get("su") or request.method != "GET": return redirect("/su")
     users = Superuser.get_users()
     data = {"users": users, "users_count": len(users)}
-    return render(request, "admin.html", context=data)
+    return render(request, "admin/index.html", context=data)
 
 
 @never_cache
@@ -85,7 +85,7 @@ def admin_forum(request):
         forums_count = len(forums)
     data = {"forums": forums, "forums_count": forums_count}
 
-    return render(request, "admin_forum.html", context=data)
+    return render(request, "admin/forum.html", context=data)
 
 def admin_log(request):
     if not request.session.get("su") or request.method != "GET": return redirect("/su")
@@ -95,7 +95,7 @@ def admin_log(request):
         logs_count = len(logs)
     data = {"logs": logs, "logs_count": logs_count}
 
-    return render(request, "admin_log.html", context=data)
+    return render(request, "admin/log.html", context=data)
 
 
 @never_cache
