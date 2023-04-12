@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from .models import *
 from django.views.decorators.cache import never_cache
 from .enums import *
+from .functions import *
 
 @never_cache
 def index(request):
@@ -276,6 +277,11 @@ def password(request):
 
     return render(request, "change_pass.html", context=data)
 
+@never_cache
+def restore_pass(request):
+    if request.method != "GET": return redirect("/")
+    return render(request, "restore_pass.html")
+
 
 # API
 @never_cache
@@ -454,3 +460,12 @@ def find_user_by_nick(request):
 def change_pass(request):
     if request.method == "POST" and request.session.get("id"):
         return User.change_pass(request)
+
+@never_cache
+def restore_pass_api(request):
+    if request.method == "POST":
+        if request.POST.get("nick") and  request.POST.get("email"):
+            nick = request.POST.get("nick")
+            email = request.POST.get("email")
+            password = gen_pass(nick, email)
+            return  JsonResponse({'message': password})

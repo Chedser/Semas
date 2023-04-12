@@ -1,51 +1,52 @@
 
-function reg(){
+function RestorePass(){
 	
-	$("#change_pass_form").on("submit", function(event){
+	$("#restore_pass_form").on("submit", function(event){
 		event.preventDefault();
-			let old_pass = $("#old_pass").val().trim();
-			let new_pass = $("#new_pass").val().trim();
-			let new_pass_repeat = $("#new_pass_repeat").val().trim();
+			let nick_inpt = $("#nick_inpt").val().trim();
+			let email_inpt = $("#email_inpt").val().trim();
+			let restored_pass_span = $("#restored_pass_span");
+			let restored_pass_val = $("#restored_pass_val");
 			const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
+			restored_pass_span.css("display","none");
+			restored_pass_val.html("");
+
 			
-			if(old_pass == "" ||
-				new_pass == "" ||
-				new_pass_repeat == ""){
+			if(nick_inpt == "" ||
+				email_inpt == ""){
 				alert("Пусто");
 				return;}
-		
-		if(new_pass != new_pass_repeat){
-			alert("Пароли не совпадают");
-			return;
-		}
 
-		if(old_pass === new_pass){
-		    alert("Старый и новый пароли совпадают");
-		    return;
-		}
-		
-		$("#change_pass_btn").attr("disabled", "disabled");
-
+		$("#restore_pass_btn").attr("disabled", "disabled");
 
 	$.ajax({
-				url: '../api/change_pass',
-				data: {pass: new_pass},
+				url: 'api/restore_pass',
+				data: {nick: nick_inpt,
+				        email: email_inpt
+				},
 				type: "POST",
 				headers: {'X-CSRFToken': csrftoken},
 				success: function (data, textStatus) { 
-                    if(data.message == 0){
-                        $("#old_pass").val("");
-                        $("#new_pass").val("");
-                        $("#new_pass_repeat").val("");
-                        alert("Пароль успешно изменен");
-                    }else{
+                    if(data.message != 1 && data.message != 2){
+                        $("#nick_inpt").val("");
+                        $("#email_inpt").val("");
+                        restored_pass_span.css("display","inline");
+			            restored_pass_val.html(data.message);
+                    }
+
+                    if(data.message == 1){
+                        alert("Неверный ник, email либо пользователь заблокирован");
+                    }
+
+                    if(data.message == 2){
                         alert("Неизвестная ошибка");
                     }
-				$("#change_pass_btn").removeAttr("disabled");
+
+				$("#restore_pass_btn").removeAttr("disabled");
 				},
 				fail: function (data, textStatus) {
-						$("#change_pass_btn").removeAttr("disabled");
+						$("#restore_pass_btn").removeAttr("disabled");
 					}
 			});
 
@@ -53,7 +54,7 @@ function reg(){
 }
 
 $(document).ready(function(){
- reg();
+    RestorePass();
 });
 
 

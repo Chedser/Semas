@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+<title>Восстановление пароля</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/w3.css' %}">
+
+<link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Roboto'>
+	<script src="{% static 'js/jQuery.min.js' %}"></script>
+	<script src="{% static 'js/pass.js' %}"></script>
+<style>
+	html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif}
+	textarea{resize:none;}
+</style>
+</head>
+<body>
+	{% csrf_token %}
+<h1 class="w3-center">Восстановление пароля</h1>
+<div class = "w3-content w3-white w3-round w3-border-light-blue w3-center" style = "max-width:650px; padding-bottom: 40px;">
+<form class = "w3-panel  w3-padding" id="restore_pass_form">
+		<input type="text" class="w3-input w3-border w3-margin" id="nick_inpt" maxlength="100"  placeholder="Ник" type="text" required />
+		<input type="text" class="w3-input w3-border w3-margin" id="email_inpt" maxlength="100"  placeholder="E-mail" type="text" required />
+	<span id="restored_pass_span" style="display:none">Новый пароль:
+		<span id="restored_pass_val"></span>
+	</span>
+		<input type = "submit"
+			   class="w3-button w3-indigo w3-hover-teal w3-margin-top"
+			   style = "width:100%" id="restore_pass_btn" value = "OK">
+	</form>
+	<hr />
+</div>
+</body>
+</html>
