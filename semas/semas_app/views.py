@@ -17,13 +17,13 @@ def index(request):
 
 
 @never_cache
-def user(request, id):
+def user(request, id: int):
     if request.method != "GET": return redirect("/")
     is_authed_user = False
     is_login_user_page = False
     user_info = User.get_info(id)
 
-    if (not id) or (not user_info): return redirect("/")
+    if not id or not user_info: return redirect("/")
 
     cookie_user_id = None
     cookie_user_id_is_blocked = None
@@ -50,13 +50,13 @@ def user(request, id):
         if cookie_user_id == id:  # И сидит на своей странице
             is_login_user_page = True
 
-    wall_messages = MessageWall.get_wall_messages(id, cookie_user_id)
+    wall_messages = MessageWall.get_wall_messages(id)
     friends = Friend.get_friends_user_page(id, 8)
     page_likes_count = UserPageLike.get_page_likes_count(id)
 
-    data = {"cookie_user_id": cookie_user_id, "user_id": id, "is_login_user_page": is_login_user_page, \
-            "is_authed_user": is_authed_user, "wall_messages": wall_messages, "user_info": user_info, \
-            "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends, \
+    data = {"cookie_user_id": cookie_user_id, "user_id": id, "is_login_user_page": is_login_user_page,
+            "is_authed_user": is_authed_user, "wall_messages": wall_messages, "user_info": user_info,
+            "friend_status": friend_status, "friend_requests_count": friend_requests_count, "friends": friends,
             "friends_count": len(friends), "active_dialogs_count": active_dialogs_count,
             "page_likes_count": page_likes_count, "user_is_in_black_list": user_is_in_black_list,
             "cookie_user_id_is_blocked": cookie_user_id_is_blocked, "dialog_id": dialog_id}
@@ -122,7 +122,7 @@ def friends(request):
     if request.method != "GET" or not request.session.get("id"): return redirect("/index")
     cookie_user_id = request.session.get("id")
 
-    cookie_user_id = (int)(cookie_user_id)
+    cookie_user_id = int(cookie_user_id)
     is_blocked = User.get_info(cookie_user_id)["is_blocked"]
     if is_blocked: return redirect(f"/user/{cookie_user_id}")
     friend_requests = Friend.get_friend_requests(cookie_user_id)
@@ -358,7 +358,7 @@ def block_user(request):
 
 @never_cache
 def exit(request):
-    if request.method == "POST" and request.session.get("su"):
+    if request.method == "POST" and request.session.get("id"):
         del request.session["id"]
         response = redirect("/index")
         return response

@@ -6,11 +6,12 @@ import os
 import re
 import html
 from .logs import *
+from .exceptions import *
 
 
 class Message:
     @staticmethod
-    def tolink(txt):
+    def tolink(txt: str) -> str:
 
         pattern1 = r'\b((?:https?://)(?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?(?:/[\w\.-]*)*/?)\b'
         pattern2 = r'\b((?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?(?:/[\w\.-]*)*/?)\b'
@@ -22,63 +23,59 @@ class Message:
         return result
 
     @staticmethod
-    def truncate(txt, count):
-        if len(txt) <= count:
-            return txt
-        else:
-            return txt[:count] + "..."
+    def truncate(txt, count) -> str:
+        if len(txt) <= count: return txt
+        return txt[:count] + "..."
 
 
 class Auth:
     @staticmethod
-    def auth(request):
+    def auth(request: object) -> JsonResponse:
         login = request.POST.get('login').strip()
         password = request.POST.get('pass').strip()
 
-        if len(login) == 0 or len(password) == 0:
+        if not len(login) or \
+           not len(password) or \
+            "admin" in login.lower() or  \
+            "админ" in login.lower():
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-        user_id = 0
-
-        if "admin" in login.lower() or \
-                "админ" in login.lower():
-            return JsonResponse({'message': Response.WRONG_INPUT.value})
+        response = Response.SUCCESS.value
 
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
             result = cur.execute(f"SELECT id, login, password FROM user WHERE login=?", (login,)).fetchall()
-            if len(result) == 0:
-                con.close()
-                return JsonResponse({'message': Response.WRONG_USER_OR_PASSWORD.value})
+            if not len(result): raise WrongUserOrPassword
 
-            is_blocked = User.get_info((int)(result[0][0]))["is_blocked"]
-
-            if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
+            is_blocked = User.get_info(int(result[0][0]))["is_blocked"]
+            if is_blocked: raise UserIsBlocked
 
             bd_pass = result[0][2]
+            if bd_pass != get_hash(password): raise WrongUserOrPassword
 
-            if bd_pass != get_hash(password):
-                con.close()
-                return JsonResponse({'message': Response.WRONG_USER_OR_PASSWORD.value})
             user_id = result[0][0]
-
             # Создание сессии
             request.session["id"] = user_id
 
-        except sqlite3.Error as error:
-            con.rollback()
+        except sqlite3.Error as error: #Ошибка базы данных
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Auth.auth.__name__)
+            response = Response.UNKNOWN_ERROR.value
+        except WrongUserOrPassword as error: #Неверный пользователь или пароль
+            print(f"{error.__str__()}")
+            response = Response.WRONG_USER_OR_PASSWORD.value
+        except UserIsBlocked as error: #Пользователь заблокирован
+            print(f"{error.__str__()}")
+            response = Response.USER_IS_BLOCKED.value
         finally:
             con.close()
-        return JsonResponse({'message': Response.SUCCESS.value, 'id': user_id})
+        return JsonResponse({'message': response})
 
 
 class Reg:
     @staticmethod
-    def reg(request):
+    def reg(request: object) -> JsonResponse:
         login = request.POST.get('login').strip()
         nick = request.POST.get('nick').strip()
         sex = request.POST.get('sex')
@@ -86,11 +83,11 @@ class Reg:
         session = request.session.get("id")
 
         if session: del session
-        if len(login) == 0 or \
-                len(nick) == 0 or \
-                len(sex) == 0 or \
-                ("admin" in login.lower()) or \
-                ("админ" in login.lower()):
+        if  not len(login) or \
+            not len(nick) or \
+            not len(sex) or \
+            "admin" in login.lower() or \
+            "админ" in login.lower():
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         response = Response.SUCCESS.value
@@ -99,13 +96,14 @@ class Reg:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id FROM user WHERE login=? OR nick=?", (login, nick)).fetchall()
-            if len(result) != 0:
+
+            if len(result):
                 response = Response.USER_EXISTS.value
             else:
-                hash = get_hash(password)
+                hashed_pass = get_hash(password)
 
                 cur.execute("INSERT INTO user (login,password,nick,sex,u_time_of_last_action) \
-                 VALUES (?,?,?,?,?)", (login, hash, nick, sex, (int)(time.time())))
+                 VALUES (?,?,?,?,?)", (login, hashed_pass, nick, sex, int(time.time())))
                 con.commit()
                 last_id = cur.execute(f"SELECT MAX(id) FROM user WHERE login=?", (login,)).fetchall()[0][0]
 
@@ -130,19 +128,19 @@ class Reg:
 
 class MessageWall:
     @staticmethod
-    def send_wall_message(request):
+    def send_wall_message(request: object) -> JsonResponse:
         message = request.POST.get('message').strip()
         receiver_id = request.POST.get('receiver_id')
 
-        if len(message) == 0 or \
-                not receiver_id:
+        if not len(message) or \
+           not receiver_id:
             return JsonResponse({'message': Response.WRONG_USER_OR_PASSWORD.value})
 
         receiver_id = int(request.POST.get('receiver_id'))
 
         if request.session.get("id"):
             cookie_user_id = int(request.session.get("id"))
-            user_info = User.get_info((int)(cookie_user_id))
+            user_info = User.get_info(int(cookie_user_id))
             if user_info:
                 is_blocked = user_info["is_blocked"]
                 if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
@@ -151,13 +149,14 @@ class MessageWall:
 
         User.update_time_of_last_action(cookie_user_id)
 
+        result = Response.SUCCESS.value
+
         try:
             con = sqlite3.connect(DB_NAME)
 
             cur = con.cursor()
-
             cur.execute("INSERT INTO wall_message (senderId, receiverId, text, u_time)\
-                  VALUES (?,?,?,?)", (cookie_user_id, receiver_id, message, (int)(time.time())))
+                  VALUES (?,?,?,?)", (cookie_user_id, receiver_id, message, int(time.time())))
             con.commit()
 
             lastrowid = cur.lastrowid
@@ -166,23 +165,23 @@ class MessageWall:
                 notice_type = NoticeType.OTHER_USER_PAGE_MESSAGE.value
 
             cur.execute("INSERT INTO notice (entityId, type, u_time)\
-                              VALUES (?,?,?)", (lastrowid, notice_type, (int)(time.time())))
+                              VALUES (?,?,?)", (lastrowid, notice_type, int(time.time())))
             con.commit()
 
-            return JsonResponse({'message': Response.SUCCESS.value})
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), MessageWall.send_wall_message.__name__)
-            return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+            result = Response.UNKNOWN_ERROR.value
         finally:
             con.close()
+        return JsonResponse({'message': result})
 
     @staticmethod
-    def delete_wall_message(request):
+    def delete_wall_message(request: object) -> JsonResponse:
         if request.session.get("id"):
-            cookie_user_id = (int)(request.session.get("id"))
-            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            cookie_user_id = int(request.session.get("id"))
+            is_blocked = User.get_info(int(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
@@ -196,34 +195,35 @@ class MessageWall:
                 not sender_id:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-        user_id = (int)(user_id)
-        sender_id = (int)(sender_id)
-        message_id = (int)(message_id)
+        user_id = int(user_id)
+        sender_id = int(sender_id)
+        message_id = int(message_id)
 
         User.update_time_of_last_action(cookie_user_id)
+
+        result = Response.SUCCESS.value
 
         if cookie_user_id == user_id or cookie_user_id == sender_id:
             try:
                 con = sqlite3.connect(DB_NAME)
 
                 cur = con.cursor()
-
                 cur.execute(f"DELETE FROM wall_message WHERE id=?", (message_id,))
                 cur.execute(f"DELETE FROM notice WHERE entityId=?", (message_id,))
                 con.commit()
-                return JsonResponse({'message': Response.SUCCESS.value})
             except sqlite3.Error as error:
                 con.rollback()
                 print(f"DataBase error {error.__str__()}")
                 Log.write_log(error.__str__(), MessageWall.delete_wall_message.__name__)
-                return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+                result = Response.UNKNOWN_ERROR.value
             finally:
                 con.close()
+            return JsonResponse({'message': result})
         else:
             return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
 
     @staticmethod
-    def get_wall_messages(user_id, cookie_user_id=None):
+    def get_wall_messages(user_id: int) -> list:
         if not user_id: return None
         try:
             con = sqlite3.connect(DB_NAME)
@@ -231,7 +231,7 @@ class MessageWall:
             result = cur.execute(f"SELECT wall_message.id AS id, senderId, text, user.nick AS nick, user.avatar AS avatar, date FROM wall_message \
              INNER JOIN user ON wall_message.senderId=user.id "
                                  f"WHERE receiverId=? ORDER BY date DESC", (user_id,)).fetchall()
-            return MessageWall.__parse_wall_messages(result, cookie_user_id)
+            return MessageWall._parse_wall_messages(result)
 
         except sqlite3.Error as error:
             con.rollback()
@@ -242,27 +242,29 @@ class MessageWall:
             con.close()
 
     @staticmethod
-    def get_wall_message_by_id(id):
+    def get_wall_message_by_id(id: int) -> dict:
         if not id: return None
+
+        response = None
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id, senderId, receiverId, text, date FROM wall_message  WHERE id=?",
                                  (id,)).fetchall()
-            if not len(result): return None
+            if not len(result): return
 
-            return MessageWall.__parse_wall_message(result[0])
+            response = MessageWall._parse_wall_message(result[0])
 
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), MessageWall.get_wall_message_by_id.__name__)
-            return None
         finally:
             con.close()
+        return response
 
     @staticmethod
-    def __parse_wall_message(result):
+    def _parse_wall_message(result: list) -> dict:
         if not result:  return None
 
         id = result[0]
@@ -272,17 +274,17 @@ class MessageWall:
         date = result[4]
         likes_count = WallMessageLike.get_wall_message_likes_count(id)
 
-        dct = dict()
-        dct["id"] = id
-        dct["sender_id"] = sender_id
-        dct["receiver_id"] = receiver_id
-        dct["message"] = Message.truncate(Message.tolink(message), 256)
-        dct["likes_count"] = likes_count
-        dct["date"] = date
-        return dct
+        res = dict()
+        res["id"] = id
+        res["sender_id"] = sender_id
+        res["receiver_id"] = receiver_id
+        res["message"] = Message.truncate(Message.tolink(message), 256)
+        res["likes_count"] = likes_count
+        res["date"] = date
+        return res
 
     @staticmethod
-    def __parse_wall_messages(wall_messages, cookie_user_id):
+    def _parse_wall_messages(wall_messages: list) -> list:
         result = list()
 
         for wall_message in wall_messages:
@@ -296,40 +298,42 @@ class MessageWall:
 
             likes_count = WallMessageLike.get_wall_message_likes_count(id)
 
-            tmp = dict()
-            tmp["id"] = id
-            tmp["sender_id"] = sender_id
-            tmp["message"] = Message.tolink(message)
-            tmp["nick"] = nick
-            tmp["avatar"] = avatar
-            tmp["likes_count"] = likes_count
-            tmp["date"] = date
-            result.append(tmp)
+            dct = dict()
+            dct["id"] = id
+            dct["sender_id"] = sender_id
+            dct["message"] = Message.tolink(message)
+            dct["nick"] = nick
+            dct["avatar"] = avatar
+            dct["likes_count"] = likes_count
+            dct["date"] = date
+            result.append(dct)
         return result
 
 
 class User:
     @staticmethod
-    def get_info(user_id):
+    def get_info(user_id: int) -> dict:
+        res = None
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id, nick, sex, is_blocked, u_time_of_last_action, avatar \
                 FROM user WHERE id=?", (user_id,)).fetchall()
-            if len(result) == 0: return None
-            return User.__parse_user_info(result[0])
 
+            if not len(result): raise UserDoesNotExists
+
+            res = User._parse_user_info(result[0])
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), User.get_info.__name__)
-            return None
+        except UserDoesNotExists as error:
+            print(f"{error.__str__()}: {User.get_info.__name__}")
         finally:
             con.close()
-        return None
+        return res
 
     @staticmethod
-    def __parse_user_info(user_info):
+    def _parse_user_info(user_info: list) -> dict:
         result = dict()
         user_id = user_info[0]
         nick = user_info[1]
@@ -341,12 +345,13 @@ class User:
         result["nick"] = nick
         result["is_blocked"] = is_blocked
         result["time_of_last_action"] = time_of_last_action
-        result["is_online"] = User.__is_online(time_of_last_action)
+        result["is_online"] = User._is_online(time_of_last_action)
         result["avatar"] = User.get_avatar_link(avatar, user_id)
+        result["sex"] = sex
         return result
 
     @staticmethod
-    def get_avatar_link(avatar, user_id):
+    def get_avatar_link(avatar: str, user_id: int) -> str:
         if not avatar:
             link = f"images/default.png"
         else:
@@ -354,11 +359,11 @@ class User:
         return link
 
     @staticmethod
-    def __is_online(time_of_last_action):
-        return (((int)(time.time()) - time_of_last_action) < 300)
+    def _is_online(time_of_last_action: int) -> bool:
+        return int(time.time() - time_of_last_action) < 300
 
     @staticmethod
-    def get_blocked_users(cookie_user_id):
+    def get_blocked_users(cookie_user_id: int):
         if not cookie_user_id: return None
         cookie_user_id = int(cookie_user_id)
         try:
@@ -368,7 +373,7 @@ class User:
                                  f"INNER JOIN user ON user.id = black_list.user2 "
                                  f"WHERE user1=?", (cookie_user_id,)).fetchall()
 
-            return User.__parse_blocked_users(result)
+            return User._parse_blocked_users(result)
 
         except sqlite3.Error as error:
             con.rollback()
@@ -378,9 +383,10 @@ class User:
             con.close()
 
     @staticmethod
-    def user_is_in_black_list(user_id, cookie_user_id):
+    def user_is_in_black_list(user_id: int, cookie_user_id: int) -> int:
         if not user_id or not cookie_user_id: return
-        if user_id == cookie_user_id: return -1
+        res = -1
+        if user_id == cookie_user_id: return res
 
         try:
             con = sqlite3.connect(DB_NAME)
@@ -389,17 +395,17 @@ class User:
                                  f"user2=?) OR (user1=? AND user2=?)",
                                  (user_id, cookie_user_id, cookie_user_id, user_id)).fetchall()[0][0]
 
-            return result
+            res = result
 
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), User.user_is_in_black_list.__name__)
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def __parse_blocked_users(users):
+    def _parse_blocked_users(users: list) -> list:
         result = list()
         for user in users:
             id = user[0]
@@ -416,7 +422,7 @@ class User:
         return result
 
     @staticmethod
-    def find_user_for_block(request):
+    def find_user_for_block(request: object) -> list:
         user_id = request.POST.get("user_id")
         cookie_user_id = request.session.get("id")
         if not user_id or not cookie_user_id: return JsonResponse({"message": 1})
@@ -426,12 +432,13 @@ class User:
         if cookie_user_id == user_id:
             return JsonResponse({"message": 2})
 
+        res = 1
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id, nick, avatar FROM user WHERE id=?", (user_id,)).fetchall()
 
-            if len(result) == 0: return JsonResponse({"message": 1})
+            if not len(result): raise UserDoesNotExists
 
             result = result[0]
 
@@ -448,18 +455,21 @@ class User:
             tmp["is_in_black_list"] = is_in_black_list
             lst.append(tmp)
 
-            return JsonResponse({"message": json.dumps(lst)})
+            User.update_time_of_last_action(cookie_user_id)
+
+            res = json.dumps(lst)
 
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), User.find_user_for_block.__name__)
-            return JsonResponse({"message": 1})
+        except UserDoesNotExists as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
+        return JsonResponse({"message": res})
 
     @staticmethod
-    def block_user(request):
+    def block_user(request: object) -> int:
         user_id = request.POST.get("user_id")
         cookie_user_id = request.session.get("id")
         if not user_id or not cookie_user_id: return JsonResponse({"message": 1})
@@ -471,13 +481,12 @@ class User:
 
         User.update_time_of_last_action(cookie_user_id)
 
+        is_blocked = 0
         try:
-
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT COUNT(*) FROM black_list WHERE user1=? "
                                  f"AND user2=?", (cookie_user_id, user_id)).fetchall()[0][0]
-            is_blocked = 0
 
             if not result:
                 cur.execute(f"INSERT INTO black_list(user1, user2, u_time) VALUES "
@@ -489,51 +498,51 @@ class User:
                             (cookie_user_id, user_id))
 
             con.commit()
-            return JsonResponse({'message': is_blocked})
 
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), User.block_user.__name__)
+            is_blocked = 2
         finally:
             con.close()
-        return JsonResponse({'message': 2})
+        return JsonResponse({'message': is_blocked})
 
     @staticmethod
-    def update_time_of_last_action(cookie_user_id):
-        if not cookie_user_id: return None
+    def update_time_of_last_action(cookie_user_id: int) -> None:
+        if not cookie_user_id: return
 
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            cur.execute(f"UPDATE user SET  u_time_of_last_action=? WHERE id=?", ((int)(time.time()), cookie_user_id))
+            cur.execute(f"UPDATE user SET  u_time_of_last_action=? WHERE id=?", (int(time.time()), cookie_user_id))
             con.commit()
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), User.update_time_of_last_action.__name__)
         finally:
             con.close()
 
     @staticmethod
-    def get_all_users():
+    def get_all_users() -> list:
+        res = None
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(
                 f"SELECT id, nick, avatar FROM user WHERE NOT is_blocked ORDER BY date_of_reg DESC").fetchall()
 
-            return User.__parse_all_users(result)
+            res = User._parse_all_users(result)
 
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), User.get_all_users.__name__)
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def __parse_all_users(users):
+    def _parse_all_users(users: list) -> list:
         result = list()
         for user in users:
             id = user[0]
@@ -549,10 +558,11 @@ class User:
         return result
 
     @staticmethod
-    def find_user_by_nick(request):
+    def find_user_by_nick(request: object) -> JsonResponse:
         if not request.POST.get("nick"): return JsonResponse({"message": -1})
 
         nick = request.POST.get("nick")
+        response = -1
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -565,18 +575,17 @@ class User:
 
             result = User.__parse_all_users(result)
 
-            return JsonResponse({"message": json.dumps(result)})
-
+            response = json.dumps(result)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), User.find_user_by_nick.__name__)
-            return JsonResponse({"message": -1})
         finally:
             con.close()
+        return JsonResponse({"message": response})
 
     @staticmethod
-    def change_pass(request):
+    def change_pass(request: object) -> JsonResponse:
         if not request.session.get("id") or not request.POST.get("pass"):
             return JsonResponse({"message": Response.WRONG_INPUT.value})
 
@@ -585,20 +594,17 @@ class User:
 
         if not len(pass_): return JsonResponse({"message": Response.WRONG_INPUT.value})
 
-        hash = get_hash(pass_)
-
+        hashed_pass = get_hash(pass_)
         result = Response.SUCCESS.value
-
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            cur.execute(f"UPDATE user SET password=? WHERE id=?", (hash, cookie_user_id))
+            cur.execute(f"UPDATE user SET password=? WHERE id=?", (hashed_pass, cookie_user_id))
             con.commit()
         except sqlite3.Error as error:
-            con.rollback()
-            result = Response.UNKNOWN_ERROR.value
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), User.change_pass.__name__)
+            result = Response.UNKNOWN_ERROR.value
         finally:
             con.close()
         return JsonResponse({"message": result})
@@ -607,165 +613,173 @@ class User:
 class File:
     # расширения файлов, которые разрешено загружать
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    MAX_FILE_SIZE = 3 * 10 ** 6
 
-    def __allowed_file(content_type):
+    def _allowed_file(content_type: str) -> bool:
         return content_type.split('/')[1] in File.ALLOWED_EXTENSIONS
 
-    def __get_extension(content_type):
+    def _get_extension(content_type: str) -> str:
         return content_type.split('/')[1]
 
-    def __rename_file(content_type):
-        return f"{int(time.time())}.{File.__get_extension(content_type)}"
+    def _rename_file(content_type: str) -> str:
+        return f"{int(time.time())}.{File._get_extension(content_type)}"
 
-    def __upload_file(file, url):
+    def _upload_file(file: str, url: str) -> None:
         with open(url, 'wb+') as destination:
             for chunk in file.chunks():
                 destination.write(chunk)
 
-    def change_avatar(request):
-        MAX_FILE_SIZE = 3 * 10 ** 6
-
+    def change_avatar(request: object) -> JsonResponse:
         avatar = request.FILES.get("avatar")
         if request.session.get("id") and \
                 request.POST.get("MAX_FILE_SIZE") and \
                 avatar:
-            max_file_size_client = (int)(request.POST.get("MAX_FILE_SIZE"))
+            max_file_size_client = int(request.POST.get("MAX_FILE_SIZE"))
             cookie_user_id = int(request.session.get("id"))
-            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            is_blocked = User.get_info(int(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-        if max_file_size_client > MAX_FILE_SIZE or \
+        if max_file_size_client > File.MAX_FILE_SIZE or \
                 not avatar or \
-                not File.__allowed_file(avatar.content_type):
+                not File._allowed_file(avatar.content_type):
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-        new_file_name = File.__rename_file(avatar.content_type)
+        new_file_name = File._rename_file(avatar.content_type)
 
         url = f'./semas_app/static/images/avatars/{cookie_user_id}/{new_file_name}'
 
-        File.__upload_file(avatar, url)
+        File._upload_file(avatar, url)
         User.update_time_of_last_action(cookie_user_id)
 
+        response = Response.SUCCESS.value
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             cur.execute(f"UPDATE user SET avatar=? WHERE id=?", (new_file_name, cookie_user_id))
             con.commit()
-            return JsonResponse({'message': Response.SUCCESS.value})
 
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), File.change_avatar.__name__)
-            return JsonResponse({'message': Response.WRONG_INPUT.value})
+            response = Response.WRONG_INPUT.value
         finally:
             con.close()
+        return JsonResponse({'message': response})
 
 
 class Friend:
     @staticmethod
-    def get_friend_requests_count(cookie_user_id):
-        if cookie_user_id is None: return 0
+    def get_friend_requests_count(cookie_user_id: int) -> int:
+        if not cookie_user_id: return 0
+        res = 0
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result = cur.execute(f"SELECT COUNT(*) \
-                                            FROM friend_request WHERE friend2=?", ((int)(cookie_user_id),)).fetchall()[
-                0][0]
+            result = cur.execute(f"SELECT COUNT(*) FROM friend_request WHERE friend2=?",
+                                 (int(cookie_user_id),)).fetchall()[0][0]
             con.commit()
-            return result
+            res = result
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Friend.get_friend_requests_count.__name__)
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def get_friends_count(cookie_user):
-        if cookie_user is None: return 0
+    def get_friends_count(cookie_user_id: int) -> int:
+        if cookie_user_id is None: return 0
+        res = 0
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT COUNT(*) \
                                                 FROM friend WHERE friend1=? OR friend2=?",
-                                 (cookie_user, cookie_user)).fetchall()[0][0]
+                                 (cookie_user_id, cookie_user_id)).fetchall()[0][0]
             con.commit()
-            return result
+            res = result
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Friend.get_friends_count.__name__)
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def get_friend_requests(cookie_user):
-        if cookie_user is None: return 0
+    def get_friend_requests(cookie_user_id: int) -> list:
+        if not cookie_user_id: return
 
+        res = list()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT friend1, user.nick AS nick, user.avatar AS avatar \
                                      FROM friend_request INNER JOIN user ON user.id=friend1 \
-                                      WHERE friend2=?", (cookie_user,)).fetchall()
-            if len(result) == 0: return result
-            return Friend.__parse_friend_requests(result, cookie_user)
+                                      WHERE friend2=?", (cookie_user_id,)).fetchall()
+            if not len(result): raise NoFriendRequests
+            res = Friend._parse_friend_requests(result, cookie_user_id)
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Friend.get_friend_requests.__name__)
+        except NoFriendRequests as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def get_friend_request_status(cookie_user_id: int, user_id):
+    def get_friend_request_status(cookie_user_id: int, user_id: int) -> int:
         if not cookie_user_id: return FriendStatus.UNAUTHED.value
         if cookie_user_id == user_id: return FriendStatus.SAME_PAGE.value  # Сидим на своей странице
+
+        friend_status = FriendStatus.NOT_FRIEND.value
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            result_friends = cur.execute(f"SELECT friend1, friend2 FROM friend WHERE (friend1={(int)(cookie_user_id)} \
-                 AND friend2={user_id}) OR (friend1={(int)(user_id)} AND friend2={cookie_user_id})").fetchall()
+            result_friends = cur.execute(f"SELECT friend1, friend2 FROM friend WHERE (friend1={int(cookie_user_id)} \
+                 AND friend2={user_id}) OR (friend1={int(user_id)} AND friend2={cookie_user_id})").fetchall()
             result_request = cur.execute(
-                f"SELECT friend1, friend2 FROM friend_request WHERE (friend1={(int)(cookie_user_id)} \
-                             AND friend2={user_id}) OR (friend1={(int)(user_id)} AND friend2={cookie_user_id})").fetchall()
-            if len(result_friends) == 0 and len(
-                    result_request) == 0: return FriendStatus.NOT_FRIEND.value  # В друзьях нет в заявках тоже
-            if len(result_friends) == 0 and len(result_request) == 1:  # В друзьях нет в заявках есть
+                f"SELECT friend1, friend2 FROM friend_request WHERE (friend1={int(cookie_user_id)} \
+                             AND friend2={user_id}) OR (friend1={int(user_id)} AND friend2={cookie_user_id})").fetchall()
+            if not len(result_friends) and \
+                not len(result_request):
+                friend_status = FriendStatus.NOT_FRIEND.value  # В друзьях нет в заявках тоже
+            if not len(result_friends) and len(result_request):  # В друзьях нет в заявках есть
                 if result_request[0][0] == cookie_user_id:
-                    return FriendStatus.CANCEL_REQUEST.value  # Заявку отправил куки юзер. Отменить заявку
+                    friend_status = FriendStatus.CANCEL_REQUEST.value  # Заявку отправил куки юзер. Отменить заявку
                 else:
-                    return FriendStatus.DECLINE_REQUEST.value  # Заявку оправил тот, у которого сидим. Отклонить
-            if len(result_friends) == 1 and len(result_request) == 0: return FriendStatus.IS_FRIEND.value  # Друзья
+                    friend_status = FriendStatus.DECLINE_REQUEST.value  # Заявку оправил тот, у которого сидим. Отклонить
+            if len(result_friends) and not len(result_request):
+                friend_status = FriendStatus.IS_FRIEND.value  # Друзья
 
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Friend.get_friend_request_status.__name__)
-            return FriendStatus.UNKNOWN_ERROR.value
+            friend_status = FriendStatus.UNKNOWN_ERROR.value
         finally:
             con.close()
+        return friend_status
 
     @staticmethod
-    def send_friend_request(request):
+    def send_friend_request(request: object) -> JsonResponse:
         if request.session.get("id"):
-            cookie_user_id = (int)(request.session.get("id"))
-            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            cookie_user_id = int(request.session.get("id"))
+            is_blocked = User.get_info(int(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         user_id = request.POST.get('user_id')
         if not user_id: return JsonResponse({'message': Response.WRONG_INPUT.value})
-        user_id = (int)(user_id)
+        user_id = int(user_id)
 
         if cookie_user_id == user_id:  # Самому себе нельзя отправлять запрос
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         User.update_time_of_last_action(cookie_user_id)
-
+        response = Response.SUCCESS.value
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -778,63 +792,65 @@ class Friend:
                 cur.execute("INSERT INTO friend_request (friend1, friend2, u_time) \
                         VALUES (?,?,?)", (cookie_user_id, user_id, (int)(time.time())))
                 con.commit()
-                return JsonResponse({'message': Response.SUCCESS.value})
             else:
-                return JsonResponse({'message': Response.WRONG_INPUT.value})
+                response = Response.WRONG_INPUT.value
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Friend.send_friend_request.__name__)
-            return JsonResponse({'message': Response.WRONG_INPUT.value})
+            response = Response.WRONG_INPUT.value
         finally:
             con.close()
-        return JsonResponse({'message': Response.WRONG_INPUT.value})
+        return JsonResponse({'message': response})
 
     @staticmethod
-    def cancel_friend_request(request):
+    def cancel_friend_request(request: object) -> JsonResponse:
         if request.session.get("id"):
-            cookie_user_id = (int)(request.session.get("id"))
-            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            cookie_user_id = int(request.session.get("id"))
+            is_blocked = User.get_info(int(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         user_id = request.POST.get('user_id')
         if not user_id: return JsonResponse({'message': Response.WRONG_INPUT.value})
-        user_id = (int)(user_id)
+        user_id = int(user_id)
 
         if cookie_user_id == user_id:  # Самому себе нельзя отправлять запрос
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         User.update_time_of_last_action(cookie_user_id)
+
+        response = Response.SUCCESS.value
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             cur.execute(f"DELETE FROM friend_request WHERE (friend1={cookie_user_id} AND friend2={user_id}) \
                 OR (friend1={user_id} AND friend2={cookie_user_id})")
             con.commit()
-            return JsonResponse({'message': Response.SUCCESS.value})
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Friend.cancel_friend_request.__name__)
-            return JsonResponse({'message': Response.WRONG_INPUT.value})
+            response = Response.WRONG_INPUT.value
         finally:
             con.close()
+        return JsonResponse({'message': response})
 
     @staticmethod
-    def accept_friend_request(request):
+    def accept_friend_request(request: object) -> JsonResponse:
         if request.session.get("id"):
-            cookie_user_id = (int)(request.session.get("id"))
-            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            cookie_user_id = int(request.session.get("id"))
+            is_blocked = User.get_info(int(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         user_id = request.POST.get('user_id')
         if not user_id: return JsonResponse({'message': Response.WRONG_INPUT.value})
-        user_id = (int)(user_id)
 
+        user_id = int(user_id)
         if cookie_user_id == user_id:  # Самому себе нельзя отправлять запрос
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         User.update_time_of_last_action(cookie_user_id)
+        response = Response.SUCCESS.value
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -844,30 +860,32 @@ class Friend:
             cur.execute("INSERT INTO friend (friend1, friend2, u_time) \
                                VALUES (?,?,?)", (cookie_user_id, user_id, (int)(time.time())))
             con.commit()
-            return JsonResponse({'message': Response.SUCCESS.value})
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Friend.accept_friend_request.__name__)
-            return JsonResponse({'message': Response.WRONG_INPUT.value})
+            response = Response.WRONG_INPUT.value
         finally:
             con.close()
+        return JsonResponse({'message': response})
 
     @staticmethod
-    def delete_friend(request):
+    def delete_friend(request: object) -> JsonResponse:
         if request.session.get("id"):
-            cookie_user_id = (int)(request.session.get("id"))
-            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            cookie_user_id = int(request.session.get("id"))
+            is_blocked = User.get_info(int(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         user_id = request.POST.get('user_id')
         if not user_id: return JsonResponse({'message': Response.WRONG_INPUT.value})
-        user_id = (int)(user_id)
 
+        user_id = int(user_id)
         if cookie_user_id == user_id:  # Самому себе нельзя отправлять запрос
             return JsonResponse({'message': Response.WRONG_INPUT.value})
         User.update_time_of_last_action(cookie_user_id)
+
+        response = Response.SUCCESS.value
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -875,32 +893,33 @@ class Friend:
                  OR (friend1={user_id} AND friend2={cookie_user_id})")
             con.commit()
 
-            return JsonResponse({'message': Response.SUCCESS.value})
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Friend.delete_friend.__name__)
+            response = Response.UNKNOWN_ERROR.value
         finally:
             con.close()
+        return JsonResponse({'message': response})
 
     @staticmethod
-    def get_friends(cookie_user):
-        if not cookie_user: return None
+    def get_friends(cookie_user_id: int) -> list:
+        if not cookie_user_id: return None
 
+        res = list()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT friend1, friend2 FROM friend \
                  WHERE friend1=? OR friend2=?",
-                                 (cookie_user, cookie_user)).fetchall()
-            if len(result) == 0: return {}
+                                 (cookie_user_id, cookie_user_id)).fetchall()
+            if not len(result): raise NoFriends
 
-            total = list()
             for user in result:
                 current_user = list()
-                if user[0] != cookie_user:
+                if user[0] != cookie_user_id:
                     current_user.append(user[0])
-                elif user[1] != cookie_user:
+                elif user[1] != cookie_user_id:
                     current_user.append(user[1])
                 result2 = cur.execute(f"SELECT nick, avatar FROM user \
                                  WHERE id=?", (current_user[0],)).fetchall()
@@ -909,33 +928,34 @@ class Friend:
                 tmp["nick"] = result2[0][0]
                 avatar = User.get_avatar_link(result2[0][1], current_user[0])
                 tmp["avatar"] = avatar
-                total.append(tmp)
+                res.append(tmp)
 
-            return total
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Friend.get_friends.__name__)
+        except NoFriends as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def get_friends_user_page(cookie_user, limit):
-        if not cookie_user: return None
+    def get_friends_user_page(cookie_user_id: int, limit: int) -> list:
+        if not cookie_user_id: return None
 
+        res = list()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT friend1, friend2 FROM friend \
-                        WHERE friend1={(int)(cookie_user)} OR friend2={(int)(cookie_user)} LIMIT {limit}").fetchall()
-            if len(result) == 0: return {}
+                        WHERE friend1={int(cookie_user_id)} OR friend2={int(cookie_user_id)} LIMIT {limit}").fetchall()
+            if not len(result): raise NoFriends
 
-            total = list()
             for user in result:
                 current_user = list()
-                if user[0] != cookie_user:
+                if user[0] != cookie_user_id:
                     current_user.append(user[0])
-                elif user[1] != cookie_user:
+                elif user[1] != cookie_user_id:
                     current_user.append(user[1])
                 result2 = cur.execute(f"SELECT nick, avatar FROM user \
                                         WHERE id=?", (current_user[0],)).fetchall()
@@ -944,18 +964,19 @@ class Friend:
                 tmp["nick"] = result2[0][0]
                 avatar = User.get_avatar_link(result2[0][1], current_user[0])
                 tmp["avatar"] = avatar
-                total.append(tmp)
-
-            return total
+                res.append(tmp)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Friend.get_friends_user_page.__name__)
+        except NoFriends as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def __parse_friend_requests(friend_requests, cookie_user_id):
+    def _parse_friend_requests(friend_requests: list, cookie_user_id: int) -> list:
         result = list()
         for friend_request in friend_requests:
             friend1 = friend_request[0]
@@ -975,7 +996,7 @@ class Friend:
 
 class Forum:
     @staticmethod
-    def create_forum(request):
+    def create_forum(request: object) -> JsonResponse:
         if request.session.get("id"):
             cookie_user_id = int(request.session.get("id"))
             is_blocked = User.get_info(cookie_user_id)["is_blocked"]
@@ -988,64 +1009,65 @@ class Forum:
             topic = request.POST.get('topic').strip()
             topic_modified = re.sub("[\s|\W]", "", topic)
 
-            if not len(topic_modified): return JsonResponse({'message': ForumCreateResponse.WRONG_INPUT.value})
+            if not len(topic_modified):
+                return JsonResponse({'message': ForumCreateResponse.WRONG_INPUT.value})
         else:
             return JsonResponse({'message': ForumCreateResponse.WRONG_INPUT.value})
 
-        if len(message) == 0 or len(topic) == 0:
+        if not len(message) or not len(topic):
             return JsonResponse({'message': ForumCreateResponse.WRONG_INPUT.value})
         User.update_time_of_last_action(cookie_user_id)
 
+        res = Response.SUCCESS.value
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
 
-            forum_count = \
-                cur.execute(f"SELECT COUNT(*) FROM forum WHERE name_lower=?", (topic_modified,)).fetchall()[0][0]
-            if forum_count > 0: return JsonResponse({'message': ForumCreateResponse.FORUM_EXISTS.value})
+            forum_count = cur.execute(f"SELECT COUNT(*) FROM forum WHERE name_lower=?",
+                                      (topic_modified,)).fetchall()[0][0]
+            if forum_count: raise ForumExists
 
             cur.execute("INSERT INTO forum (creatorId, name, name_lower, text, u_time)\
-                          VALUES (?,?,?,?,?)", (cookie_user_id, topic, topic_modified, message, (int)(time.time())))
+                          VALUES (?,?,?,?,?)", (cookie_user_id, topic, topic_modified, message, int(time.time())))
             con.commit()
 
             lastrowid = cur.lastrowid
             notice_type = NoticeType.CREATE_FORUM.value
-
-            cur.execute("INSERT INTO notice (entityId, type, u_time)\
-                              VALUES (?,?,?)", (lastrowid, notice_type, (int)(time.time())))
+            cur.execute("INSERT INTO notice (entityId, type, u_time) VALUES (?,?,?)",
+                        (lastrowid, notice_type, int(time.time())))
             con.commit()
-
-            return JsonResponse({'message': Response.SUCCESS.value})
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Forum.create_forum.__name__)
-            return JsonResponse({'message': ForumCreateResponse.UNKNOWN_ERROR.value})
+            res = ForumCreateResponse.UNKNOWN_ERROR.value
+        except ForumExists as error:
+            res = ForumCreateResponse.FORUM_EXISTS.value
+            print(f"{error.__str__()}")
         finally:
             con.close()
+        return JsonResponse({'message': res})
 
     @staticmethod
-    def get_forums():
+    def get_forums() -> list:
+        res = list()
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             result = cur.execute("SELECT forum.id AS id, creatorId, name, text, date, user.avatar AS avatar, user.nick AS nick \
              FROM forum INNER JOIN user ON forum.creatorId=user.id ORDER BY date DESC").fetchall()
 
-            return Forum.__parse_forums(result)
+            res = Forum._parse_forums(result)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Forum.get_forums.__name__)
-            return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def __parse_forums(forums):
+    def _parse_forums(forums: list) -> list:
         result = list()
         for forum in forums:
             id = forum[0]
@@ -1095,7 +1117,7 @@ class Forum:
         return res
 
     @staticmethod
-    def __parse_messages(messages):
+    def _parse_messages(messages):
         result = list()
         for message in messages:
             id = message[0]
@@ -1120,7 +1142,8 @@ class Forum:
         return result
 
     @staticmethod
-    def get_messages(id):
+    def get_messages(id: int) -> list:
+        res = list()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1130,7 +1153,7 @@ class Forum:
 
             if not len(result): return None
 
-            return Forum.__parse_messages(result)
+            return Forum._parse_messages(result)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
@@ -1266,8 +1289,8 @@ class Dialog:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id FROM dialog "
-                                    f"WHERE senderId={cookie_user_id} AND receiverId={receiver_id} "
-                                    f"OR senderId={receiver_id} AND receiverId={cookie_user_id}").fetchall()
+                                 f"WHERE senderId={cookie_user_id} AND receiverId={receiver_id} "
+                                 f"OR senderId={receiver_id} AND receiverId={cookie_user_id}").fetchall()
             dialog_id = 0
             if len(result):
                 dialog_id = result[0][0]
@@ -2408,4 +2431,3 @@ class Superuser:
             tmp["date"] = date
             result.append(tmp)
         return result
-
