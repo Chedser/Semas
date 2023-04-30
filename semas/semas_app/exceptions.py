@@ -34,3 +34,19 @@ class WrongInput(Exception):
 class NoForumInfo(Exception):
     def __str__(self):
         return "No forum info"
+
+class NoDialogInfo(Exception):
+    def __str__(self):
+        return "No forum info"
+
+class NoDialogOpponentInfo(Exception):
+    def __str__(self):
+        return "No dialog opponent info"
+
+class NoDialogs(Exception):
+    def __str__(self):
+        return "No dialogs"
+
+class NoDialogMessages(Exception):
+    def __str__(self):
+        return "No dialog messages"

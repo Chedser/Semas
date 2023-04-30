@@ -41,7 +41,7 @@ class Auth:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         response = Response.SUCCESS.value
-
+        user_id = 0
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -70,7 +70,7 @@ class Auth:
             response = Response.USER_IS_BLOCKED.value
         finally:
             con.close()
-        return JsonResponse({'message': response})
+        return JsonResponse({'message': response, "id": user_id})
 
 
 class Reg:
@@ -1200,8 +1200,8 @@ class Forum:
         return JsonResponse({'message': res})
 
     @staticmethod
-    def get_forum_info(id: int) -> JsonResponse:
-        res = Response.UNKNOWN_ERROR.value
+    def get_forum_info(id: int) -> dict:
+        res = dict()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1217,7 +1217,7 @@ class Forum:
             print(f"{error.__str__()}")
         finally:
             con.close()
-        return JsonResponse({'message': res})
+        return res
 
     @staticmethod
     def delete_message(request: object) -> JsonResponse:
@@ -1258,7 +1258,7 @@ class Forum:
 
 class Dialog:
     @staticmethod
-    def __create_dialog(sender_id, receiver_id, message):
+    def _create_dialog(sender_id: int, receiver_id: int, message: str) -> bool:
         is_blocked_sender_id = User.get_info(sender_id)["is_blocked"]
         is_blocked_receiver_id = User.get_info(receiver_id)["is_blocked"]
         if is_blocked_sender_id or is_blocked_receiver_id: return False
@@ -1270,27 +1270,25 @@ class Dialog:
             cur = con.cursor()
             cur.execute("INSERT INTO dialog (senderId, receiverId, last_message, u_time)\
                                      VALUES (?,?,?,?)",
-                        (sender_id, receiver_id, message, (int)(time.time())))
+                        (sender_id, receiver_id, message, int(time.time())))
             con.commit()
 
             lastrowid = cur.lastrowid
-
             cur.execute("INSERT INTO dialog_message (userId, dialogId, text, u_time)\
                                                  VALUES (?,?,?,?)",
-                        (sender_id, lastrowid, message, (int)(time.time())))
+                        (sender_id, lastrowid, message, int(time.time())))
             con.commit()
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
-            Log.write_log(error.__str__(), Dialog.__create_dialog.__name__)
+            Log.write_log(error.__str__(), Dialog._create_dialog.__name__)
             result = False
         finally:
             con.close()
         return result
 
     @staticmethod
-    def get_dialog_id(cookie_user_id, receiver_id):
+    def get_dialog_id(cookie_user_id: int, receiver_id: int):
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1298,8 +1296,7 @@ class Dialog:
                                  f"WHERE senderId={cookie_user_id} AND receiverId={receiver_id} "
                                  f"OR senderId={receiver_id} AND receiverId={cookie_user_id}").fetchall()
             dialog_id = 0
-            if len(result):
-                dialog_id = result[0][0]
+            if len(result): dialog_id = result[0][0]
 
         except sqlite3.Error as error:
             con.rollback()
@@ -1310,58 +1307,54 @@ class Dialog:
         return dialog_id
 
     @staticmethod
-    def get_active_dialogs_count(cookie_user_id):
-        if not cookie_user_id: return None
+    def get_active_dialogs_count(cookie_user_id: int) -> int:
+        if not cookie_user_id: return 0
+        dialogs_count = 0
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             dialogs_count = cur.execute(f"SELECT COUNT(*)  FROM dialog"
                                         f" WHERE receiverId=? AND is_readen=0", (cookie_user_id,)).fetchall()[0][0]
-            return dialogs_count
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Dialog.get_active_dialogs_count.__name__)
         finally:
             con.close()
-        return None
+        return dialogs_count
 
     @staticmethod
-    def get_dialogs_count(cookie_user_id):
+    def get_dialogs_count(cookie_user_id: int) -> int:
+        if not cookie_user_id: return 0
+        dialogs_count = 0
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
-
             dialogs_count = cur.execute(f"SELECT COUNT(*)  FROM dialog"
                                         f" WHERE senderId=? OR  receiverId=?",
                                         (cookie_user_id, cookie_user_id)).fetchall()[0][0]
-            return dialogs_count
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Dialog.get_dialogs_count.__name__)
         finally:
             con.close()
-        return None
+        return dialogs_count
 
     @staticmethod
-    def __send_outer_in_existing_dialog(dialog_id, sender_id, receiver_id, message):
+    def _send_outer_in_existing_dialog(dialog_id: int, sender_id: int, receiver_id: int, message: str) -> bool:
         result = True
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             cur.execute(
                 f"UPDATE dialog SET senderId=?, receiverId=?, last_message=?, is_readen=0, u_time=? WHERE id=?",
-                (sender_id, receiver_id, message, (int)(time.time()), dialog_id))
+                (sender_id, receiver_id, message, int(time.time()), dialog_id))
             con.commit()
             cur.execute("INSERT INTO dialog_message (userId, dialogId, text, u_time)\
                                                          VALUES (?,?,?,?)",
-                        (sender_id, dialog_id, message, (int)(time.time())))
+                        (sender_id, dialog_id, message, int(time.time())))
             con.commit()
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
@@ -1372,7 +1365,7 @@ class Dialog:
         return result
 
     @staticmethod
-    def get_dialog_info(dialog_id):
+    def get_dialog_info(dialog_id: int) -> dict:
         result = dict()
         try:
             con = sqlite3.connect(DB_NAME)
@@ -1380,83 +1373,80 @@ class Dialog:
             dialog = cur.execute(
                 f"SELECT id, senderId, receiverId, is_readen, date FROM dialog WHERE id=?",
                 (dialog_id,)).fetchall()
-            if not dialog:
-                return None
-            else:
-                result["id"] = dialog[0][0]
-                result["sender_id"] = dialog[0][1]
-                result["receiver_id"] = dialog[0][2]
-                result["is_readen"] = dialog[0][3]
-                result["date"] = dialog[0][4]
-                return result
-
+            if not dialog: raise NoDialogInfo
+            result["id"] = dialog[0][0]
+            result["sender_id"] = dialog[0][1]
+            result["receiver_id"] = dialog[0][2]
+            result["is_readen"] = dialog[0][3]
+            result["date"] = dialog[0][4]
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Dialog.get_dialog_info.__name__)
-            result = None
+        except NoDialogInfo as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
         return result
 
     @staticmethod
-    def get_dialog_opponent_info(cookie_user_id, dialog_id):
+    def get_dialog_opponent_info(cookie_user_id: int, dialog_id: int):
+        result = dict()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             dialog = cur.execute(
                 f"SELECT senderId, receiverId FROM dialog WHERE id=?", (dialog_id,)).fetchall()[0]
 
-            if not len(dialog):
-                return None
-            else:
-                sender_id = dialog[0]
-                receiver_id = dialog[1]
-                opponent_id = receiver_id
+            if not len(dialog): raise NoDialogOpponentInfo
 
-                if sender_id != cookie_user_id:
-                    opponent_id = sender_id
+            sender_id = dialog[0]
+            receiver_id = dialog[1]
+            opponent_id = receiver_id
 
-                user_info = User.get_info(opponent_id)
+            if sender_id != cookie_user_id: opponent_id = sender_id
 
-                return user_info
-
+            result = User.get_info(opponent_id)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Dialog.get_dialog_opponent_info.__name__)
-            result = None
+        except NoDialogOpponentInfo as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
         return result
 
     @staticmethod
-    def update_status(cookie_user_id, dialog_id):
+    def update_status(cookie_user_id: int, dialog_id: int) -> bool:
         dialog_info = Dialog.get_dialog_info(dialog_id)
         receiver_id = dialog_info["receiver_id"]
 
-        if receiver_id != cookie_user_id: return
+        result = True
+        if len(dialog_info) and receiver_id:
+            receiver_id = int(receiver_id)
+        if receiver_id != cookie_user_id: return False
         User.update_time_of_last_action(cookie_user_id)
+
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
             cur.execute(
                 f"UPDATE dialog SET is_readen=1, u_time=? WHERE id=?",
-                ((int)(time.time()), dialog_id))
+                (int(time.time()), dialog_id))
             con.commit()
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Dialog.update_status.__name__)
+            result = False
         finally:
             con.close()
+        return result
 
     # ДОДЕЛАТЬ
     @staticmethod
-    def get_dialogs(cookie_user_id):
-
+    def get_dialogs(cookie_user_id: int) -> list:
+        result = list()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1494,23 +1484,22 @@ class Dialog:
             # f"date FROM dialog WHERE senderId=? OR receiverId=? " \
             # "ORDER by date DESC,is_readen ASC"
 
-            if not len(dialogs):
-                return None
+            if not len(dialogs): raise NoDialogs
 
-            result = Dialog.__parse_dialogs(dialogs, cookie_user_id)
+            result = Dialog._parse_dialogs(dialogs, cookie_user_id)
             User.update_time_of_last_action(cookie_user_id)
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Dialog.get_dialogs.__name__)
-            result = None
+        except NoDialogs as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
         return result
 
     @staticmethod
-    def __parse_dialogs(dialogs, cookie_user_id):
+    def _parse_dialogs(dialogs: list, cookie_user_id: int) -> list:
         result = list()
         for dialog in dialogs:
             id = dialog[0]
@@ -1546,21 +1535,19 @@ class Dialog:
         return result
 
     @staticmethod
-    def __send_inner_in_existing_dialog(dialog_id, sender_id, receiver_id, message, is_readen):
+    def _send_inner_in_existing_dialog(dialog_id: int, sender_id: int, receiver_id: int, message: str, is_readen: int) -> bool:
         result = True
         try:
             con = sqlite3.connect(DB_NAME)
-
             cur = con.cursor()
             cur.execute(
                 f"UPDATE dialog SET senderId=?, receiverId=?, last_message=?, is_readen=?, u_time=? WHERE id=?",
-                (sender_id, receiver_id, message, is_readen, (int)(time.time()), dialog_id))
+                (sender_id, receiver_id, message, is_readen, int(time.time()), dialog_id))
             con.commit()
             cur.execute("INSERT INTO dialog_message (userId, dialogId, text, u_time)\
                                                             VALUES (?,?,?,?)",
-                        (sender_id, dialog_id, message, (int)(time.time())))
+                        (sender_id, dialog_id, message, int(time.time())))
             con.commit()
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
@@ -1571,10 +1558,10 @@ class Dialog:
         return result
 
     @staticmethod
-    def send_inner(request):
+    def send_inner(request: object) -> JsonResponse:
         if request.session.get("id"):
             cookie_user_id = int(request.session.get("id"))
-            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            is_blocked = User.get_info(int(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
@@ -1582,12 +1569,10 @@ class Dialog:
         dialog_id = request.POST.get('dialog_id')
         message = request.POST.get('message').strip()
 
-        if not dialog_id or \
-                not message:
+        if not dialog_id or not message:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         dialog_id = int(dialog_id)
-
         dialog_info = Dialog.get_dialog_info(dialog_id)
 
         sender_id = dialog_info["sender_id"]
@@ -1599,7 +1584,7 @@ class Dialog:
         if receiver_id == cookie_user_id:
             sender_id, receiver_id = receiver_id, sender_id
 
-        result = Dialog.__send_inner_in_existing_dialog(dialog_id, sender_id, receiver_id, message, 0)
+        result = Dialog._send_inner_in_existing_dialog(dialog_id, sender_id, receiver_id, message, 0)
         User.update_time_of_last_action(cookie_user_id)
 
         if result:
@@ -1608,10 +1593,10 @@ class Dialog:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
     @staticmethod
-    def send_outer(request):
+    def send_outer(request: object) -> JsonResponse:
         if request.session.get("id"):
             cookie_user_id = int(request.session.get("id"))
-            is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+            is_blocked = User.get_info(int(cookie_user_id))["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.USER_IS_BLOCKED.value})
         else:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
@@ -1620,7 +1605,7 @@ class Dialog:
         message = request.POST.get('message').strip()
 
         if not receiver_id or \
-                not message or \
+            not message or \
                 cookie_user_id == receiver_id:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
@@ -1631,6 +1616,7 @@ class Dialog:
         if user_is_in_black_list != 0: return JsonResponse({'message': Response.WRONG_INPUT.value})
         User.update_time_of_last_action(cookie_user_id)
 
+        res = Response.UNKNOWN_ERROR.value
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1640,7 +1626,7 @@ class Dialog:
 
             if not len(dialog_id):
                 # Создать диалог
-                dialog_created = Dialog.__create_dialog(cookie_user_id, receiver_id, message)
+                dialog_created = Dialog._create_dialog(cookie_user_id, receiver_id, message)
                 if dialog_created:
                     return JsonResponse({'message': Response.SUCCESS.value})
                 else:
@@ -1648,23 +1634,19 @@ class Dialog:
             else:
                 # Написать сообщение в существующий диалог
                 dialog_id = dialog_id[0][0]
-                result = Dialog.__send_outer_in_existing_dialog(dialog_id, cookie_user_id, receiver_id, message)
+                result = Dialog._send_outer_in_existing_dialog(dialog_id, cookie_user_id, receiver_id, message)
 
-                if result:
-                    return JsonResponse({'message': Response.SUCCESS.value})
-                else:
-                    return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
-
+                if result: res = Response.SUCCESS.value
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Dialog.send_outer.__name__)
-            return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         finally:
             con.close()
+        return JsonResponse({'message': res})
 
     @staticmethod
-    def get_dialog_messages(dialog_id):
+    def get_dialog_messages(dialog_id: int) -> list:
+        result = list()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1676,22 +1658,21 @@ class Dialog:
 
             messages = cur.execute(sql, (dialog_id,)).fetchall()
 
-            if not len(messages):
-                return None
+            if not len(messages): raise NoDialogMessages
 
-            result = Dialog.__parse_dialog_messages(messages)
-
+            result = Dialog._parse_dialog_messages(messages)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Dialog.get_dialog_messages.__name__)
-            result = None
+        except NoDialogMessages as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
         return result
 
     @staticmethod
-    def __parse_dialog_messages(messages):
+    def _parse_dialog_messages(messages: list) -> list:
         result = list()
         for message in messages:
             id = message[0]
@@ -1715,8 +1696,9 @@ class Dialog:
 
 class UserPageLike:
     @staticmethod
-    def get_page_likes_count(user_id):
-        if not user_id: return None
+    def get_page_likes_count(user_id: int):
+        if not user_id: return  0
+        result = 0
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1724,12 +1706,10 @@ class UserPageLike:
                 cur.execute(f"SELECT COUNT(*) FROM user_page_like WHERE userId=?", (user_id,)).fetchall()[0][0]
 
             result = likes_count
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), UserPageLike.get_page_likes_count.__name__)
-            result = None
         finally:
             con.close()
         return result

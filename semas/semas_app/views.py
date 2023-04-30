@@ -162,6 +162,7 @@ def users(request):
 def forum(request, id):
     if not id or request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>", status_code=404)
     forum_info = Forum.get_forum_info(id)
+    print(forum_info)
 
     if not forum_info: return redirect("/forum")
 
@@ -173,7 +174,7 @@ def forum(request, id):
     if request.session.get("id"):
         cookie_user_id = request.session.get("id")
         cookie_user_id = int(cookie_user_id)
-        user_is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+        user_is_blocked = User.get_info(int(cookie_user_id))["is_blocked"]
         active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
         friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
 
@@ -181,7 +182,7 @@ def forum(request, id):
             "active_dialogs_count": active_dialogs_count, "friend_requests_count": friend_requests_count,
             "user_is_blocked": user_is_blocked}
 
-    return render(request, "admin_forum.html", context=data)
+    return render(request, "forum.html", context=data)
 
 
 @never_cache
@@ -194,7 +195,7 @@ def forum_topics(request):
     friend_requests_count = None
     if request.session.get("id"):
         cookie_user_id = request.session.get("id")
-        is_blocked = User.get_info((int)(cookie_user_id))["is_blocked"]
+        is_blocked = User.get_info(int(cookie_user_id))["is_blocked"]
         active_dialogs_count = Dialog.get_active_dialogs_count(cookie_user_id)
         friend_requests_count = Friend.get_friend_requests_count(cookie_user_id)
 
