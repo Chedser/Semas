@@ -1695,7 +1695,7 @@ class Dialog:
 
 class UserPageLike:
     @staticmethod
-    def get_page_likes_count(user_id: int):
+    def get_page_likes_count(user_id: int) -> int:
         if not user_id: return  0
         result = 0
         try:

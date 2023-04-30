@@ -162,7 +162,6 @@ def users(request):
 def forum(request, id):
     if not id or request.method != "GET": return HttpResponse("<h1>Страница не найдена: 404</h1>", status_code=404)
     forum_info = Forum.get_forum_info(id)
-    print(forum_info)
 
     if not forum_info: return redirect("/forum")
 
