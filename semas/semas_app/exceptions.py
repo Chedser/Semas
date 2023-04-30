@@ -22,3 +22,15 @@ class NoFriends(Exception):
 class ForumExists(Exception):
     def __str__(self):
         return "Forum exists"
+
+class NoMessages(Exception):
+    def __str__(self):
+        return "No messages"
+
+class WrongInput(Exception):
+    def __str__(self):
+        return "Wrong input"
+
+class NoForumInfo(Exception):
+    def __str__(self):
+        return "No forum info"

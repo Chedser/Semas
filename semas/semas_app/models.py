@@ -1093,7 +1093,7 @@ class Forum:
         return result
 
     @staticmethod
-    def __parse_forum_info(forum):
+    def _parse_forum_info(forum: list) -> dict:
         id = forum[0]
         creatorId = forum[1]
         forum_name = forum[2]
@@ -1151,19 +1151,22 @@ class Forum:
                  FROM forum_message INNER JOIN user ON forum_message.senderId=user.id WHERE forumId=?",
                                  (id,)).fetchall()
 
-            if not len(result): return None
+            if not len(result): raise NoMessages
 
-            return Forum._parse_messages(result)
+            res = Forum._parse_messages(result)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Forum.get_messages.__name__)
-            return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+            res = Response.UNKNOWN_ERROR.value
+        except NoMessages as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
+        return JsonResponse({'message': res})
 
     @staticmethod
-    def send_message(request):
+    def send_message(request: object) -> JsonResponse:
         if request.session.get("id"):
             cookie_user_id = int(request.session.get("id"))
             is_blocked = User.get_info(cookie_user_id)["is_blocked"]
@@ -1179,44 +1182,47 @@ class Forum:
         forum_info = Forum.get_forum_info(forum_id)
         if not forum_info: return JsonResponse({'message': Response.WRONG_INPUT.value})
 
+        res = Response.SUCCESS.value
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             cur.execute("INSERT INTO forum_message (senderId, forumId, text, u_time)\
                                      VALUES (?,?,?,?)",
-                        (cookie_user_id, forum_id, message, (int)(time.time())))
+                        (cookie_user_id, forum_id, message, int(time.time())))
             con.commit()
-            return JsonResponse({'message': Response.SUCCESS.value})
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Forum.send_message.__name__)
-            return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+            res = Response.UNKNOWN_ERROR.value
         finally:
             con.close()
+        return JsonResponse({'message': res})
 
     @staticmethod
-    def get_forum_info(id):
+    def get_forum_info(id: int) -> JsonResponse:
+        res = Response.UNKNOWN_ERROR.value
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT forum.id AS id,  creatorId, name, text, forum.date AS date, user.avatar AS avatar, user.nick AS nick  \
                     FROM forum INNER JOIN user ON forum.creatorId=user.id WHERE forum.id=?", (id,)).fetchall()
-            if not len(result): return None
+            if not len(result): return NoForumInfo
             result = result[0]
-            return Forum.__parse_forum_info(result)
+            res = Forum._parse_forum_info(result)
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Forum.get_forum_info.__name__)
-            return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+        except NoForumInfo as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
+        return JsonResponse({'message': res})
 
     @staticmethod
-    def delete_message(request):
+    def delete_message(request: object) -> JsonResponse:
         if request.session.get("id"):
-            cookie_user_id = (int)(request.session.get("id"))
+            cookie_user_id = int(request.session.get("id"))
             is_blocked = User.get_info(cookie_user_id)["is_blocked"]
             if is_blocked: return JsonResponse({'message': Response.WRONG_INPUT.value})
         else:
@@ -1228,26 +1234,26 @@ class Forum:
         if not message_id or not sender_id:
             return JsonResponse({'message': Response.WRONG_INPUT.value})
 
-        sender_id = (int)(sender_id)
-        message_id = (int)(message_id)
+        sender_id = int(sender_id)
+        message_id = int(message_id)
 
         if sender_id != cookie_user_id: return JsonResponse({'message': Response.WRONG_INPUT.value})
 
         User.update_time_of_last_action(cookie_user_id)
-
+        res = Response.SUCCESS.value
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             cur.execute(f"DELETE FROM forum_message WHERE id=?", (message_id,))
             con.commit()
-            return JsonResponse({'message': Response.SUCCESS.value})
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Forum.delete_message.__name__)
-            return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
+            res = Response.UNKNOWN_ERROR.value
         finally:
             con.close()
+        return JsonResponse({'message': res})
 
 
 class Dialog:
