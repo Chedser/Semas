@@ -89,6 +89,7 @@ def admin_forum(request):
 
     return render(request, "admin_forum.html", context=data)
 
+@never_cache
 def admin_log(request):
     if not request.session.get("su") or request.method != "GET": return redirect("/su")
     logs = Superuser.get_logs()
