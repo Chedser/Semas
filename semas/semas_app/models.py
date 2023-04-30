@@ -1714,7 +1714,7 @@ class UserPageLike:
         return result
 
     @staticmethod
-    def set_page_like(request):
+    def set_page_like(request: object) -> JsonResponse:
         if request.session.get("id"):
             cookie_user_id = int(request.session.get("id"))
         else:
@@ -1724,10 +1724,10 @@ class UserPageLike:
 
         if not user_id: return JsonResponse({'message': -1})
 
-        user_id = (int)(user_id)
+        user_id = int(user_id)
 
         User.update_time_of_last_action(cookie_user_id)
-
+        res = -1
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1741,21 +1741,19 @@ class UserPageLike:
             else:
                 likes_count_total = likes_count_total + 1
 
-            if UserPageLike.__update_page_like(user_id, cookie_user_id, insert):
-                return JsonResponse({'message': likes_count_total})
-            else:
-                return JsonResponse({'message': -1})
+            if UserPageLike._update_page_like(user_id, cookie_user_id, insert):
+                res = likes_count_total
 
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), UserPageLike.set_page_like.__name__)
-            return JsonResponse({'message': -1})
         finally:
             con.close()
+        return JsonResponse({'message': res})
 
     @staticmethod
-    def __update_page_like(user_id, cookie_user_id, insert):
+    def _update_page_like(user_id: int, cookie_user_id: int, insert: bool) -> bool:
         result = True
         try:
             con = sqlite3.connect(DB_NAME)
@@ -1763,12 +1761,11 @@ class UserPageLike:
 
             if insert:
                 cur.execute(f"INSERT INTO user_page_like(userId,likerId,u_time) VALUES (?,?,?)",
-                            (user_id, cookie_user_id, (int)(time.time())))
+                            (user_id, cookie_user_id, int(time.time())))
             else:
                 cur.execute(f"DELETE FROM  user_page_like WHERE userId=? AND likerId=?",
                             (user_id, cookie_user_id))
             con.commit()
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
@@ -1781,9 +1778,10 @@ class UserPageLike:
 
 class WallMessageLike:
     @staticmethod
-    def get_wall_message_likes_count(message_id):
-        if not message_id: return None
+    def get_wall_message_likes_count(message_id: int) -> int:
+        if not message_id: return 0
 
+        result = 0
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1791,18 +1789,16 @@ class WallMessageLike:
                 cur.execute(f"SELECT COUNT(*) FROM wall_message_like WHERE messageId=?", (message_id,)).fetchall()[0][0]
 
             result = likes_count
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), WallMessageLike.get_wall_message_likes_count.__name__)
-            result = None
         finally:
             con.close()
         return result
 
     @staticmethod
-    def set_wall_message_like(request):
+    def set_wall_message_like(request: object) -> JsonResponse:
         if request.session.get("id"):
             cookie_user_id = int(request.session.get("id"))
         else:
@@ -1812,10 +1808,10 @@ class WallMessageLike:
 
         if not message_id: return JsonResponse({'message': -1})
 
-        message_id = (int)(message_id)
+        message_id = int(message_id)
 
         User.update_time_of_last_action(cookie_user_id)
-
+        res = -1
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1823,7 +1819,7 @@ class WallMessageLike:
             message_exists = cur.execute(f"SELECT COUNT(*) FROM wall_message WHERE id=?",
                                          (message_id,)).fetchall()[0][0]
 
-            if not message_exists: return JsonResponse({'message': -1})
+            if not message_exists:  raise MessageDoesNotExists
 
             likes_count_from_user = \
                 cur.execute(f"SELECT COUNT(*) FROM wall_message_like WHERE messageId=? AND likerId=?",
@@ -1836,21 +1832,21 @@ class WallMessageLike:
             else:
                 likes_count_total = likes_count_total + 1
 
-            if WallMessageLike.__update_wall_message_like(message_id, cookie_user_id, insert):
-                return JsonResponse({'message': likes_count_total})
-            else:
-                return JsonResponse({'message': -1})
+            if WallMessageLike._update_wall_message_like(message_id, cookie_user_id, insert):
+                res = likes_count_total
 
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), WallMessageLike.set_wall_message_like.__name__)
-            return JsonResponse({'message': -1})
+        except MessageDoesNotExists as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
+        return JsonResponse({'message': res})
 
     @staticmethod
-    def __update_wall_message_like(message_id, cookie_user_id, insert):
+    def _update_wall_message_like(message_id: int, cookie_user_id: int, insert: bool) -> bool:
         result = True
         try:
             con = sqlite3.connect(DB_NAME)
@@ -1858,12 +1854,11 @@ class WallMessageLike:
 
             if insert:
                 cur.execute(f"INSERT INTO wall_message_like(messageId,likerId,u_time) VALUES (?,?,?)",
-                            (message_id, cookie_user_id, (int)(time.time())))
+                            (message_id, cookie_user_id, int(time.time())))
             else:
                 cur.execute(f"DELETE FROM  wall_message_like WHERE messageId=? AND likerId=?",
                             (message_id, cookie_user_id))
             con.commit()
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
@@ -1876,29 +1871,27 @@ class WallMessageLike:
 
 class ForumMessageLike:
     @staticmethod
-    def get_forum_message_likes_count(message_id):
-        if not message_id: return None
+    def get_forum_message_likes_count(message_id: int) -> int:
+        if not message_id: return 0
 
+        result = 0
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            likes_count = \
-                cur.execute(f"SELECT COUNT(*) FROM forum_message_like WHERE messageId=?", (message_id,)).fetchall()[0][
-                    0]
+            likes_count = cur.execute(f"SELECT COUNT(*) FROM forum_message_like WHERE messageId=?",
+                            (message_id,)).fetchall()[0][0]
 
             result = likes_count
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), ForumMessageLike.get_forum_message_likes_count.__name__)
-            result = None
         finally:
             con.close()
         return result
 
     @staticmethod
-    def set_forum_message_like(request):
+    def set_forum_message_like(request: object) -> JsonResponse:
         if request.session.get("id"):
             cookie_user_id = int(request.session.get("id"))
         else:
@@ -1908,10 +1901,11 @@ class ForumMessageLike:
 
         if not message_id: return JsonResponse({'message': -1})
 
-        message_id = (int)(message_id)
+        message_id = int(message_id)
 
         User.update_time_of_last_action(cookie_user_id)
 
+        res = -1
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -1919,7 +1913,7 @@ class ForumMessageLike:
             message_exists = cur.execute(f"SELECT COUNT(*) FROM forum_message WHERE id=?",
                                          (message_id,)).fetchall()[0][0]
 
-            if not message_exists: return JsonResponse({'message': -1})
+            if not message_exists: raise MessageDoesNotExists
 
             likes_count_from_user = \
                 cur.execute(f"SELECT COUNT(*) FROM forum_message_like WHERE messageId=? AND likerId=?",
@@ -1932,21 +1926,21 @@ class ForumMessageLike:
             else:
                 likes_count_total = likes_count_total + 1
 
-            if ForumMessageLike.__update_forum_message_like(message_id, cookie_user_id, insert):
-                return JsonResponse({'message': likes_count_total})
-            else:
-                return JsonResponse({'message': -1})
+            if ForumMessageLike._update_forum_message_like(message_id, cookie_user_id, insert):
+                res = likes_count_total
 
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), ForumMessageLike.set_forum_message_like.__name__)
-            return JsonResponse({'message': -1})
+        except MessageDoesNotExists as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
+        return JsonResponse({'message': res})
 
     @staticmethod
-    def __update_forum_message_like(message_id, cookie_user_id, insert):
+    def _update_forum_message_like(message_id: int, cookie_user_id: int, insert: bool) -> bool:
         result = True
         try:
             con = sqlite3.connect(DB_NAME)
@@ -1954,7 +1948,7 @@ class ForumMessageLike:
 
             if insert:
                 cur.execute(f"INSERT INTO forum_message_like(messageId,likerId,u_time) VALUES (?,?,?)",
-                            (message_id, cookie_user_id, (int)(time.time())))
+                            (message_id, cookie_user_id, int(time.time())))
             else:
                 cur.execute(f"DELETE FROM  forum_message_like WHERE messageId=? AND likerId=?",
                             (message_id, cookie_user_id))
@@ -1963,7 +1957,7 @@ class ForumMessageLike:
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
-            Log.write_log(error.__str__(), ForumMessageLike.__update_forum_message_like.__name__)
+            Log.write_log(error.__str__(), ForumMessageLike._update_forum_message_like.__name__)
             result = False
         finally:
             con.close()
@@ -1972,7 +1966,7 @@ class ForumMessageLike:
 
 class ForumMainMessageLike:
     @staticmethod
-    def get_forum_main_message_likes_count(forum_id):
+    def get_forum_main_message_likes_count(forum_id: int):
         if not forum_id: return None
 
         try:

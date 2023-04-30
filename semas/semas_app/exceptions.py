@@ -43,6 +43,10 @@ class NoDialogOpponentInfo(Exception):
     def __str__(self):
         return "No dialog opponent info"
 
+class MessageDoesNotExists(Exception):
+    def __str__(self):
+        return "Message does not exists"
+
 class NoDialogs(Exception):
     def __str__(self):
         return "No dialogs"
