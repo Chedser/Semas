@@ -1158,12 +1158,11 @@ class Forum:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Forum.get_messages.__name__)
-            res = Response.UNKNOWN_ERROR.value
         except NoMessages as error:
             print(f"{error.__str__()}")
         finally:
             con.close()
-        return JsonResponse({'message': res})
+        return res
 
     @staticmethod
     def send_message(request: object) -> JsonResponse:
