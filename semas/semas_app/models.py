@@ -46,7 +46,8 @@ class Auth:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id, login, password FROM user WHERE login=?", (login,)).fetchall()
-            if not len(result): raise WrongUserOrPassword
+            if not len(result):
+                raise WrongUserOrPassword
 
             is_blocked = User.get_info(int(result[0][0]))["is_blocked"]
             if is_blocked: raise UserIsBlocked
