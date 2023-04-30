@@ -1966,42 +1966,36 @@ class ForumMessageLike:
 
 class ForumMainMessageLike:
     @staticmethod
-    def get_forum_main_message_likes_count(forum_id: int):
-        if not forum_id: return None
-
+    def get_forum_main_message_likes_count(forum_id: int) -> int:
+        if not forum_id: return 0
+        result = 0
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
-            likes_count = \
-                cur.execute(f"SELECT COUNT(*) FROM forum_main_message_like WHERE forumId=?", (forum_id,)).fetchall()[0][
-                    0]
+            likes_count = cur.execute(f"SELECT COUNT(*) FROM forum_main_message_like WHERE forumId=?",
+                            (forum_id,)).fetchall()[0][0]
 
             result = likes_count
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), ForumMainMessageLike.get_forum_main_message_likes_count.__name__)
-            result = None
         finally:
             con.close()
         return result
 
     @staticmethod
-    def set_forum_main_message_like(request):
-        if request.session.get("id"):
+    def set_forum_main_message_like(request: object) -> JsonResponse:
+        if request.session.get("id") and request.POST.get('forum_id'):
             cookie_user_id = int(request.session.get("id"))
+            forum_id = int(request.POST.get('forum_id'))
         else:
             return JsonResponse({'message': -1})
 
-        forum_id = request.POST.get('forum_id')
-
         if not forum_id: return JsonResponse({'message': -1})
 
-        forum_id = (int)(forum_id)
-
         User.update_time_of_last_action(cookie_user_id)
-
+        res = -1
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -2009,7 +2003,7 @@ class ForumMainMessageLike:
             forum_exists = cur.execute(f"SELECT COUNT(*) FROM forum WHERE id=?",
                                        (forum_id,)).fetchall()[0][0]
 
-            if not forum_exists: return JsonResponse({'message': -1})
+            if not forum_exists: raise NoForumInfo
 
             likes_count_from_user = \
                 cur.execute(f"SELECT COUNT(*) FROM forum_main_message_like WHERE forumId=? AND likerId=?",
@@ -2022,21 +2016,20 @@ class ForumMainMessageLike:
             else:
                 likes_count_total = likes_count_total + 1
 
-            if ForumMainMessageLike.__update_forum_main_message_like(forum_id, cookie_user_id, insert):
-                return JsonResponse({'message': likes_count_total})
-            else:
-                return JsonResponse({'message': -1})
-
+            if ForumMainMessageLike._update_forum_main_message_like(forum_id, cookie_user_id, insert):
+                res = likes_count_total
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), ForumMainMessageLike.set_forum_main_message_like.__name__)
-            return JsonResponse({'message': -1})
+        except NoForumInfo as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
+        return JsonResponse({'message': res})
 
     @staticmethod
-    def __update_forum_main_message_like(forum_id, cookie_user_id, insert):
+    def _update_forum_main_message_like(forum_id: int, cookie_user_id: int, insert: bool) -> bool:
         result = True
         try:
             con = sqlite3.connect(DB_NAME)
@@ -2044,12 +2037,11 @@ class ForumMainMessageLike:
 
             if insert:
                 cur.execute(f"INSERT INTO forum_main_message_like(forumId,likerId,u_time) VALUES (?,?,?)",
-                            (forum_id, cookie_user_id, (int)(time.time())))
+                            (forum_id, cookie_user_id, int(time.time())))
             else:
                 cur.execute(f"DELETE FROM  forum_main_message_like WHERE forumId=? AND likerId=?",
                             (forum_id, cookie_user_id))
             con.commit()
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
@@ -2062,29 +2054,29 @@ class ForumMainMessageLike:
 
 class Notice:
     @staticmethod
-    def get_notice(cookie_user_id=None):
+    def get_notice(cookie_user_id=None) -> list:
         if cookie_user_id:
             cookie_user_id = int(cookie_user_id)
             User.update_time_of_last_action(cookie_user_id)
+        result = list()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             notice = cur.execute(
                 f"SELECT id, entityId, type, date FROM notice ORDER by id DESC").fetchall()
 
-            return Notice.__parse_notice(notice)
+            result = Notice._parse_notice(notice)
 
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Notice.get_notice.__name__)
-            result = None
         finally:
             con.close()
         return result
 
     @staticmethod
-    def __parse_notice(notices):
+    def _parse_notice(notices: list) -> list:
         result = list()
         for notice in notices:
             id = notice[0]
@@ -2154,72 +2146,71 @@ class Notice:
 
 class Superuser:
     @staticmethod
-    def auth(request):
+    def auth(request: object) -> int:
         login = request.POST.get('login').strip()
         password = request.POST.get('pass').strip()
 
-        if len(login) == 0 or len(password) == 0:
+        if not len(login) or not len(password):
             return 0
 
+        res = 0
         try:
             con = sqlite3.connect(DB_NAME)
 
             cur = con.cursor()
             result = cur.execute(f"SELECT id, login, password FROM superuser WHERE login='{login}'").fetchall()
-            if len(result) == 0:
-                con.close()
-                return 0
+            if not len(result): raise NoSuperuserFound
 
             bd_pass = result[0][2]
 
-            if bd_pass != get_hash(password):
-                con.close()
-                return 0
+            if bd_pass != get_hash(password): raise NoSuperuserFound
             request.session["su"] = login
-            return 1
+            res = 1
 
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Superuser.auth.__name__)
-            return 0
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def get_users():
+    def get_users() -> list:
+        res = list()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id, nick, is_blocked, avatar FROM user").fetchall()
 
-            return Superuser.__parse_users(result)
-
+            res = Superuser._parse_users(result)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Superuser.get_users.__name__)
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def get_forums():
+    def get_forums() -> list:
+        res = list()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id, name FROM forum ORDER BY date DESC").fetchall()
 
-            return Superuser.__parse_forums(result)
+            res = Superuser._parse_forums(result)
 
         except sqlite3.Error as error:
-            con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Superuser.get_forums.__name__)
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def __parse_forums(forums):
+    def _parse_forums(forums: list) -> list:
         result = list()
         for forum in forums:
             id = forum[0]
@@ -2232,7 +2223,7 @@ class Superuser:
         return result
 
     @staticmethod
-    def __parse_users(users):
+    def _parse_users(users: list):
         result = list()
         for user in users:
             id = user[0]
@@ -2250,11 +2241,12 @@ class Superuser:
         return result
 
     @staticmethod
-    def block_user(request):
+    def block_user(request: object) -> JsonResponse:
         user_id = request.POST.get("user_id")
         if not user_id: return -1
         user_id = int(user_id)
 
+        res = -1
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
@@ -2262,40 +2254,35 @@ class Superuser:
             result = cur.execute(f"SELECT is_blocked FROM user WHERE id={user_id}").fetchall()
             is_blocked = result[0][0]
 
-            if is_blocked == 0:
-                is_blocked = 1
-            else:
-                is_blocked = 0
+            if not is_blocked: is_blocked = 1
+            else:   is_blocked = 0
 
             cur.execute(f"UPDATE user SET is_blocked=? WHERE id=?", \
                         (is_blocked, user_id))
             con.commit()
-            return JsonResponse({'message': is_blocked})
-
+            res = is_blocked
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Superuser.block_user.__name__)
         finally:
             con.close()
-        return JsonResponse({'message': 2})
+        return JsonResponse({'message': res})
 
     @staticmethod
-    def delete_forum(request):
+    def delete_forum(request: object) -> JsonResponse:
         forum_id = request.POST.get("forum_id")
 
         if not forum_id: return JsonResponse({'message': Response.UNKNOWN_ERROR.value})
         forum_id = int(forum_id)
 
         result = Response.SUCCESS.value
-
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             cur.execute(f"DELETE FROM forum WHERE id=?", (forum_id,))
             cur.execute(f"DELETE FROM notice WHERE entityId=?", (forum_id,))
             con.commit()
-
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
@@ -2306,17 +2293,18 @@ class Superuser:
         return JsonResponse({'message': result})
 
     @staticmethod
-    def find_user(request):
+    def find_user(request: object) -> JsonResponse:
         user_id = request.POST.get("user_id")
         if not user_id: return -1
         user_id = int(user_id)
 
+        res = -1
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id, nick, is_blocked, avatar FROM user WHERE id={user_id}").fetchall()
 
-            if len(result) == 0: return JsonResponse({"message": -1})
+            if not len(result): raise UserDoesNotExists
 
             result = result[0]
 
@@ -2334,28 +2322,30 @@ class Superuser:
             tmp["is_blocked"] = is_blocked
             lst.append(tmp)
 
-            return JsonResponse({"message": json.dumps(lst)})
-
+            res = json.dumps(lst)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Superuser.find_user.__name__)
-            return JsonResponse({"message": -1})
+        except UserDoesNotExists as error:
+            print(f"DataBase error {error.__str__()}")
         finally:
             con.close()
+        return JsonResponse({"message": res})
 
     @staticmethod
-    def find_forum(request):
+    def find_forum(request: object) -> JsonResponse:
         forum_id = request.POST.get("forum_id")
         if not forum_id: return -1
         forum_id = int(forum_id)
 
+        res = None
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id, name FROM forum WHERE id={forum_id}").fetchall()
 
-            if len(result) == 0: return JsonResponse({"message": -1})
+            if not len(result): raise NoForumInfo
 
             result = result[0]
 
@@ -2367,35 +2357,36 @@ class Superuser:
             tmp["id"] = id
             tmp["topic"] = topic
             lst.append(tmp)
-
-            return JsonResponse({"message": json.dumps(lst)})
-
+            res = json.dumps(lst)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Superuser.find_forum.__name__)
-            return JsonResponse({"message": -1})
+        except NoForumInfo as error:
+            print(f"{error.__str__()}")
         finally:
             con.close()
+        return JsonResponse({"message": res})
 
     @staticmethod
     def get_logs():
+        res = list()
         try:
             con = sqlite3.connect(DB_NAME)
             cur = con.cursor()
             result = cur.execute(f"SELECT id, text, type, date FROM log ORDER BY date DESC").fetchall()
 
-            return Superuser.__parse_logs(result)
-
+            res = Superuser._parse_logs(result)
         except sqlite3.Error as error:
             con.rollback()
             print(f"DataBase error {error.__str__()}")
             Log.write_log(error.__str__(), Superuser.get_logs.__name__)
         finally:
             con.close()
+        return res
 
     @staticmethod
-    def __parse_logs(logs):
+    def _parse_logs(logs: list) -> list:
         result = list()
         for log in logs:
             id = log[0]

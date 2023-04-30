@@ -54,3 +54,7 @@ class NoDialogs(Exception):
 class NoDialogMessages(Exception):
     def __str__(self):
         return "No dialog messages"
+
+class NoSuperuserFound(Exception):
+    def __str__(self):
+        return "No superuser found"
