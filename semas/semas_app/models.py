@@ -521,6 +521,22 @@ class User:
             con.close()
 
     @staticmethod
+    def _parse_all_users(users: list) -> list:
+        result = list()
+        for user in users:
+            id = user[0]
+            nick = user[1]
+            avatar = user[2]
+            avatar = User.get_avatar_link(avatar, id)
+
+            tmp = dict()
+            tmp["id"] = id
+            tmp["nick"] = nick
+            tmp["avatar"] = avatar
+            result.append(tmp)
+        return result
+
+    @staticmethod
     def get_all_users() -> list:
         res = None
         try:
@@ -539,22 +555,6 @@ class User:
         return res
 
     @staticmethod
-    def _parse_all_users(users: list) -> list:
-        result = list()
-        for user in users:
-            id = user[0]
-            nick = user[1]
-            avatar = user[2]
-            avatar = User.get_avatar_link(avatar, id)
-
-            tmp = dict()
-            tmp["id"] = id
-            tmp["nick"] = nick
-            tmp["avatar"] = avatar
-            result.append(tmp)
-        return result
-
-    @staticmethod
     def find_user_by_nick(request: object) -> JsonResponse:
         if not request.POST.get("nick"): return JsonResponse({"message": -1})
 
@@ -570,7 +570,7 @@ class User:
                 result = cur.execute(
                     f"SELECT id, nick, avatar FROM user WHERE nick LIKE '%{nick}%' AND NOT is_blocked ORDER BY length(nick)").fetchall()
 
-            result = User.__parse_all_users(result)
+            result = User._parse_all_users(result)
 
             response = json.dumps(result)
         except sqlite3.Error as error:
